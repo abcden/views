@@ -69,6 +69,9 @@ jobs:
           echo "FFmpeg y FFprobe listos"
           echo "::notice title=Clip Forge::Instalando procesador de videos"
           timeout -k 10s 90s python -m pip install --disable-pip-version-check --retries 2 --timeout 15 'yt-dlp[default]' 'requests>=2.32,<3'
+          if ! timeout -k 10s 150s python -m pip install --disable-pip-version-check --retries 1 --timeout 20 'faster-whisper>=1.1,<2'; then
+            echo '::warning title=Clip Forge::Transcripción opcional no disponible; los clips seguirán generándose.'
+          fi
       - name: Detectar momentos y exportar MP4 verticales
         if: steps.herramientas.outcome == 'success'
         id: procesar
@@ -105,7 +108,11 @@ jobs:
           JOB_KEY: ${{ inputs.job_key }}
         run: |
           [[ "$JOB_KEY" =~ ^[a-f0-9]{32}$ ]] || exit 1
-          gh release create "clip-${JOB_KEY}" clips_generados/clip_*_vertical.mp4 clips_generados/recortes.json \
+          archivos=(clips_generados/clip_*_vertical.mp4 clips_generados/recortes.json)
+          for subtitulo in clips_generados/clip_*.srt; do
+            [[ -f "$subtitulo" ]] && archivos+=("$subtitulo")
+          done
+          gh release create "clip-${JOB_KEY}" "${archivos[@]}" \
             --target "$GITHUB_SHA" \
             --title "Clip Forge | ${JOB_KEY}" \
             --notes "Recortes generados automáticamente para un video público autorizado. Revisar antes de publicar. Archivos públicos y temporales: se eliminan durante la limpieza posterior a 24 horas."

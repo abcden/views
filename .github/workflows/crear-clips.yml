@@ -54,13 +54,23 @@ jobs:
         with:
           node-version: '24'
       - name: Instalar FFmpeg y el procesador gratuito
+        id: herramientas
+        timeout-minutes: 6
+        continue-on-error: true
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg
-          ffmpeg -version | head -n 1
-          ffprobe -version | head -n 1
-          python -m pip install --upgrade 'yt-dlp[default]'
+          set -euo pipefail
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            echo "::notice title=Clip Forge::Instalando FFmpeg con límite de tiempo"
+            timeout -k 10s 90s sudo apt-get update -qq -o Acquire::Retries=1 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20
+            timeout -k 10s 120s sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version >/dev/null
+          ffprobe -version >/dev/null
+          echo "FFmpeg y FFprobe listos"
+          echo "::notice title=Clip Forge::Instalando procesador de videos"
+          timeout -k 10s 90s python -m pip install --disable-pip-version-check --retries 2 --timeout 15 'yt-dlp[default]'
       - name: Detectar momentos y exportar MP4 verticales
+        if: steps.herramientas.outcome == 'success'
         id: procesar
         continue-on-error: true
         env:
@@ -68,14 +78,18 @@ jobs:
           CLIP_SECONDS: ${{ inputs.clip_seconds }}
         run: python procesar_clips.py
       - name: Publicar diagnóstico temporal de fallo
-        if: steps.procesar.outcome == 'failure'
+        if: steps.herramientas.outcome == 'failure' || steps.procesar.outcome == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
           JOB_KEY: ${{ inputs.job_key }}
         run: |
-          codigo=$(jq -r '.code // "PROCESSING_FAILED"' clips_generados/error.json 2>/dev/null || echo PROCESSING_FAILED)
+          if [[ "${{ steps.herramientas.outcome }}" == "failure" ]]; then
+            codigo=TOOLS_INSTALL_FAILED
+          else
+            codigo=$(jq -r '.code // "PROCESSING_FAILED"' clips_generados/error.json 2>/dev/null || echo PROCESSING_FAILED)
+          fi
           case "$codigo" in
-            YOUTUBE_VERIFICATION|SOURCE_UNAVAILABLE|DOWNLOAD_FAILED|FFMPEG_MISSING|PROCESSING_FAILED|DIRECT_LINK_INVALID|DIRECT_DOWNLOAD_FAILED|DIRECT_TOO_LARGE) ;;
+            YOUTUBE_VERIFICATION|SOURCE_UNAVAILABLE|DOWNLOAD_FAILED|FFMPEG_MISSING|PROCESSING_FAILED|DIRECT_LINK_INVALID|DIRECT_DOWNLOAD_FAILED|DIRECT_TOO_LARGE|TOOLS_INSTALL_FAILED) ;;
             *) codigo=PROCESSING_FAILED ;;
           esac
           gh release create "clip-${JOB_KEY}" \

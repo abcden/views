@@ -125,6 +125,11 @@
     loadFile(file);
     e.target.value="";
   });
+  // Un clip generado en la nube puede abrirse aquí sin guardarlo en Archivos.
+  window.addEventListener("forge-load-cloud-file",e=>{
+    const file=e.detail?.file;
+    if(file instanceof File)loadFile(file);
+  });
   video.addEventListener("loadedmetadata",()=>{
     const d=video.duration;
     if(!Number.isFinite(d)||d<.5){out("No se pudo leer la duración del video. Usa un MP4 o MOV compatible.","error");return;}

@@ -5,7 +5,7 @@
   const video = $("forge-video"), canvas = $("forge-canvas"), ctx = canvas?.getContext("2d");
   if (!video || !canvas || !ctx) return;
 
-  const tool = {file:null,url:null,duration:0,scanning:false,recording:false,cancelled:false,recorder:null,audioContext:null,audioSource:null,frame:0};
+  const tool = {file:null,url:null,duration:0,scanning:false,recording:false,cancelled:false,recorder:null,audioContext:null,audioSource:null,frame:0,moments:[],exportRange:null,lastDownload:null,needsScan:false,loading:false,abort:null};
   const out = (msg,kind="") => {$("forge-status").textContent=msg; $("forge-status").dataset.kind=kind;};
   const clock = t => {const s=Math.max(0,Math.floor(Number(t)||0));return `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;};
   const clamp = (x,lo,hi) => Math.max(lo,Math.min(hi,Number(x)||0));
@@ -101,20 +101,29 @@
   }
   function controls(enabled){
     for(const id of ["forge-play","forge-seek","forge-start","forge-end","forge-set-start","forge-set-end","forge-analyze","forge-export"])$(id).disabled=!enabled;
+    $("forge-export-all").disabled=!enabled||!tool.moments.length||!preferredMime();
   }
-  $("forge-file").addEventListener("change",e=>{
-    if(tool.recording||tool.scanning){out("Espera a que termine el proceso actual.","error");return;}
-    const file=e.target.files?.[0];if(!file)return;
+  function loadFile(file,autoScan=true){
+    if(tool.recording||tool.scanning){out("Espera a que termine el proceso actual.","error");return false;}
     if(!(file.type.startsWith("video/")||/\.(mp4|mov|webm|m4v)$/i.test(file.name))){out("Selecciona un archivo de video válido.","error");return;}
     if(file.size>850*1024*1024){out("Este editor admite archivos de hasta 850 MB. Usa un video más corto.","error");return;}
     video.pause();
     if(tool.url)URL.revokeObjectURL(tool.url);
-    tool.url=URL.createObjectURL(file);tool.file=file;tool.duration=0;
+    tool.url=URL.createObjectURL(file);tool.file=file;tool.duration=0;tool.moments=[];tool.needsScan=autoScan;
     $("forge-file-name").textContent=file.name;
+    $("forge-remote-preview").hidden=true;$("forge-remote-frame").removeAttribute("src");
     $("forge-empty").hidden=true;controls(false);
     $("forge-moments").innerHTML='<p class="studio-note">Pulsa «Detectar momentos» o ajusta los segundos manualmente.</p>';
+    $("forge-download-ready").hidden=true;
     video.src=tool.url;video.load();
     out("Preparando tu video…");
+    return true;
+  }
+  $("forge-file").addEventListener("change",e=>{
+    const file=e.target.files?.[0];if(!file)return;
+    if(tool.loading&&tool.abort){tool.abort.abort();tool.loading=false;}
+    loadFile(file);
+    e.target.value="";
   });
   video.addEventListener("loadedmetadata",()=>{
     const d=video.duration;
@@ -130,13 +139,19 @@
   video.addEventListener("timeupdate",()=>{
     if(!tool.recording&&!tool.scanning&&video.currentTime>=selection().end){video.pause();}
     if(tool.recording){
-      const s=selection();$("forge-export-bar").style.width=`${Math.min(100,(video.currentTime-s.start)/(s.end-s.start)*100)}%`;
+      const s=tool.exportRange||selection();$("forge-export-bar").style.width=`${Math.min(100,Math.max(0,(video.currentTime-s.start)/(s.end-s.start)*100))}%`;
       if(video.currentTime>=s.end-.045)stopRecording();
     }
     updateClock();
   });
   video.addEventListener("pause",updateClock);video.addEventListener("play",frameLoop);
   video.addEventListener("seeked",draw);video.addEventListener("loadeddata",draw);
+  video.addEventListener("canplay",()=>{
+    if(tool.needsScan&&tool.duration&&!tool.scanning){
+      tool.needsScan=false;
+      requestAnimationFrame(()=>{if(tool.file&&!tool.scanning&&!tool.recording)$("forge-analyze").click();});
+    }
+  });
   video.addEventListener("ended",()=>{if(tool.recording)stopRecording();updateClock();});
   $("forge-play").addEventListener("click",async()=>{
     if(!tool.file||tool.recording||tool.scanning)return;
@@ -173,7 +188,7 @@
         $("forge-scan-bar").style.width=pct+"%";$("forge-scan-label").textContent=pct+"% analizado";
         if(i%8===0)await new Promise(r=>setTimeout(r,0));
       }
-      const length=Math.min(30,Math.max(8,Math.round(tool.duration*.15)));
+      const length=Math.min(seconds,Number($("forge-job-length").value)||30);
       const ranked=rows.slice(1).sort((a,b)=>b.score-a.score);const selected=[];
       for(const r of ranked){
         const start=clamp(r.t-4,0,Math.max(0,seconds-length));
@@ -182,6 +197,7 @@
         if(selected.length===5)break;
       }
       if(!selected.length)selected.push({start:0,end:Math.min(seconds,30),score:0});
+      tool.moments=selected;
       const maxScore=Math.max(1,...selected.map(x=>x.score));
       $("forge-moments").innerHTML=selected.map((m,i)=>{
         const confidence=Math.round(m.score/maxScore*100);
@@ -190,7 +206,7 @@
       $("forge-moments").querySelectorAll("[data-moment]").forEach(b=>b.addEventListener("click",()=>{const m=selected[Number(b.dataset.moment)];setSelection(m.start,m.end);out(`Momento ${Number(b.dataset.moment)+1} seleccionado. Puedes ajustar el principio y final.`,"success");}));
       $("forge-scan-label").textContent=`${selected.length} sugerencias listas`;
       out("Sugerencias visuales listas. Los clips con mejores escenas no siempre son los más interesantes por su diálogo.","success");
-    }catch(err){out("No se pudo analizar este video. Puedes editarlo manualmente.","error");$("forge-scan-label").textContent="Análisis no disponible";}
+    }catch(err){tool.moments=[];out("No se pudo analizar este video. Puedes editarlo manualmente.","error");$("forge-scan-label").textContent="Análisis no disponible";}
     finally{tool.scanning=false;$("forge-scan-progress").hidden=true;controls(true);await seekVideo(previous).catch(()=>{});}
   });
 
@@ -242,11 +258,10 @@
         if(tool.cancelled)return;
         const blob=new Blob(pieces,{type:mime});
         if(blob.size<1024){out("La grabación quedó vacía. Prueba otro formato o navegador.","error");return;}
-        const ext=mime.includes("mp4")?"mp4":"webm",url=URL.createObjectURL(blob),a=document.createElement("a");
+        const ext=mime.includes("mp4")?"mp4":"webm";
         const name=(tool.file.name.replace(/\.[^.]+$/,"").replace(/[^a-zA-Z0-9_-]/g,"_").slice(0,55)||"gta6");
-        a.href=url;a.download=`${name}_clip_${Math.round(s.start)}s.${ext}`;document.body.append(a);a.click();a.remove();
-        setTimeout(()=>URL.revokeObjectURL(url),30000);
-        out(`Clip exportado en ${ext.toUpperCase()} (${(blob.size/1048576).toFixed(1)} MB). Ya puedes revisarlo o compartirlo.`,"success");
+        showDownload(blob,`${name}_clip_${Math.round(s.start)}s.${ext}`);
+        out(`Clip listo en ${ext.toUpperCase()} (${(blob.size/1048576).toFixed(1)} MB). Pulsa «Descargar» abajo.`,"success");
       });
       recorder.start(250);frameLoop();
       await video.play();
@@ -260,22 +275,188 @@
     }
   });
 
-  // Sin token en la página pública: se abre el formulario GitHub del propietario.
-  $("forge-github").addEventListener("click",()=>{
-    const url=$("forge-url").value.trim();
-    const status=$("forge-url-status");
-    let parsed;
-    try{parsed=new URL(url);}catch(_){status.textContent="Escribe un enlace HTTPS válido de un video.";return;}
-    const allowed=["youtube.com","youtu.be","twitch.tv","clips.twitch.tv","kick.com","tiktok.com","instagram.com","vimeo.com","dailymotion.com"];
+  // Descarga explícita compatible con iPhone (Safari puede bloquear clics automáticos tardíos).
+  function showDownload(blob,name){
+    if(tool.lastDownload)URL.revokeObjectURL(tool.lastDownload);
+    tool.lastDownload=URL.createObjectURL(blob);
+    const a=$("forge-download-link");a.href=tool.lastDownload;a.download=name;
+    a.textContent=`⬇ Descargar ${name}`;
+    $("forge-download-ready").hidden=false;
+  }
+  function crc32(data){
+    let c=-1;
+    for(const b of data){c^=b;for(let i=0;i<8;i++)c=(c>>>1)^(c&1?0xedb88320:0);}
+    return (c^-1)>>>0;
+  }
+  async function zipClips(files){
+    const enc=new TextEncoder(),entries=[],directory=[];
+    let offset=0,dirSize=0;
+    const now=new Date(),date=((Math.max(1980,now.getFullYear())-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate();
+    const time=(now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1);
+    for(const file of files){
+      const name=enc.encode(file.name),bytes=new Uint8Array(await file.blob.arrayBuffer());
+      const size=bytes.byteLength,crc=crc32(bytes);
+      const local=new Uint8Array(30+name.length),a=new DataView(local.buffer);
+      a.setUint32(0,0x04034b50,true);a.setUint16(4,20,true);a.setUint16(10,time,true);a.setUint16(12,date,true);a.setUint32(14,crc,true);a.setUint32(18,size,true);a.setUint32(22,size,true);a.setUint16(26,name.length,true);local.set(name,30);
+      const central=new Uint8Array(46+name.length),b=new DataView(central.buffer);
+      b.setUint32(0,0x02014b50,true);b.setUint16(4,20,true);b.setUint16(6,20,true);b.setUint16(12,time,true);b.setUint16(14,date,true);b.setUint32(16,crc,true);b.setUint32(20,size,true);b.setUint32(24,size,true);b.setUint16(28,name.length,true);b.setUint32(42,offset,true);central.set(name,46);
+      entries.push(local,file.blob);directory.push(central);offset+=local.length+size;dirSize+=central.length;
+    }
+    const footer=new Uint8Array(22),z=new DataView(footer.buffer);
+    z.setUint32(0,0x06054b50,true);z.setUint16(8,files.length,true);z.setUint16(10,files.length,true);z.setUint32(12,dirSize,true);z.setUint32(16,offset,true);
+    return new Blob([...entries,...directory,footer],{type:"application/zip"});
+  }
+  async function recordMoment(m){
+    let stream=null,target=null,recorder=null;
+    const pieces=[];
+    tool.recording=true;tool.exportRange=m;
+    try{
+      video.pause();await seekVideo(m.start);draw();
+      if(tool.cancelled)throw new Error("Cancelado");
+      const capture=canvas.captureStream(30);
+      target=await audioGraph().catch(()=>null);
+      stream=new MediaStream([...capture.getVideoTracks(),...(target?.stream.getAudioTracks()||[])]);
+      recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:2500000});tool.recorder=recorder;
+      recorder.addEventListener("dataavailable",e=>{if(e.data.size)pieces.push(e.data);});
+      const finished=new Promise((resolve,reject)=>{
+        recorder.addEventListener("stop",resolve,{once:true});
+        recorder.addEventListener("error",()=>reject(new Error("Fallo de grabación")),{once:true});
+      });
+      recorder.start(250);frameLoop();
+      await video.play();
+      await finished;
+      if(tool.cancelled)throw new Error("Cancelado");
+      const blob=new Blob(pieces,{type:mime});
+      if(blob.size<1024)throw new Error("El archivo quedó vacío");
+      return blob;
+    }finally{
+      if(recorder?.state==="recording")recorder.stop();
+      video.pause();
+      if(target)try{tool.audioSource?.disconnect(target);}catch(_){}
+      if(stream)for(const t of stream.getTracks())t.stop();
+      tool.recorder=null;tool.recording=false;tool.exportRange=null;
+    }
+  }
+  $("forge-export-all").addEventListener("click",async()=>{
+    if(!tool.file||tool.recording||tool.scanning)return;
+    if(!tool.moments.length){out("Primero detecta los mejores momentos.","error");return;}
+    if(!mime||!canvas.captureStream){out("Este navegador no permite exportar video; usa Safari o Chrome actualizado.","error");return;}
+    tool.cancelled=false;controls(false);$("forge-export-progress").hidden=false;$("forge-cancel").hidden=false;$("forge-download-ready").hidden=true;
+    const ext=mime.includes("mp4")?"mp4":"webm",parts=[],segments=tool.moments.slice(0,5);
+    const base=(tool.file.name.replace(/\.[^.]+$/,"").replace(/[^a-zA-Z0-9_-]/g,"_").slice(0,55)||"gta6");
+    try{
+      for(const [i,m] of segments.entries()){
+        if(tool.cancelled)throw new Error("Cancelado");
+        $("forge-export-bar").style.width="0%";
+        out(`Grabando clip ${i+1} de ${segments.length} (${(m.end-m.start).toFixed(0)} s). Mantén la página abierta…`);
+        const blob=await recordMoment(m);
+        parts.push({name:`${base}_clip_${i+1}.${ext}`,blob});
+      }
+      const timings=segments.map((m,i)=>`Clip ${i+1}: ${m.start.toFixed(1)}s a ${m.end.toFixed(1)}s`).join("\n");
+      parts.push({name:"recortes.txt",blob:new Blob([timings],{type:"text/plain"})});
+      out("Preparando ZIP con los clips…");
+      const zip=await zipClips(parts);
+      if(tool.cancelled)throw new Error("Cancelado");
+      showDownload(zip,`${base}_${segments.length}_clips.zip`);
+      out(`${segments.length} clips listos en ZIP (${(zip.size/1048576).toFixed(1)} MB). Pulsa Descargar.`,"success");
+    }catch(err){out(tool.cancelled?"Exportación cancelada.":`No se pudo preparar el ZIP (${err.message}). Prueba un video MP4 compatible.`,"error");}
+    finally{controls(true);$("forge-export-progress").hidden=true;$("forge-cancel").hidden=true;}
+  });
+
+  // Los enlaces de plataformas solo se muestran en sus reproductores oficiales.
+  // Un iframe no entrega el video como archivo: nunca simulamos que puede exportarse.
+  function embedsFrom(parsed){
     const host=parsed.hostname.toLowerCase().replace(/\.$/,"");
-    if(parsed.protocol!=="https:"||!allowed.some(d=>host===d||host.endsWith("."+d))){status.textContent="Enlace no compatible. Usa YouTube, Twitch, Kick, TikTok, Instagram, Vimeo o Dailymotion.";return;}
-    if(!$("forge-authorized").checked){status.textContent="Confirma que el video es público y tienes permiso para reutilizarlo.";return;}
-    const target="https://github.com/abcden/views/actions/workflows/crear-clips.yml";
-    // Abre primero para evitar bloqueo por ventanas emergentes tras la copia.
-    window.open(target,"_blank","noopener,noreferrer");
-    status.textContent=`Abierto GitHub. Pega tu enlace en video_url, elige ${$("forge-job-length").value} segundos y marca authorized_public.`;
-    if(navigator.clipboard?.writeText){navigator.clipboard.writeText(url).then(()=>{status.textContent+=" Enlace copiado al portapapeles ✓";}).catch(()=>{status.textContent+=" Copia manualmente el enlace para pegarlo en GitHub.";});}
+    const domain=d=>host===d||host.endsWith("."+d);
+    const p=parsed.pathname;
+    if(domain("youtube.com")||domain("youtu.be")){
+      const id=domain("youtu.be")?p.split("/")[1]:p.match(/^\/(?:shorts|embed|live)\/([a-zA-Z0-9_-]{11})/)?.[1]||parsed.searchParams.get("v");
+      if(!/^[a-zA-Z0-9_-]{11}$/.test(id||""))return {error:"Este enlace no identifica un video de YouTube reproducible. Usa su URL normal."};
+      return {name:"YouTube",url:`https://www.youtube-nocookie.com/embed/${id}`};
+    }
+    if(domain("vimeo.com")){
+      const id=p.match(/\/(\d+)(?:\/|$)/)?.[1];
+      if(id)return {name:"Vimeo",url:`https://player.vimeo.com/video/${id}`};
+    }
+    if(domain("tiktok.com")){
+      const id=p.match(/\/video\/(\d+)/)?.[1];
+      if(id)return {name:"TikTok",url:`https://www.tiktok.com/embed/v2/${id}`,vertical:true};
+    }
+    if(domain("instagram.com")){
+      const id=p.match(/^\/(?:reel|reels|p)\/([a-zA-Z0-9_-]+)/)?.[1];
+      if(id)return {name:"Instagram",url:`https://www.instagram.com/reel/${id}/embed/`,vertical:true};
+    }
+    if(domain("dailymotion.com")||domain("dai.ly")){
+      const id=domain("dai.ly")?p.split("/")[1]:p.match(/\/video\/([a-zA-Z0-9]+)/)?.[1];
+      if(id&&/^[a-zA-Z0-9]+$/.test(id))return {name:"Dailymotion",url:`https://www.dailymotion.com/embed/video/${id}`};
+    }
+    if(domain("twitch.tv")){
+      const clip=host==="clips.twitch.tv"?p.split("/")[1]:p.match(/\/clip\/([a-zA-Z0-9_-]+)/)?.[1];
+      if(clip&&/^[a-zA-Z0-9_-]+$/.test(clip))return {name:"Twitch",url:`https://clips.twitch.tv/embed?clip=${clip}&parent=abcden.github.io`};
+      const vod=p.match(/^\/videos\/(\d+)/)?.[1];
+      if(vod)return {name:"Twitch",url:`https://player.twitch.tv/?video=v${vod}&parent=abcden.github.io&autoplay=false`};
+    }
+    if(domain("kick.com"))return {error:"Kick no facilita aquí un archivo directo. Guarda tu video autorizado y súbelo desde tu dispositivo para editarlo gratis."};
+    return null;
+  }
+  function showRemotePreview(embed){
+    const panel=$("forge-remote-preview"),frame=$("forge-remote-frame");
+    frame.src=embed.url;
+    $("forge-remote-label").textContent=`▶ Ver video de ${embed.name} sin salir`;
+    panel.classList.toggle("vertical",!!embed.vertical);
+    panel.hidden=false;
+    panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+  const MAX_REMOTE=350*1024*1024;
+  $("forge-url-cancel").addEventListener("click",()=>tool.abort?.abort());
+  $("forge-process").addEventListener("click",async()=>{
+    const status=$("forge-url-status"),raw=$("forge-url").value.trim();
+    if(tool.loading){status.textContent="Ya estoy cargando un video. Espera o cancela la descarga.";return;}
+    if(tool.recording||tool.scanning){status.textContent="Espera a que finalice el análisis o la exportación.";return;}
+    let parsed;
+    try{parsed=new URL(raw);}catch(_){status.textContent="Pega un enlace HTTPS válido o pulsa «Elegir video de mi dispositivo».";return;}
+    if(parsed.protocol!=="https:"||parsed.username||parsed.password||parsed.port||raw.length>500){status.textContent="Por seguridad, usa una URL HTTPS normal sin contraseñas ni puertos especiales.";return;}
+    if(!$("forge-authorized").checked){status.textContent="Marca la casilla para confirmar que tienes permiso para reutilizar este video.";return;}
+    const direct=/\.(mp4|webm|mov|m4v|ogv)$/i.test(parsed.pathname);
+    const embed=direct?null:embedsFrom(parsed);
+    if(embed){
+      if(embed.error){status.textContent=embed.error;return;}
+      showRemotePreview(embed);
+      status.textContent=`${embed.name} se reproduce aquí mismo. Para generar MP4 editables desde este video necesitas cargar su archivo original autorizado. El reproductor no permite extraerlo.`;
+      return;
+    }
+    if(!direct){status.textContent="El enlace no apunta a un MP4/WebM directo compatible. Si es tu video, guarda el archivo original y usa «Elegir video de mi dispositivo».";return;}
+    const abort=new AbortController();tool.abort=abort;tool.loading=true;
+    $("forge-process").disabled=true;$("forge-url-cancel").hidden=false;$("forge-url-progress").hidden=false;$("forge-url-bar").style.width="3%";
+    try{
+      status.textContent="Conectando con el archivo… No cierres esta pestaña.";
+      const r=await fetch(parsed.href,{signal:abort.signal,credentials:"omit",mode:"cors",cache:"no-store"});
+      if(!r.ok)throw new Error(`El servidor respondió ${r.status}.`);
+      const size=Number(r.headers.get("content-length"))||0;
+      if(size>MAX_REMOTE)throw new Error("El archivo supera 350 MB. Guárdalo primero y selecciónalo desde tu dispositivo.");
+      const type=(r.headers.get("content-type")||"").split(";")[0].trim().toLowerCase();
+      if(type&&!type.startsWith("video/")&&!/^(application\/octet-stream|binary\/octet-stream)$/.test(type))throw new Error("La URL devolvió una página o un archivo que no es video.");
+      const parts=[];let read=0;
+      if(r.body?.getReader){
+        const reader=r.body.getReader();
+        while(true){
+          const {done,value}=await reader.read();if(done)break;
+          read+=value.byteLength;if(read>MAX_REMOTE){await reader.cancel();throw new Error("El archivo supera el límite de 350 MB.");}
+          parts.push(value);
+          if(size)$("forge-url-bar").style.width=Math.min(100,Math.round(read/size*100))+"%";
+          status.textContent=`Importando video directamente aquí: ${(read/1048576).toFixed(1)} MB${size?" de "+(size/1048576).toFixed(1)+" MB":""}…`;
+        }
+      }else{
+        const b=await r.blob();read=b.size;if(read>MAX_REMOTE)throw new Error("El archivo supera 350 MB.");parts.push(b);
+      }
+      if(read<1024)throw new Error("El archivo está vacío o es incompatible.");
+      const ext=parsed.pathname.match(/\.(mp4|webm|mov|m4v|ogv)$/i)?.[1].toLowerCase()||"mp4";
+      const file=new File(parts,`video_importado.${ext}`,{type:type||({mp4:"video/mp4",webm:"video/webm",mov:"video/quicktime"}[ext]||"video/mp4")});
+      if(loadFile(file)){status.textContent="Video importado en esta página. Detectando momentos automáticamente…";}
+    }catch(err){
+      status.textContent=err.name==="AbortError"?"Importación cancelada.":`No se pudo importar: ${err.message?.includes("fetch")?"el servidor bloquea el acceso desde otros sitios (CORS)":err.message}. Si es tu video, súbelo directamente desde Archivos.`;
+    }finally{tool.loading=false;tool.abort=null;$("forge-process").disabled=false;$("forge-url-cancel").hidden=true;$("forge-url-progress").hidden=true;}
   });
   setFormat();
-  window.addEventListener("pagehide",()=>{if(tool.url)URL.revokeObjectURL(tool.url);});
+  window.addEventListener("pagehide",()=>{if(tool.url)URL.revokeObjectURL(tool.url);if(tool.lastDownload)URL.revokeObjectURL(tool.lastDownload);});
 })();

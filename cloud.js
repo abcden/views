@@ -1,4 +1,4 @@
-/* Cloud Clip Engine V15. Recuerdo opcional cifrado en el dispositivo; nunca en el repositorio. */
+/* Cloud Clip Engine V17. Recuerdo opcional cifrado en el dispositivo; nunca en el repositorio. */
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
@@ -10,6 +10,7 @@
   const DEVICE_DB = 'clip-forge-device-v1';
   const REMEMBER_MS = 7 * 24 * 60 * 60 * 1000;
   const ALLOWED = ['youtube.com','youtu.be','twitch.tv','clips.twitch.tv','kick.com','tiktok.com','instagram.com','vimeo.com','dailymotion.com'];
+  const DIRECT = ['archive.org','upload.wikimedia.org','github.com','storage.googleapis.com','r2.dev'];
   const MAX_WAIT_MS = 42 * 60 * 1000;
   let token = '', job = '', polling = null, working = false, jobStartedAt = 0, authRevision = 0;
 
@@ -43,7 +44,10 @@
     try{u=new URL(raw);}catch{return null;}
     const host=u.hostname.toLowerCase().replace(/\.$/,'');
     if(raw.length>500||u.protocol!=='https:'||u.username||u.password||u.port||!u.pathname||u.pathname==='/')return null;
-    return ALLOWED.some(d=>host===d||host.endsWith('.'+d))?u.href:null;
+    const plataforma=ALLOWED.some(d=>host===d||host.endsWith('.'+d));
+    const directo=DIRECT.some(d=>host===d||host.endsWith('.'+d)) && /\.(mp4|webm|mov|m4v)$/i.test(u.pathname);
+    if(directo && /(?:token|signature|x-amz-[^=]*|x-goog-[^=]*|apikey|api_key|auth)=/i.test(u.search))return null;
+    return (plataforma||directo)?u.href:null;
   }
   function jobKey(){
     const bytes=new Uint8Array(16);crypto.getRandomValues(bytes);
@@ -191,7 +195,10 @@
         SOURCE_UNAVAILABLE: 'El video no está disponible para el procesador (privado, restringido o enlace incompatible). Prueba otro enlace público y autorizado.',
         DOWNLOAD_FAILED: 'La plataforma no permitió descargar este video. Puedes probar otro enlace autorizado compatible.',
         FFMPEG_MISSING: 'El servidor no encontró FFmpeg; avisa al administrador para revisar la instalación.',
-        PROCESSING_FAILED: 'El servidor no pudo procesar el video. Revisa la ejecución de GitHub Actions para más detalles.'
+        PROCESSING_FAILED: 'El servidor no pudo procesar el video. Revisa la ejecución de GitHub Actions para más detalles.',
+        DIRECT_LINK_INVALID: 'El enlace directo no devolvió un MP4/WebM público válido o el servidor lo rechazó por seguridad. Comprueba la URL y el dominio permitido.',
+        DIRECT_DOWNLOAD_FAILED: 'El servidor no pudo descargar el archivo directo. Comprueba que sea público y accesible sin iniciar sesión.',
+        DIRECT_TOO_LARGE: 'El archivo supera 750 MB. Elige un video autorizado más pequeño.'
       };
       status('✕ ' + (mensajes[code] || mensajes.PROCESSING_FAILED), 'error');
       clearPolling();working=false;setConnected(!!token);return;
@@ -254,7 +261,7 @@
   $('forge-cloud-start').addEventListener('click',async()=>{
     if(!token||working)return;
     const url=allowedUrl($('forge-url').value.trim());
-    if(!url){status('Pega un enlace público compatible: YouTube, TikTok, Instagram, Vimeo, Twitch o Kick.','error');return;}
+    if(!url){status('Pega un video público de YouTube/TikTok/Vimeo/Twitch/Kick o un enlace directo MP4/WebM de Archive.org, Wikimedia, GitHub Releases, Google Cloud Storage o Cloudflare R2.','error');return;}
     if(!$('forge-authorized').checked){status('Confirma que tienes permiso y aceptas que los clips sean públicos temporalmente.','error');return;}
     working=true;setConnected(true);$('forge-cloud-results').replaceChildren();
     status('Preparando el trabajo remoto…');

@@ -1,0 +1,1680 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Views, likes y seguidores de dailygtagaming en TikTok e Instagram, actualizados automáticamente.">
+<meta name="theme-color" content="#0b0d12">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+<script>
+window.PANEL_PUBLICO = true;
+(function(){
+  var D = null, subs = [], firma = "";
+  function cargar(){
+    fetch("datos.json?t=" + Date.now(), {cache:"no-store"}).then(function(r){ return r.ok ? r.text() : null; }).then(function(txt){
+      if (!txt || txt === firma) return; firma = txt; D = JSON.parse(txt); subs.slice().forEach(function(f){ f(); });
+    }).catch(function(){});
+  }
+  function col(p){ if (!D) return []; return p === "clips" ? (D.clips||[]) : p === "historial" ? (D.historial||[]) : p === "snaps" ? (D.snaps||[]) : []; }
+  function doc(p){ if (!D) return undefined; return p === "config/ajustes" ? D.config : p === "serie/seguidores" ? D.serie : undefined; }
+  function soloLectura(){ return Promise.reject({code:"invalid_argument", message:"Este sitio es de solo lectura"}); }
+  function sub(f){ subs.push(f); if (D) f(); return function(){ subs = subs.filter(function(x){ return x !== f; }); }; }
+  var meta = {fromCache:false, hasPendingWrites:false};
+  var db = {
+    collection: function(p){ return { onSnapshot: function(next){ return sub(function(){ var a = col(p); next({docs: a.map(function(d){ return {id:d.id, exists:true, data:function(){ return d; }, metadata:meta}; }), size:a.length, empty:!a.length, metadata:meta, docChanges:function(){ return []; }}); }); }, add: soloLectura, doc: function(){ return {set:soloLectura, update:soloLectura, delete:soloLectura}; } }; },
+    doc: function(p){ return { onSnapshot: function(next){ return sub(function(){ var d = doc(p); next({id:p.split("/").pop(), exists:!!d, data:function(){ return d; }, metadata:meta}); }); }, set:soloLectura, update:soloLectura, delete:soloLectura }; }
+  };
+  window.claude = { use: function(n){ return Promise.resolve(n === "db" ? db : n === "user" ? {can: function(){ return Promise.resolve(false); }} : null); } };
+  cargar(); setInterval(cargar, 60000);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
+})();
+</script>
+</head><body>
+<title>Panel de Clips</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: app de estudio para creadores. Barra superior fija con pestañas (abajo en el celular),
+   cada pestaña es una vista: Resumen, Clips, Análisis, Dinero, Calendario y Media kit. Dark-first con variante clara. */
+:root{
+  --bg:#0b0d12; --bg-2:#0f1219; --surface:#141822; --surface-2:#1b202b; --surface-3:#232936; --line:#252b38;
+  --fg:#eef0f6; --muted:#8e95a7; --faint:#5b6274;
+  --rec:#ff4d5e; --money:#2fd49b; --accent:#8090ff; --warn:#ffb648;
+  --p-tiktok:#29d8e8; --p-yt:#ff5a5f; --p-ig:#ff63aa; --p-fb:#6f8dff; --p-x:#b3b9c6; --p-otro:#ffb648; --p-kick:#5fe07a; --p-snap:#f6d33c;
+  --glow-a:rgba(41,216,232,.15); --glow-b:rgba(255,99,170,.13);
+  --nav-bg:rgba(11,13,18,.78);
+  --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 10px 28px rgba(0,0,0,.28);
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Inter","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --r:14px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#f2f3f7; --bg-2:#eaecf2; --surface:#ffffff; --surface-2:#f1f3f7; --surface-3:#e5e8ef; --line:#dfe2ea;
+  --fg:#12141b; --muted:#5b6172; --faint:#949aaa;
+  --rec:#e3364a; --money:#0c8f64; --accent:#3d4fd0; --warn:#a96500;
+  --p-tiktok:#0e9fb0; --p-yt:#e0393e; --p-ig:#d0347f; --p-fb:#3b5bdb; --p-x:#4a4f5c; --p-otro:#a96500; --p-kick:#2f9a45; --p-snap:#b89300;
+  --glow-a:rgba(14,159,176,.12); --glow-b:rgba(208,52,127,.10);
+  --nav-bg:rgba(242,243,247,.85);
+  --shadow:0 1px 2px rgba(20,24,40,.06), 0 6px 18px rgba(20,24,40,.06);
+  color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#f2f3f7; --bg-2:#eaecf2; --surface:#ffffff; --surface-2:#f1f3f7; --surface-3:#e5e8ef; --line:#dfe2ea;
+  --fg:#12141b; --muted:#5b6172; --faint:#949aaa;
+  --rec:#e3364a; --money:#0c8f64; --accent:#3d4fd0; --warn:#a96500;
+  --p-tiktok:#0e9fb0; --p-yt:#e0393e; --p-ig:#d0347f; --p-fb:#3b5bdb; --p-x:#4a4f5c; --p-otro:#a96500; --p-kick:#2f9a45; --p-snap:#b89300;
+  --glow-a:rgba(14,159,176,.12); --glow-b:rgba(208,52,127,.10);
+  --nav-bg:rgba(242,243,247,.85);
+  --shadow:0 1px 2px rgba(20,24,40,.06), 0 6px 18px rgba(20,24,40,.06);
+  color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:40}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:20px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;white-space:nowrap}
+h2{font-size:16px;font-weight:600}
+h3{font-size:14px;font-weight:600}
+p{margin:0}
+button,select,input,textarea{font-family:var(--f-body)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Navegación */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--nav-bg);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1220px;margin:0 auto;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:16px}
+.tabs{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{display:inline-flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;font-weight:600;font-size:13px;padding:8px 12px;border-radius:9px;white-space:nowrap}
+.tab svg{width:16px;height:16px;flex:none}
+.tab:hover{color:var(--fg);background:var(--surface-2)}
+.tab[aria-current="page"]{color:var(--fg);background:var(--surface-3)}
+.nav-actions{display:flex;gap:8px}
+.rec{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:10px;font-weight:600;letter-spacing:.14em;color:var(--rec);border:1px solid color-mix(in srgb,var(--rec) 60%,transparent);border-radius:5px;padding:1px 6px}
+.rec::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--rec);box-shadow:0 0 8px var(--rec);animation:blink 1.6s steps(1) infinite}
+@keyframes blink{50%{opacity:.25}}
+.bottom-nav{display:none}
+
+.wrap{max-width:1220px;margin:0 auto;padding-block:18px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+.view{display:grid;gap:16px;min-width:0}
+.view-head{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;justify-content:space-between}
+.view-head h2{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.view-head p{color:var(--muted);font-size:13px;margin-top:2px}
+
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--fg);font-weight:600;font-size:13px;padding:8px 13px;border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--rec);border-color:var(--rec);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn.small{padding:6px 10px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:18px;background:
+  radial-gradient(640px 230px at 0% 0%, var(--glow-a), transparent 70%),
+  radial-gradient(560px 260px at 100% 100%, var(--glow-b), transparent 70%), var(--surface);
+  box-shadow:var(--shadow);padding:18px;display:grid;gap:16px}
+.hero-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);white-space:nowrap}
+.chip .m{color:var(--muted);font-weight:500}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.live-dot{animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--money) 60%,transparent)}70%{box-shadow:0 0 0 6px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.hero-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.hero-grid{grid-template-columns:1fr}}
+.big{display:grid;gap:2px;min-width:0}
+.big .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+.big .v{font-family:var(--f-display);font-weight:800;font-size:clamp(34px,5.5vw,48px);letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}
+.big .s{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.big svg{width:100%;height:44px;display:block;margin-top:6px}
+.refresh-note{font-size:12px;color:var(--muted)}
+.news{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.news::-webkit-scrollbar{display:none}
+.news-item{flex:none;display:flex;align-items:center;gap:8px;font-size:12px;padding:7px 11px;border-radius:10px;background:color-mix(in srgb,var(--warn) 10%,var(--surface-2));border:1px solid color-mix(in srgb,var(--warn) 30%,var(--line));max-width:340px}
+.news-item b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.news-item span{color:var(--muted);white-space:nowrap}
+
+/* Filtros */
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--muted);font:500 13px var(--f-body);padding:6px 11px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface-3);color:var(--fg)}
+.in{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:14px;width:100%}
+select.compact{width:auto;padding:8px 10px;font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* Indicadores */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:980px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px 10px;display:grid;gap:2px;min-width:0;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.kpi .val{font-family:var(--f-mono);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .val.money{color:var(--money)}
+.kpi .val.text{font-family:var(--f-body);font-size:15px;line-height:1.6}
+.kpi .hint{font-size:12px;color:var(--muted);min-height:18px}
+.kpi svg{width:calc(100% + 32px);margin:4px -16px -10px;height:34px;display:block}
+.delta{font-family:var(--f-mono);font-size:12px;font-weight:600}
+.delta.up{color:var(--money)} .delta.down{color:var(--rec)}
+
+/* Paneles */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0;display:grid;gap:12px;align-content:start;box-shadow:var(--shadow)}
+.panel-head{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+.sub{font-size:12px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px}
+.grid2.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media (max-width:880px){.grid2,.grid2.even{grid-template-columns:1fr}}
+.status{font-size:12px;color:var(--muted)}
+.status.err{color:var(--rec)}
+.empty{color:var(--muted);text-align:center;padding:30px 12px;display:grid;gap:10px;justify-items:center}
+.bar{height:8px;border-radius:5px;background:var(--surface-3);overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:5px;transition:width .6s ease}
+.insight{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--muted)}
+.insight b{color:var(--fg)}
+.week{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.week{grid-template-columns:1fr 1fr}}
+.week-item{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;display:grid;gap:3px;min-width:0}
+.week-item .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.week-item .v{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.week-item .s{font-size:12px;color:var(--muted)}
+
+/* Metas */
+.goal-row{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+@media (max-width:560px){.goal-row{grid-template-columns:1fr auto}.goal-row .bar{grid-column:1/-1;order:3}}
+.goal-row .name{font-size:13px;color:var(--muted);font-weight:500}
+.goal-row .num{font-family:var(--f-mono);font-size:12px;color:var(--muted);white-space:nowrap;text-align:right}
+.goal-row .proj{grid-column:2/-1;font-size:12px;color:var(--muted)}
+@media (max-width:560px){.goal-row .proj{grid-column:1/-1;order:4}}
+
+/* Gráfico */
+.chart-box{width:100%;overflow:hidden}
+svg text{font-family:var(--f-mono);fill:var(--muted);font-size:10px}
+.empty-chart{color:var(--muted);text-align:center;padding:40px 0;font-size:13px}
+
+/* Plataformas */
+.plat-list{display:grid;gap:14px}
+.plat{display:grid;gap:6px}
+.plat-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;font-size:13px}
+.plat-top b{font-weight:600;display:flex;align-items:center;gap:7px}
+.plat-top span{font-family:var(--f-mono);color:var(--muted);font-size:12px;white-space:nowrap;font-weight:400}
+
+/* Top clips */
+.top-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.top-item{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:8px;border-radius:10px;margin:-8px;cursor:pointer;transition:background .15s}
+.top-item:hover{background:var(--surface-2)}
+.top-item .rk{font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--faint)}
+.top-item:first-child .rk{color:var(--warn)}
+.top-item .tt{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:7px;min-width:0}
+.top-item .tt span.t{overflow:hidden;text-overflow:ellipsis}
+.top-item .vv{font-family:var(--f-mono);font-size:13px;text-align:right;white-space:nowrap;line-height:1.35}
+.top-item .vv small{color:var(--muted)}
+.top-item .meta{grid-column:2/4;display:flex;align-items:center;gap:10px;min-width:0}
+.top-item .meta svg{flex:1;height:22px;min-width:0}
+a.lnk{color:inherit;text-decoration:none}
+a.lnk:hover{text-decoration:underline;text-decoration-color:var(--faint)}
+.grow{font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--money);white-space:nowrap}
+.hot{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,transparent);border-radius:999px;padding:2px 7px;white-space:nowrap}
+.bench{display:inline-flex;font-size:10px;font-weight:700;border-radius:999px;padding:2px 7px;white-space:nowrap;letter-spacing:.02em}
+.bench.up{color:var(--money);background:color-mix(in srgb,var(--money) 14%,transparent)}
+.bench.mid{color:var(--muted);background:var(--surface-3)}
+.bench.down{color:var(--rec);background:color-mix(in srgb,var(--rec) 12%,transparent)}
+.tag{font-family:var(--f-mono);font-size:10px;border-radius:4px;padding:0 5px;border:1px solid currentColor;margin-left:6px;vertical-align:middle;white-space:nowrap}
+.tag.off{color:var(--muted)}
+
+/* Seguidores */
+.foll-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.foll-row:first-child{padding-top:0}
+.foll-row:last-child{border-bottom:0;padding-bottom:0}
+.foll-row .fn{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13px}
+.foll-row .fv{font-family:var(--f-display);font-weight:800;font-size:28px;text-align:right;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.foll-row .fs{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.foll-row svg{grid-column:1/-1;width:100%;height:46px;display:block}
+
+/* Análisis */
+.franja{display:grid;grid-template-columns:110px minmax(0,1fr) 60px;gap:10px;align-items:center;font-size:13px}
+.franja .fl{color:var(--muted)}
+.franja .fl small{color:var(--faint)}
+.franja .fv2{font-family:var(--f-mono);font-size:12px;text-align:right}
+.franja.best .fl{color:var(--fg);font-weight:600}
+.vs{width:100%;border-collapse:collapse;font-size:13px}
+.vs th{text-align:right;font-size:12px;font-weight:600;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line)}
+.vs td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--f-mono)}
+.vs tr:last-child td{border-bottom:0}
+.vs td:first-child{color:var(--muted);text-align:left;font-family:var(--f-body)}
+.vs .win{color:var(--money);font-weight:600}
+.topic{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) 92px;gap:10px;align-items:center;font-size:13px}
+.topic .tn{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topic .tn small{color:var(--muted);font-weight:400}
+.topic .tv{font-family:var(--f-mono);font-size:12px;text-align:right}
+.heat-wrap{overflow-x:auto;margin:0 -16px;padding:0 16px}
+.heat{display:grid;grid-template-columns:44px repeat(8,minmax(38px,1fr));gap:4px;min-width:400px}
+.heat .hl{font-size:11px;color:var(--muted);display:flex;align-items:center}
+.heat .hh{font-size:10px;color:var(--muted);text-align:center;font-family:var(--f-mono)}
+.heat .c{height:30px;border-radius:6px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:10px;color:var(--fg);position:relative}
+.heat .c.best{outline:2px solid var(--warn);outline-offset:1px}
+.heat-legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.heat-legend i{display:block;width:120px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--surface-3),var(--p-tiktok))}
+.theme-btn{min-width:38px}
+.publico #k-gan,.publico #k-rpm,.publico #goals{display:none!important}
+.publico .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:980px){.publico .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.publico .bottom-nav{grid-template-columns:repeat(4,1fr)!important}
+.site-foot{text-align:center;font-size:12px;color:var(--faint);padding:8px 0 0}
+.dist{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--surface-3)}
+.dist i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+/* Pagos */
+.pagos-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.pagos-kpis{grid-template-columns:1fr 1fr}.pagos-kpis > :last-child{grid-column:1/-1}}
+.pk{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;display:grid;gap:2px;min-width:0}
+.pk .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.pk .v{font-family:var(--f-mono);font-size:20px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pago{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.pago:last-child{border-bottom:0}
+.pago .pc{min-width:0}
+.pago .pc b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.pago .pc span{font-size:12px;color:var(--muted)}
+.pago .pm{font-family:var(--f-mono);font-weight:600;white-space:nowrap}
+.pill{border:0;border-radius:999px;font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;white-space:nowrap}
+.pill.ok{background:color-mix(in srgb,var(--money) 16%,transparent);color:var(--money)}
+.pill.pend{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.pill.idea{background:var(--surface-3);color:var(--muted)}
+.pago .row-actions{grid-column:1/-1;justify-content:flex-start;margin-left:-8px}
+
+/* Calendario */
+.cal-day{display:grid;grid-template-columns:86px minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.cal-day:last-child{border-bottom:0}
+.cal-day .cd{display:grid;align-content:start}
+.cal-day .cd b{font-family:var(--f-display);font-size:22px;font-weight:800;line-height:1}
+.cal-day .cd span{font-size:12px;color:var(--muted);text-transform:capitalize}
+.cal-day.today .cd b{color:var(--rec)}
+.cal-items{display:grid;gap:6px;min-width:0}
+.cal-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.cal-item b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;font-size:13px;display:flex;align-items:center;gap:7px}
+.cal-item small{grid-column:1/-1;color:var(--muted);font-size:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cal-free{font-size:12px;color:var(--faint);padding:6px 0}
+.cal-suggest{font-size:11px;color:var(--muted)}
+
+/* Media kit */
+.kit{max-width:720px;width:100%;margin:0 auto;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow)}
+.kit-top{padding:26px 24px;background:radial-gradient(500px 200px at 0% 0%, var(--glow-a), transparent 70%), radial-gradient(500px 220px at 100% 100%, var(--glow-b), transparent 70%), var(--surface-2);display:grid;gap:6px}
+.kit-top .k-eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.kit-top h2{font-size:clamp(28px,5vw,40px);font-weight:800;letter-spacing:-.03em}
+.kit-top p{color:var(--muted)}
+.kit-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line)}
+@media (max-width:520px){.kit-stats{grid-template-columns:1fr 1fr}}
+.kit-stats div{background:var(--surface);padding:16px 18px;display:grid;gap:2px}
+.kit-stats b{font-family:var(--f-display);font-weight:800;font-size:26px;letter-spacing:-.02em}
+.kit-stats span{font-size:12px;color:var(--muted)}
+.kit-sec{padding:18px 24px;display:grid;gap:10px;border-top:1px solid var(--line)}
+.kit-sec h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.kit-clip{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13px}
+.kit-clip b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kit-clip span{font-family:var(--f-mono)}
+
+/* Tabla y tarjetas */
+.table-wrap{overflow-x:auto;margin:0 -16px;padding:0 16px}
+table.clips{width:100%;border-collapse:collapse;font-size:13px;min-width:960px}
+table.clips th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+table.clips th.num,table.clips td.num{text-align:right}
+table.clips th[aria-sort="ascending"]::after{content:" ↑"} table.clips th[aria-sort="descending"]::after{content:" ↓"}
+table.clips td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.clips tbody tr{transition:background .15s;cursor:pointer}
+table.clips tbody tr:hover{background:var(--surface-2)}
+table.clips td.num{font-family:var(--f-mono);white-space:nowrap}
+td.money{color:var(--money);font-weight:600}
+td.spark-cell{width:90px}
+td.spark-cell svg{width:90px;height:24px;display:block}
+.title-cell{max-width:320px}
+.title-cell .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.title-cell .c{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.row-actions{display:flex;gap:2px;justify-content:flex-end}
+.icon-btn{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:5px 8px;border-radius:7px;font-size:12px;font-weight:600}
+.icon-btn:hover{background:var(--surface-3);color:var(--fg)}
+.icon-btn.confirm{color:#fff;background:var(--rec)}
+tr.off td{opacity:.55}
+.cards{display:none}
+select.sort-m{display:none}
+.card-clip{border:1px solid var(--line);background:var(--bg-2);border-radius:12px;padding:12px;display:grid;gap:7px;min-width:0;cursor:pointer}
+.card-clip.off{opacity:.6}
+.cc-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.cc-title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc-stats{display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.cc-stats b{color:var(--fg);font-weight:600}
+.cc-stats b.money{color:var(--money)}
+.card-clip svg{width:100%;height:26px;display:block}
+
+/* Ficha de clip */
+.detail-head{display:grid;gap:6px}
+.detail-head h2{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.detail-big{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.detail-big div{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:1px;min-width:0}
+.detail-big b{font-family:var(--f-display);font-weight:800;font-size:24px;letter-spacing:-.02em}
+.detail-big span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.ratios{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:480px){.ratios{grid-template-columns:1fr 1fr}.detail-big{grid-template-columns:1fr 1fr}}
+.ratio{display:grid;gap:2px;font-size:12px;color:var(--muted)}
+.ratio b{font-family:var(--f-mono);font-size:16px;color:var(--fg)}
+
+/* Diálogos */
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--fg);padding:0;width:min(600px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(5,6,10,.65);backdrop-filter:blur(2px)}
+.dlg{padding:20px;display:grid;gap:14px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form-grid .full{grid-column:1/-1}
+@media (max-width:480px){.form-grid{grid-template-columns:1fr}}
+label.f{display:grid;gap:5px;font-size:12px;font-weight:600;color:var(--muted)}
+.dlg-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.est{font-size:12px;color:var(--muted)}
+.est button{border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer;padding:0;font-size:12px}
+.acct-box{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg-2)}
+.acct-list{display:grid;gap:6px}
+.acct-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:6px 6px 6px 10px;min-width:0}
+.acct-item span{display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;font-size:13px}
+.acct-item small{color:var(--muted);font-weight:400}
+.acct-add{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto;gap:6px}
+@media (max-width:480px){.acct-add{grid-template-columns:1fr}}
+.bulk-list{display:grid;gap:8px;max-height:52vh;overflow:auto;padding-right:4px}
+.bulk-row{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg-2)}
+.bulk-row b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bulk-row span{font-size:12px;color:var(--muted)}
+.bulk-row input{text-align:right;font-family:var(--f-mono)}
+
+.fab{display:none;position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;border:0;background:var(--rec);color:#fff;font-size:28px;line-height:1;box-shadow:0 8px 22px rgba(0,0,0,.4);cursor:pointer;z-index:25;align-items:center;justify-content:center}
+
+@media (max-width:760px){
+  .tabs{display:none}
+  .nav-in{justify-content:space-between}
+  .nav-actions .btn.hide-m{display:none}
+  .bottom-nav{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--nav-bg);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-top:1px solid var(--line);padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px))}
+  .bottom-nav a{display:grid;justify-items:center;gap:2px;color:var(--muted);text-decoration:none;font-size:10px;font-weight:600;padding:4px 0;border-radius:8px}
+  .bottom-nav a svg{width:20px;height:20px}
+  .bottom-nav a[aria-current="page"]{color:var(--fg)}
+  .bottom-nav a[aria-current="page"] svg{color:var(--rec)}
+  .fab{display:flex}
+  .wrap{padding-bottom:110px;gap:12px}
+  .view{gap:12px}
+  .view-head h2{font-size:21px}
+  .hero{padding:16px}
+  .hero-grid{gap:18px}
+  .big .v{font-size:36px}
+  .big svg{height:30px}
+  .kpis{gap:8px}
+  .kpi{padding:12px 12px 8px}
+  .kpi .val{font-size:19px}
+  .kpi svg{width:calc(100% + 24px);margin:4px -12px -8px}
+  .panel{padding:14px}
+  .table-wrap{display:none}
+  .cards{display:grid;gap:8px}
+  select.sort-m{display:block}
+  .filters .seg{width:100%}
+  .filters .seg button{flex:1;padding:6px 4px;font-size:12px}
+  .filters .row{width:100%;flex-wrap:nowrap}
+  .filters .row select{flex:1;min-width:0}
+  .topic{grid-template-columns:minmax(0,1fr) 84px}
+  .topic .bar{grid-column:1/-1;order:3}
+}
+@media (prefers-reduced-motion:reduce){.rec::before,.live-dot{animation:none}.bar > i{transition:none}}
+</style>
+
+<nav class="nav" aria-label="Secciones">
+  <div class="nav-in">
+    <h1>Panel de Clips <span class="rec">REC</span></h1>
+    <div class="tabs" id="tabs"></div>
+    <div class="nav-actions">
+      <button class="btn hide-m" id="btn-refresh" type="button">↻ Actualizar</button>
+      <button class="btn ghost hide-m" id="btn-settings" type="button">Ajustes</button>
+      <button class="btn primary hide-m" id="btn-add" type="button">+ Clip</button>
+      <button class="btn ghost theme-btn" id="btn-theme" type="button" aria-label="Cambiar tema" title="Tema: automático">◐</button>
+      <button class="btn ghost" id="btn-menu-m" type="button" aria-label="Ajustes" style="display:none">⚙</button>
+    </div>
+  </div>
+</nav>
+<nav class="bottom-nav" id="bottom-nav" aria-label="Secciones"></nav>
+
+<div class="wrap">
+  <div class="filters" id="filters">
+    <div class="seg" id="period" role="group" aria-label="Periodo">
+      <button type="button" data-p="7" aria-pressed="false">7 días</button>
+      <button type="button" data-p="30" aria-pressed="true">30 días</button>
+      <button type="button" data-p="90" aria-pressed="false">90 días</button>
+      <button type="button" data-p="365" aria-pressed="false">12 m</button>
+      <button type="button" data-p="all" aria-pressed="false">Todo</button>
+    </div>
+    <div class="row">
+      <select class="in compact" id="plat-filter" aria-label="Filtrar por plataforma"><option value="">Todas las plataformas</option></select>
+      <select class="in compact" id="acct-filter" aria-label="Filtrar por cuenta"><option value="">Todas las cuentas</option></select>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <section class="view" data-view="resumen">
+    <div class="hero" aria-label="Totales en vivo">
+      <div class="hero-top">
+        <div class="chips" id="accounts"></div>
+        <span class="chip" id="sync-chip" hidden></span>
+      </div>
+      <div class="hero-grid" id="hero"></div>
+      <div class="news" id="news" hidden></div>
+      <p class="refresh-note" id="refresh-status" hidden></p>
+    </div>
+    <section class="kpis" id="kpis" aria-label="Resumen del periodo"></section>
+    <section class="panel" id="week" aria-label="Resumen de la semana"></section>
+    <section class="panel" id="goals" aria-label="Metas del mes"></section>
+    <div class="grid2">
+      <section class="panel">
+        <div class="panel-head">
+          <h2 id="chart-title">Views por día</h2>
+          <div class="seg" id="metric" role="group" aria-label="Métrica">
+            <button type="button" data-m="views" aria-pressed="true">Views</button>
+            <button type="button" data-m="likes" aria-pressed="false">Likes</button>
+            <button type="button" data-m="ganancia" aria-pressed="false">Ganancias</button>
+          </div>
+        </div>
+        <div class="chart-box" id="chart"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Por plataforma</h2><span class="sub">views o likes · ganancia · RPM</span></div>
+        <div class="plat-list" id="plats"></div>
+      </section>
+    </div>
+    <div class="grid2 even">
+      <section class="panel">
+        <div class="panel-head"><h2>Top clips</h2><a class="sub lnk" href="#clips">Ver todos →</a></div>
+        <ol class="top-list" id="top"></ol>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Seguidores</h2><span class="sub">cada 15 minutos</span></div>
+        <div id="foll"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- CLIPS -->
+  <section class="view" data-view="clips" hidden>
+    <div class="view-head">
+      <div><h2>Clips</h2><p>Toca un clip para ver su ficha completa.</p></div>
+      <div class="row">
+        <button class="btn small" type="button" id="btn-bulk">Cargar views de Instagram</button>
+        <button class="btn small primary" type="button" data-add>+ Nuevo clip</button>
+      </div>
+    </div>
+    <section class="panel">
+      <div class="panel-head">
+        <div class="legend"><span><span class="bench up">Arriba</span> 1,5× o más tu promedio</span><span><span class="bench mid">Normal</span></span><span><span class="bench down">Bajo</span> menos de 0,6×</span></div>
+        <div class="row">
+          <select class="in compact sort-m" id="sort-m" aria-label="Ordenar clips">
+            <option value="fecha:desc">Más recientes</option>
+            <option value="views:desc">Más views</option>
+            <option value="score:desc">Mejor vs promedio</option>
+            <option value="compartidos:desc">Más compartidos</option>
+            <option value="likes:desc">Más likes</option>
+          </select>
+          <input class="in" id="search" type="search" placeholder="Buscar título o cuenta…" style="max-width:240px" aria-label="Buscar clips">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="clips">
+          <thead><tr>
+            <th data-k="fecha">Fecha</th>
+            <th data-k="titulo">Clip</th>
+            <th data-k="plataforma">Red</th>
+            <th class="num" data-k="views">Views</th>
+            <th style="cursor:default">Tendencia</th>
+            <th class="num" data-k="score">Vs promedio</th>
+            <th class="num" data-k="likes">Likes</th>
+            <th class="num" data-k="comentarios">Coment.</th>
+            <th class="num" data-k="compartidos">Compart.</th>
+            <th class="num" data-k="guardados">Guard.</th>
+            <th class="num" data-k="ganancia" data-priv>Ganancia</th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="cards" id="cards"></div>
+      <div class="empty" id="empty" hidden>
+        <strong style="color:var(--fg)">Todavía no hay clips en este periodo</strong>
+        <span>Registra un clip con su link y el panel irá actualizando sus números.</span>
+        <button class="btn primary" type="button" data-add>+ Registrar un clip</button>
+      </div>
+      <p class="status" id="status">Cargando tus clips…</p>
+    </section>
+  </section>
+
+  <!-- ANÁLISIS -->
+  <section class="view" data-view="analisis" hidden>
+    <div class="view-head"><div><h2>Análisis</h2><p>Qué te funciona, cuándo publicar y cómo se compara cada red.</p></div></div>
+    <div class="grid2 even">
+      <section class="panel">
+        <div class="panel-head"><h2>Temas que funcionan</h2><span class="sub">vs tu promedio</span></div>
+        <div id="topics"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Cuándo publicar</h2><span class="sub">promedio de views en TikTok</span></div>
+        <div id="when"></div>
+      </section>
+    </div>
+    <section class="panel">
+      <div class="panel-head"><h2>Mapa de horarios</h2><span class="sub">views promedio por día y hora de publicación · TikTok</span></div>
+      <div id="heat"></div>
+    </section>
+    <div class="grid2 even">
+      <section class="panel">
+        <div class="panel-head"><h2>TikTok vs Instagram</h2><span class="sub">en el periodo</span></div>
+        <div id="vs"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Cómo rinden tus clips</h2><span class="sub">cada clip contra tu promedio</span></div>
+        <div id="dist"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- DINERO -->
+  <section class="view" data-view="dinero" hidden>
+    <div class="view-head"><div><h2>Dinero</h2><p>Lo que cobraste, lo que te deben y de dónde viene.</p></div><button class="btn small primary" type="button" id="btn-pago">+ Registrar pago</button></div>
+    <section class="panel">
+      <div class="pagos-kpis" id="pagos-kpis"></div>
+    </section>
+    <div class="grid2">
+      <section class="panel">
+        <div class="panel-head"><h2>Pagos</h2><span class="sub">los 15 más recientes</span></div>
+        <div id="pagos-list"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Por mes</h2><span class="sub">cobrado</span></div>
+        <div id="pagos-mes"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- CALENDARIO -->
+  <section class="view" data-view="calendario" hidden>
+    <div class="view-head"><div><h2>Calendario</h2><p>Planea qué subir cada día y marca lo que ya publicaste.</p></div><button class="btn small primary" type="button" id="btn-plan">+ Planear clip</button></div>
+    <div class="insight" id="cal-tip"></div>
+    <div class="grid2">
+      <section class="panel">
+        <div class="panel-head"><h2>Próximos 14 días</h2><span class="sub" id="cal-count"></span></div>
+        <div id="cal-days"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Ideas sin fecha</h2></div>
+        <div id="cal-ideas" class="cal-items"></div>
+        <div class="panel-head" style="margin-top:8px"><h2>Atrasados</h2></div>
+        <div id="cal-late" class="cal-items"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- MEDIA KIT -->
+  <section class="view" data-view="kit" hidden>
+    <div class="view-head"><div><h2>Media kit</h2><p>Tu tarjeta para marcas. Toma una captura o copia el texto para enviarlo.</p></div><button class="btn small" type="button" id="btn-kit-copy">Copiar texto</button></div>
+    <div class="kit" id="kit"></div>
+    <p class="status" id="kit-status" style="text-align:center"></p>
+  </section>
+  <p class="site-foot" id="site-foot" hidden>Datos públicos de TikTok e Instagram, actualizados automáticamente.</p>
+</div>
+
+<button class="fab" type="button" id="fab-add" aria-label="Nuevo clip">+</button>
+
+<dialog id="dlg-detail">
+  <div class="dlg" id="detail"></div>
+</dialog>
+
+<dialog id="dlg-clip">
+  <form class="dlg" id="form-clip">
+    <h2 id="dlg-title">Nuevo clip</h2>
+    <div class="form-grid">
+      <label class="f full">Link del video (TikTok o Instagram)<input class="in" id="f-link" type="url" maxlength="300" placeholder="https://www.instagram.com/reel/…" autocomplete="off"></label>
+      <p class="est full" id="f-link-hint">Con el link, el panel actualiza solo los números de este clip.</p>
+      <label class="f full">Título del clip<input class="in" id="f-titulo" required maxlength="140" placeholder="Ej: Reacción al final del torneo"></label>
+      <label class="f">Plataforma<select class="in" id="f-plataforma"></select></label>
+      <label class="f">Cuenta<input class="in" id="f-cuenta" maxlength="60" placeholder="@micuenta" list="cuentas-list" autocomplete="off"><datalist id="cuentas-list"></datalist></label>
+      <label class="f">Fecha de publicación<input class="in" id="f-fecha" type="date" required></label>
+      <label class="f">Views<input class="in" id="f-views" type="number" min="0" step="1" inputmode="numeric"></label>
+      <label class="f">Likes<input class="in" id="f-likes" type="number" min="0" step="1" inputmode="numeric"></label>
+      <label class="f">Comentarios<input class="in" id="f-comentarios" type="number" min="0" step="1" inputmode="numeric"></label>
+      <label class="f">Ganancia<input class="in" id="f-ganancia" type="number" min="0" step="0.01" inputmode="decimal"></label>
+      <p class="est full" id="f-est"></p>
+      <label class="f full">Notas<textarea class="in" id="f-notas" rows="2" maxlength="500" placeholder="Fuente del clip, campaña…"></textarea></label>
+    </div>
+    <p class="status err" id="f-err" hidden></p>
+    <div class="dlg-actions">
+      <button class="btn ghost" type="button" id="f-cancel">Cancelar</button>
+      <button class="btn primary" type="submit" id="f-save">Guardar clip</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-bulk">
+  <form class="dlg" id="form-bulk">
+    <h2>Views de Instagram</h2>
+    <p class="est">Instagram solo muestra las views con tu sesión. Abre cada reel en la app (Ver estadísticas), escribe aquí sus views y guarda todo junto. Deja vacío lo que no sepas.</p>
+    <div class="bulk-list" id="bulk-list"></div>
+    <p class="status err" id="b-err" hidden></p>
+    <div class="dlg-actions">
+      <button class="btn ghost" type="button" id="b-cancel">Cancelar</button>
+      <button class="btn primary" type="submit" id="b-save">Guardar views</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-pago">
+  <form class="dlg" id="form-pago">
+    <h2 id="pago-title">Registrar pago</h2>
+    <p class="est">Para el dinero que recibes: pagos mensuales de la plataforma, campañas o marcas. Si ya pusiste la ganancia dentro de un clip, no la repitas aquí.</p>
+    <div class="form-grid">
+      <label class="f full">Concepto<input class="in" id="p-concepto" required maxlength="100" placeholder="Ej: Creator Rewards noviembre"></label>
+      <label class="f">Plataforma<select class="in" id="p-plataforma"></select></label>
+      <label class="f">Monto<input class="in" id="p-monto" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+      <label class="f">Fecha<input class="in" id="p-fecha" type="date" required></label>
+      <label class="f">Estado<select class="in" id="p-estado"><option value="pendiente">Pendiente de cobro</option><option value="cobrado">Cobrado</option></select></label>
+    </div>
+    <p class="status err" id="p-err" hidden></p>
+    <div class="dlg-actions">
+      <button class="btn ghost" type="button" id="p-cancel">Cancelar</button>
+      <button class="btn primary" type="submit" id="p-save">Guardar pago</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-plan">
+  <form class="dlg" id="form-plan">
+    <h2 id="plan-title">Planear clip</h2>
+    <div class="form-grid">
+      <label class="f full">Idea o título<input class="in" id="pl-idea" required maxlength="140" placeholder="Ej: Westcol reacciona al tráiler 3"></label>
+      <label class="f">Plataforma<select class="in" id="pl-plataforma"></select></label>
+      <label class="f">Estado<select class="in" id="pl-estado"><option value="idea">Idea</option><option value="listo">Listo para subir</option><option value="publicado">Publicado</option></select></label>
+      <label class="f">Fecha (opcional)<input class="in" id="pl-fecha" type="date"></label>
+      <label class="f">Hora (opcional)<input class="in" id="pl-hora" type="time"></label>
+      <label class="f full">Notas<textarea class="in" id="pl-notas" rows="2" maxlength="400" placeholder="Fuente, link del stream, hashtags…"></textarea></label>
+    </div>
+    <p class="est" id="pl-tip"></p>
+    <p class="status err" id="pl-err" hidden></p>
+    <div class="dlg-actions">
+      <button class="btn ghost" type="button" id="pl-del" hidden>Borrar</button>
+      <button class="btn ghost" type="button" id="pl-cancel">Cancelar</button>
+      <button class="btn primary" type="submit" id="pl-save">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-settings">
+  <form class="dlg" id="form-settings">
+    <h2>Cuentas, metas y moneda</h2>
+    <div class="acct-box">
+      <span class="est" style="font-weight:600">Tus cuentas</span>
+      <div id="s-cuentas" class="acct-list"></div>
+      <div class="acct-add">
+        <select class="in" id="s-new-plat" aria-label="Red de la cuenta nueva"></select>
+        <input class="in" id="s-new-user" maxlength="60" placeholder="@usuario" aria-label="Usuario de la cuenta nueva" autocomplete="off">
+        <button class="btn" type="button" id="s-add-acct">Agregar</button>
+      </div>
+    </div>
+    <div class="form-grid">
+      <label class="f">Nombre para el media kit<input class="in" id="s-nombre" maxlength="60" placeholder="dailygamingclips"></label>
+      <label class="f">Símbolo de moneda<input class="in" id="s-moneda" maxlength="4" placeholder="$"></label>
+      <label class="f">Meta de views al mes<input class="in" id="s-meta-views" type="number" min="0" step="1"></label>
+      <label class="f">Meta de ganancia al mes<input class="in" id="s-meta-gan" type="number" min="0" step="0.01"></label>
+      <label class="f">Meta de clips al mes<input class="in" id="s-meta-clips" type="number" min="0" step="1"></label>
+      <label class="f">Meta de seguidores nuevos al mes<input class="in" id="s-meta-seg" type="number" min="0" step="1"></label>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" type="button" id="s-refresh-m">↻ Pedir actualización</button>
+      <button class="btn ghost" type="button" id="s-cancel">Cancelar</button>
+      <button class="btn primary" type="submit">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+const PLATS = [
+  {k:"tiktok", n:"TikTok", c:"--p-tiktok"},
+  {k:"youtube", n:"YouTube Shorts", c:"--p-yt"},
+  {k:"instagram", n:"Instagram Reels", c:"--p-ig"},
+  {k:"facebook", n:"Facebook Reels", c:"--p-fb"},
+  {k:"x", n:"X", c:"--p-x"},
+  {k:"snapchat", n:"Snapchat", c:"--p-snap"},
+  {k:"kick", n:"Kick", c:"--p-kick"},
+  {k:"otro", n:"Otra", c:"--p-otro"}
+];
+const PMAP = Object.fromEntries(PLATS.map(p=>[p.k,p]));
+const ICONS = {
+  resumen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>',
+  clips:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg>',
+  analisis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  dinero:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"/></svg>',
+  calendario:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  kit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg>'
+};
+// En el sitio público (GitHub Pages) se ocultan el dinero, las metas y el calendario.
+const PUBLIC = !!window.PANEL_PUBLICO;
+document.documentElement.classList.toggle("publico", PUBLIC);
+const VIEWS = [["resumen","Resumen"],["clips","Clips"],["analisis","Análisis"],["dinero","Dinero"],["calendario","Calendario"],["kit","Media kit"]].filter(v => !PUBLIC || !["dinero","calendario"].includes(v[0]));
+const $ = s => document.querySelector(s);
+const state = { clips:[], pagos:[], hist:[], snaps:{}, serie:[], plan:[], period:"30", plat:"", acct:"", metric:"views", sort:{k:"fecha",dir:"desc"}, q:"",
+  cfg:{moneda:"$", metaViews:0, metaGan:0, metaClips:0, metaSeg:0, cuentas:[]}, db:null, canWrite:true, loaded:false, editing:null, view:"resumen", base:{} };
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const nf = new Intl.NumberFormat("es");
+const nfc = new Intl.NumberFormat("es",{notation:"compact",maximumFractionDigits:1});
+const nf1 = new Intl.NumberFormat("es",{minimumFractionDigits:1,maximumFractionDigits:1});
+const nf2 = new Intl.NumberFormat("es",{minimumFractionDigits:2,maximumFractionDigits:2});
+const money = v => state.cfg.moneda + nf2.format(v||0);
+const moneyC = v => v >= 10000 ? state.cfg.moneda + nfc.format(v) : money(v);
+const num = v => Number(v)||0;
+const hasV = v => v!=null && v!=="";
+const pad = n => String(n).padStart(2,"0");
+const iso = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse = s => { const [y,m,d] = String(s||"").split("-").map(Number); return new Date(y||1970,(m||1)-1,d||1); };
+const today = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const color = k => "var(" + (PMAP[k]||PMAP.otro).c + ")";
+const rpmOf = (g,v) => v>0 ? g/v*1000 : 0;
+const sum = (list,k) => list.reduce((a,c)=>a+num(c[k]),0);
+const median = arr => { const a = arr.slice().sort((x,y)=>x-y); if (!a.length) return 0; const m = Math.floor(a.length/2); return a.length%2 ? a[m] : (a[m-1]+a[m])/2; };
+const cuentas = () => Array.isArray(state.cfg.cuentas) ? state.cfg.cuentas : [];
+const defaultAcct = plat => (cuentas().find(a=>a.plataforma===plat)||{}).usuario || "";
+const normUser = s => { s = String(s||"").trim().replace(/\s+/g,""); return s && !s.startsWith("@") ? "@"+s : s; };
+
+for (const p of PLATS){
+  for (const sel of ["#plat-filter","#f-plataforma","#s-new-plat","#p-plataforma","#pl-plataforma"]) $(sel).insertAdjacentHTML("beforeend",`<option value="${p.k}">${p.n}</option>`);
+}
+$("#tabs").innerHTML = VIEWS.map(([k,n])=>`<a class="tab" href="#${k}" data-tab="${k}">${ICONS[k]}${n}</a>`).join("");
+$("#bottom-nav").innerHTML = VIEWS.map(([k,n])=>`<a href="#${k}" data-tab="${k}">${ICONS[k]}<span>${n==="Media kit"?"Kit":n}</span></a>`).join("");
+
+// ---------- Utilidades de datos ----------
+function parseLink(url){
+  const s = String(url||"").trim();
+  let m = s.match(/instagram\.com\/(?:[\w.]+\/)?(?:reel|reels|p)\/([\w-]+)/i);
+  if (m) return {plataforma:"instagram", igCode:m[1]};
+  m = s.match(/tiktok\.com\/@([\w.]+)\/(?:video|photo)\/(\d+)/i);
+  if (m) return {plataforma:"tiktok", tiktokId:m[2], cuenta:"@"+m[1]};
+  return null;
+}
+function linkOf(c){
+  if (c.link) return c.link;
+  const user = (c.cuenta||"").replace(/^@/,"");
+  if (c.tiktokId && user) return `https://www.tiktok.com/@${user}/video/${c.tiktokId}`;
+  if (c.igCode && user) return `https://www.instagram.com/${user}/reel/${c.igCode}/`;
+  return "";
+}
+const isAutoNote = c => /^(www\.)?(tiktok|instagram)\.com\/\S+$/i.test(String(c.notas||"").trim());
+const subText = c => [c.cuenta, isAutoNote(c) ? "" : c.notas].filter(Boolean).join(" · ");
+const growth = c => (hasV(c.viewsAnterior) && hasV(c.views)) ? num(c.views)-num(c.viewsAnterior) : 0;
+const ttTime = c => { try { return c.tiktokId ? new Date(Number(BigInt(c.tiktokId) >> 32n) * 1000) : null; } catch(_) { return null; } };
+const perHour = c => { const t = ttTime(c); if (!t || !hasV(c.views)) return null; return num(c.views) / Math.max(1, (Date.now()-t)/3600000); };
+const snapOf = c => { const s = state.snaps[c.id]; return Array.isArray(s) ? s : []; };
+function gain1h(c){
+  const pts = snapOf(c); if (pts.length < 2) return 0;
+  const last = pts[pts.length-1]; const cut = last[0] - 60;
+  let ref = pts[0]; for (const p of pts) { if (p[0] <= cut) ref = p; }
+  if (last[0] - ref[0] > 180) return 0;
+  return Math.max(0, num(last[1]) - num(ref[1]));
+}
+function computeBase(){
+  const b = {};
+  for (const p of PLATS){
+    const xs = state.clips.filter(c=>c.plataforma===p.k && !c.noDisponible);
+    const wv = xs.filter(c=>hasV(c.views));
+    if (wv.length >= 3) b[p.k] = {k:"views", m: median(wv.map(c=>num(c.views)))};
+    else { const wl = xs.filter(c=>hasV(c.likes)); if (wl.length >= 3) b[p.k] = {k:"likes", m: median(wl.map(c=>num(c.likes)))}; }
+  }
+  state.base = b;
+}
+function score(c){
+  const b = state.base[c.plataforma]; if (!b || !b.m) return null;
+  const v = c[b.k]; if (!hasV(v)) return null;
+  return num(v) / b.m;
+}
+function benchHtml(c){
+  const s = score(c); if (s==null) return "";
+  if (s >= 1.5) return `<span class="bench up" title="${nf1.format(s)} veces tu promedio en ${(PMAP[c.plataforma]||PMAP.otro).n}">${nf1.format(s)}×</span>`;
+  if (s < 0.6) return `<span class="bench down" title="${nf1.format(s)} veces tu promedio">${nf1.format(s)}×</span>`;
+  return `<span class="bench mid" title="Dentro de tu promedio">${nf1.format(s)}×</span>`;
+}
+function titleHtml(c){
+  const url = linkOf(c), t = esc(c.titulo);
+  return url ? `<a class="lnk" href="${esc(url)}" target="_blank" rel="noopener" title="Abrir: ${t}" data-stop>${t}</a>` : `<span title="${t}">${t}</span>`;
+}
+
+function range(period){
+  if (period === "all") return null;
+  const end = today(); end.setDate(end.getDate()+1);
+  const start = today(); start.setDate(start.getDate() - (Number(period)-1));
+  return {start, end, days:Number(period)};
+}
+function inRange(c, r){ if(!r) return true; const d=parse(c.fecha); return d>=r.start && d<r.end; }
+function prevRange(r){ if (!r) return null; const s=new Date(r.start); s.setDate(s.getDate()-r.days); return {start:s,end:new Date(r.start),days:r.days}; }
+const platOk = c => (!state.plat || c.plataforma===state.plat) && (!state.acct || (c.cuenta||"").toLowerCase()===state.acct.toLowerCase());
+function pagosIn(r){ if (state.acct) return []; return state.pagos.filter(p => (!state.plat || p.plataforma===state.plat) && inRange(p, r)); }
+const pagosSum = r => pagosIn(r).reduce((a,p)=>a+num(p.monto),0);
+function follGrowth(r){
+  const hist = state.hist.slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha)));
+  const startIso = r ? iso(r.start) : null;
+  const base = hist.find(h => !startIso || h.fecha >= startIso);
+  const g = k => { const cur = state.cfg[k]; if (cur==null || !base) return null; const b = base[k+"Inicio"] ?? base[k]; return b==null ? null : num(cur) - num(b); };
+  return { tt: g("tiktokSeguidores"), ig: g("igSeguidores") };
+}
+const serie = () => Array.isArray(state.serie) ? state.serie : [];
+function serieCol(i, hours){ const s = serie(); if (!s.length) return []; const cut = s[s.length-1][0] - (hours||48)*60; return s.filter(p=>p[0]>=cut && p[i]!=null).map(p=>num(p[i])); }
+function serieGain(i, minutes){ const s = serie().filter(p=>p[i]!=null); if (s.length<2) return null; const last = s[s.length-1]; let ref = s[0]; for (const p of s) if (p[0] <= last[0]-minutes) ref = p; return num(last[i]) - num(ref[i]); }
+
+// Temas: palabras de los títulos
+const STOP = new Set("the and with this that your from what when will about look have into just like than they them their there here been were your yours para como porque sobre esta este esto estos estas pero cuando donde tiene tienen puede pueden sera será seran serán veces mucho mucha muy mas más menos todo todos toda todas solo sólo hace hacer real really take its his her you are can could would should vamos dias días antes despues después ahora otra otro otros entre hasta desde cada nada algo quien quién cual cuál ellos ellas nuestro nuestra the".split(" "));
+function topicsOf(title){
+  let s = String(title||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  s = s.replace(/gta\s*vi\b/g,"gta6").replace(/gta\s*v\b/g,"gta5").replace(/gta\s*([0-9])/g,"gta$1");
+  const words = s.split(/[^a-z0-9ñ]+/).filter(w => (w.length>=4 || /^gta\d$/.test(w)) && !STOP.has(w) && !/^\d+$/.test(w));
+  return [...new Set(words)];
+}
+
+// ---------- Gráficas ----------
+function spark(vals, col, opts){
+  opts = opts||{};
+  if (!vals || vals.length < 2) return "";
+  const W=opts.w||300, H=opts.h||40, P=3;
+  const min = Math.min(...vals), max = Math.max(...vals), span = (max-min)||1;
+  const pts = vals.map((v,i)=>[P + i*(W-2*P)/(vals.length-1), H-P - (v-min)/span*(H-2*P) - (max===min?(H-2*P)/2:0)]);
+  const d = pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const last = pts[pts.length-1];
+  const gid = "g"+Math.random().toString(36).slice(2,8);
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".32"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs><path d="${d} L${last[0].toFixed(1)} ${H} L${P} ${H} Z" fill="url(#${gid})"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>${opts.dot===false?"":`<circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${col}"/>`}</svg>`;
+}
+function lineChart(pts, col){
+  if (pts.length < 2) return `<div class="empty-chart">La gráfica de crecimiento aparece después de dos actualizaciones.</div>`;
+  const W=560, H=190, L=44, R=12, T=12, B=24;
+  const xs = pts.map(p=>p[0]), ys = pts.map(p=>num(p[1]));
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), ymin = Math.min(...ys), ymax = Math.max(...ys);
+  const yLo = Math.max(0, Math.floor(ymin - (ymax-ymin)*0.15)), yHi = Math.ceil(ymax + (ymax-ymin)*0.1) || 1;
+  const sx = t => L + (t-x0)/((x1-x0)||1)*(W-L-R), sy = v => T + (1-(v-yLo)/((yHi-yLo)||1))*(H-T-B);
+  let g = "";
+  for (let i=0;i<=3;i++){ const v = yLo + (yHi-yLo)*i/3, y = sy(v); g += `<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${L-6}" y="${y+3}" text-anchor="end">${esc(nfc.format(Math.round(v)))}</text>`; }
+  const lbl = t => { const d = new Date(t*60000); return d.toLocaleString("es",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}); };
+  g += `<text x="${L}" y="${H-6}">${esc(lbl(x0))}</text><text x="${W-R}" y="${H-6}" text-anchor="end">${esc(lbl(x1))}</text>`;
+  const d = pts.map((p,i)=>(i?"L":"M")+sx(p[0]).toFixed(1)+" "+sy(num(p[1])).toFixed(1)).join(" ");
+  g += `<defs><linearGradient id="lcg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".3"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>`;
+  g += `<path d="${d} L${sx(x1)} ${H-B} L${sx(x0)} ${H-B} Z" fill="url(#lcg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  g += pts.map(p=>`<circle cx="${sx(p[0])}" cy="${sy(num(p[1]))}" r="2.5" fill="${col}"><title>${esc(lbl(p[0]))}: ${nf.format(num(p[1]))} views</title></circle>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Crecimiento de views">${g}</svg>`;
+}
+function animateNum(el, to, fmt){
+  const from = Number(el.dataset.v); el.dataset.v = to;
+  if (REDUCED || !isFinite(from) || from === to){ el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 700;
+  const step = t => { const k = Math.min(1,(t-t0)/dur), e = 1-Math.pow(1-k,3); el.textContent = fmt(from + (to-from)*e); if (k<1) requestAnimationFrame(step); else el.textContent = fmt(to); };
+  requestAnimationFrame(step);
+}
+const setNum = (sel, to, fmt) => { const el = $(sel); if (el) animateNum(el, to, fmt); };
+
+// ---------- Navegación ----------
+function showView(){
+  const h = (location.hash||"").replace("#","");
+  const v = VIEWS.some(x=>x[0]===h) ? h : "resumen";
+  state.view = v;
+  document.querySelectorAll("[data-view]").forEach(s=>s.hidden = s.dataset.view !== v);
+  document.querySelectorAll("[data-tab]").forEach(a=>{ if (a.dataset.tab===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+  $("#filters").hidden = !["resumen","clips","analisis"].includes(v);
+  render();
+}
+addEventListener("hashchange", ()=>{ showView(); scrollTo({top:0, behavior: REDUCED ? "auto" : "smooth"}); });
+
+// ---------- Render ----------
+function render(){
+  computeBase();
+  renderAccounts();
+  const r = range(state.period);
+  const all = state.clips.filter(c => platOk(c) && inRange(c,r));
+  const list = all.filter(c => !c.noDisponible);
+  const v = state.view;
+  if (v==="resumen"){
+    const prev = r ? state.clips.filter(c => platOk(c) && !c.noDisponible && inRange(c, prevRange(r))) : null;
+    renderHero(); renderNews(); renderKpis(list, prev, r); renderWeek(); renderGoals(); renderChart(list, r); renderPlats(list, r); renderTop(list); renderFoll();
+  } else if (v==="clips") renderTable(all);
+  else if (v==="analisis"){ renderTopics(list); renderWhen(list); renderHeat(list); renderVs(list, r); renderDist(list); }
+  else if (v==="dinero") renderPagos();
+  else if (v==="calendario") renderCal();
+  else if (v==="kit") renderKit();
+}
+
+function ago(isoStr){
+  const t = Date.parse(isoStr); if (!t) return "";
+  const m = Math.round((Date.now()-t)/60000);
+  if (m < 1) return "hace un momento"; if (m < 60) return `hace ${m} min`;
+  const h = Math.round(m/60); if (h < 24) return `hace ${h} h`;
+  return new Date(t).toLocaleString("es",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+}
+function nextRunMin(){
+  // De 8:00 a 24:00 la tarea corre cada 15 min; de 0:00 a 8:00, una vez por hora (al minuto 5). Más unos minutos de margen.
+  const now = new Date(); const m = now.getMinutes() + now.getSeconds()/60;
+  if (now.getHours() < 8){ let wait = ((65 - m) % 60) + 4; if (wait < 1) wait = 1; return Math.round(wait); }
+  let wait = (15 - (m % 15)) + 6; if (wait > 21) wait -= 15; if (wait < 1) wait = 1; return Math.round(wait);
+}
+function renderAccounts(){
+  const f = k => k==="tiktok" ? state.cfg.tiktokSeguidores : k==="instagram" ? state.cfg.igSeguidores : null;
+  $("#accounts").innerHTML = cuentas().map(a=>`<span class="chip"><i class="dot" style="background:${color(a.plataforma)}"></i>${esc(a.usuario)}${f(a.plataforma)!=null?` <span class="m">· ${nf.format(num(f(a.plataforma)))} seg.</span>`:""}</span>`).join("")
+    || `<span class="chip"><span class="m">Agrega tus cuentas en Ajustes</span></span>`;
+  $("#cuentas-list").innerHTML = cuentas().map(a=>`<option value="${esc(a.usuario)}">${esc((PMAP[a.plataforma]||PMAP.otro).n)}</option>`).join("");
+  const names = new Map();
+  for (const a of cuentas()) names.set(a.usuario.toLowerCase(), a.usuario);
+  for (const c of state.clips) if (c.cuenta && !names.has(c.cuenta.toLowerCase())) names.set(c.cuenta.toLowerCase(), c.cuenta);
+  const sel = $("#acct-filter");
+  sel.innerHTML = `<option value="">Todas las cuentas</option>` + [...names.values()].map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  sel.value = state.acct; if (sel.value !== state.acct){ state.acct = ""; sel.value = ""; }
+  const sync = state.cfg.ultimaSync, chip = $("#sync-chip");
+  if (sync){
+    const stale = (Date.now()-Date.parse(sync)) > 90*60000;
+    chip.hidden = false; chip.style.color = stale ? "var(--warn)" : "var(--muted)";
+    chip.innerHTML = `<i class="dot ${stale?"":"live-dot"}" style="background:${stale?"var(--warn)":"var(--money)"}"></i>${stale?"Sin datos nuevos":"En vivo"} · ${esc(ago(sync))}`;
+    chip.title = new Date(Date.parse(sync)).toLocaleString("es");
+  } else chip.hidden = true;
+  renderRefresh();
+}
+function renderRefresh(){
+  const el = $("#refresh-status"), btn = $("#btn-refresh"), btn2 = $("#s-refresh-m");
+  const req = Date.parse(state.cfg.solicitudManual||""), sync = Date.parse(state.cfg.ultimaSync||"");
+  const pending = req && (!sync || sync < req);
+  const dis = !state.db || !state.canWrite || !!pending;
+  btn.disabled = dis; btn2.disabled = dis;
+  btn.textContent = pending ? "↻ Pedida" : "↻ Actualizar";
+  if (!req){ el.hidden = true; return; }
+  const since = (Date.now()-req)/60000;
+  el.hidden = false; el.style.color = "";
+  if (!pending){ el.style.color = "var(--money)"; el.textContent = `Datos actualizados ${ago(state.cfg.ultimaSync)}.`; el.hidden = since >= 30; }
+  else if (since > 25){ el.style.color = "var(--rec)"; el.textContent = "La actualización no llegó. Revisa que la PC esté encendida y con la app de Claude abierta."; btn.disabled = false; btn2.disabled = false; }
+  else { el.style.color = "var(--warn)"; el.textContent = `Actualización pedida ${ago(state.cfg.solicitudManual)}. Llega en unos ${nextRunMin()} min; los números cambiarán solos.`; }
+}
+function renderHero(){
+  if (!$("#hero").children.length){
+    $("#hero").innerHTML = `
+      <div class="big"><span class="lbl">Views totales</span><span class="v" id="h-views">—</span><span class="s" id="h-views-s"></span><div id="h-views-g"></div></div>
+      <div class="big"><span class="lbl">Seguidores</span><span class="v" id="h-foll">—</span><span class="s" id="h-foll-s"></span><div id="h-foll-g"></div></div>
+      <div class="big"><span class="lbl">${PUBLIC?"Likes totales":"Cobrado este mes"}</span><span class="v" id="h-money" style="color:${PUBLIC?"var(--p-ig)":"var(--money)"}">—</span><span class="s" id="h-money-s"></span><div id="h-money-g"></div></div>`;
+  }
+  if (PUBLIC){
+    const live2 = state.clips.filter(c=>!c.noDisponible);
+    const lk = sum(live2,"likes"), cm = sum(live2,"comentarios"), sh = sum(live2,"compartidos");
+    setNum("#h-money", lk, v=>nf.format(Math.round(v)));
+    $("#h-money-s").innerHTML = `<span>${nf.format(cm)} comentarios · ${nf.format(sh)} compartidos</span>`;
+    $("#h-money-g").innerHTML = "";
+  }
+  const live = state.clips.filter(c=>!c.noDisponible);
+  const views = sum(live.filter(c=>hasV(c.views)),"views");
+  setNum("#h-views", views, v=>nf.format(Math.round(v)));
+  const vg = serieGain(3, 60);
+  const igNo = live.some(c=>c.plataforma==="instagram") && !live.some(c=>c.plataforma==="instagram" && hasV(c.views));
+  $("#h-views-s").innerHTML = `${vg!=null&&vg>0?`<span class="delta up">+${nf.format(vg)} en la última hora</span>`:`<span>${nf.format(live.length)} clips</span>`}${igNo?"<span>· Instagram sin views</span>":""}`;
+  $("#h-views-g").innerHTML = spark(serieCol(3, 48), "var(--p-tiktok)");
+  const tt = state.cfg.tiktokSeguidores, ig = state.cfg.igSeguidores;
+  setNum("#h-foll", num(tt)+num(ig), v=>nf.format(Math.round(v)));
+  const fg = follGrowth(range("7")); const fgt = (fg.tt||0) + (fg.ig||0);
+  $("#h-foll-s").innerHTML = `${fgt?`<span class="delta ${fgt>0?"up":"down"}">${fgt>0?"+":""}${nf.format(fgt)} esta semana</span>`:""}<span>TikTok ${tt!=null?nf.format(num(tt)):"—"} · Instagram ${ig!=null?nf.format(num(ig)):"—"}</span>`;
+  const s = serie(); const cut = s.length ? s[s.length-1][0]-48*60 : 0;
+  $("#h-foll-g").innerHTML = spark(s.filter(p=>p[0]>=cut).map(p=>num(p[1])+num(p[2])), "var(--accent)");
+  if (PUBLIC) return;
+  const t = today(); const mStart = new Date(t.getFullYear(), t.getMonth(), 1);
+  const cob = state.pagos.filter(p=>p.estado==="cobrado" && parse(p.fecha)>=mStart).reduce((a,p)=>a+num(p.monto),0);
+  const pend = state.pagos.filter(p=>p.estado!=="cobrado").reduce((a,p)=>a+num(p.monto),0);
+  setNum("#h-money", cob, v=>money(v));
+  $("#h-money-s").innerHTML = pend>0 ? `<span style="color:var(--warn)">${money(pend)} por cobrar</span>` : `<span>Registra tus pagos en Dinero</span>`;
+  let acc = 0; const cum = []; for (let i=1;i<=t.getDate();i++){ const d = iso(new Date(t.getFullYear(), t.getMonth(), i)); acc += state.pagos.filter(p=>p.estado==="cobrado" && p.fecha===d).reduce((a,p)=>a+num(p.monto),0); cum.push(acc); }
+  $("#h-money-g").innerHTML = cob>0 ? spark(cum, "var(--money)") : "";
+}
+function renderNews(){
+  const n = Array.isArray(state.cfg.novedades) ? state.cfg.novedades.slice().sort((a,b)=>String(b.t).localeCompare(String(a.t))).slice(0,8) : [];
+  $("#news").hidden = !n.length;
+  $("#news").innerHTML = n.map(x=>`<div class="news-item"><b>${esc(x.texto)}</b><span>${esc(ago(x.t))}</span></div>`).join("");
+}
+
+function delta(cur, prev){
+  if (prev == null) return "";
+  if (prev === 0) return cur > 0 ? `<span class="delta up">nuevo</span>` : `<span class="delta">—</span>`;
+  const p = (cur-prev)/prev*100;
+  return `<span class="delta ${p>=0?"up":"down"}">${p>=0?"▲":"▼"} ${Math.abs(p).toFixed(0)}%</span>`;
+}
+function renderKpis(list, prev, r){
+  const gp = pagosSum(r);
+  const withV = list.filter(c=>hasV(c.views));
+  const v = sum(withV,"views"), g = sum(list,"ganancia") + gp, l = sum(list,"likes");
+  const sh = sum(list,"compartidos"), sv = sum(list,"guardados");
+  const pv = prev && sum(prev,"views"), pg = prev && (sum(prev,"ganancia") + pagosSum(prevRange(r)));
+  const fg = follGrowth(r); const parts = [];
+  if ((!state.plat || state.plat==="tiktok") && fg.tt!=null) parts.push(["TikTok", fg.tt]);
+  if ((!state.plat || state.plat==="instagram") && fg.ig!=null) parts.push(["Instagram", fg.ig]);
+  const s = parts.reduce((a,p)=>a+p[1],0);
+  const eng = v>0 ? (sum(withV,"likes") + sum(withV,"comentarios") + sum(withV,"compartidos"))/v*100 : 0;
+  const best = list.slice().sort((a,b)=>(score(b)??-1)-(score(a)??-1))[0];
+  const vs = prev ? "vs periodo anterior" : "desde el inicio";
+  const s1 = (!state.plat || state.plat==="tiktok") ? spark(serieCol(3,48), "var(--p-tiktok)", {h:34, dot:false}) : "";
+  const sF = spark(serie().slice(-200).map(p=> (state.plat==="instagram"?0:num(p[1])) + (state.plat==="tiktok"?0:num(p[2]))), "var(--accent)", {h:34, dot:false});
+  if (!$("#kpis").children.length) $("#kpis").innerHTML = ["views","gan","rpm","clips","foll","eng","share","best"].map(k=>`<div class="kpi" id="k-${k}"></div>`).join("");
+  const tile = (id, lbl, valHtml, hint, extra) => { $("#k-"+id).innerHTML = `<span class="lbl">${lbl}</span>${valHtml}<span class="hint">${hint}</span>${extra||""}`; };
+  tile("views","Views",`<span class="val" title="${nf.format(v)}">${nfc.format(v)}</span>`,`${delta(v,pv)} ${vs}`, s1);
+  tile("gan","Ganancias",`<span class="val money" title="${money(g)}">${moneyC(g)}</span>`,`${delta(g,pg)} ${vs}${gp>0?" · incluye pagos":""}`);
+  tile("rpm","RPM",`<span class="val">${money(rpmOf(g,v))}</span>`,"lo ganado por cada 1.000 views");
+  tile("clips","Clips publicados",`<span class="val">${nf.format(list.length)}</span>`, withV.length? nfc.format(v/withV.length)+" views por clip" : list.length? nf.format(l)+" likes en total" : "sin clips aún");
+  tile("foll","Seguidores ganados",`<span class="val ${s>0?"money":""}">${parts.length ? (s>=0?"+":"")+nf.format(s) : "—"}</span>`, parts.length ? parts.map(p=>`${p[0]} ${p[1]>=0?"+":""}${nf.format(p[1])}`).join(" · ") : "se mide desde la primera actualización", sF);
+  tile("eng","Engagement",`<span class="val">${nf1.format(eng)}%</span>`,"interacciones por cada 100 views");
+  tile("share","Compartidos",`<span class="val">${nf.format(sh)}</span>`, `${nf.format(sv)} guardados · solo TikTok`);
+  tile("best","Mejor clip",`<span class="val text" title="${esc(best?.titulo||"")}">${best?esc(best.titulo):"—"}</span>`, best ? `${benchHtml(best)} ${hasV(best.views)? nfc.format(num(best.views))+" views" : nf.format(num(best.likes))+" likes"} · ${(PMAP[best.plataforma]||PMAP.otro).n}` : "registra clips para verlo");
+  $("#k-best").style.cursor = best ? "pointer" : ""; $("#k-best").onclick = best ? (e)=>{ if (!e.target.closest("[data-stop]")) openDetail(best); } : null;
+}
+
+function renderWeek(){
+  const r7 = range("7");
+  const wk = state.clips.filter(c=>!c.noDisponible && inRange(c, r7));
+  const scored = wk.map(c=>[c, score(c)]).filter(x=>x[1]!=null).sort((a,b)=>b[1]-a[1]);
+  const best = scored[0]?.[0], worst = scored.length>1 ? scored[scored.length-1][0] : null;
+  const vg = serieGain(3, 7*1440);
+  const fg = follGrowth(r7); const fgt = (fg.tt||0)+(fg.ig||0);
+  const tp = topicStats(state.clips.filter(c=>!c.noDisponible))[0];
+  const s = serie(); const span = s.length>1 ? (s[s.length-1][0]-s[0][0])/1440 : 0;
+  const note = span < 6.5 ? `con datos desde ${s.length?new Date(s[0][0]*60000).toLocaleDateString("es",{day:"numeric",month:"short"}):"hoy"}` : "últimos 7 días";
+  $("#week").innerHTML = `<div class="panel-head"><h2>Resumen de la semana</h2><span class="sub">${esc(note)}</span></div>
+    <div class="week">
+      <div class="week-item"><span class="lbl">Views ganadas</span><span class="v" style="color:var(--money)">${vg!=null?"+"+nf.format(vg):"—"}</span><span class="s">TikTok</span></div>
+      <div class="week-item"><span class="lbl">Seguidores nuevos</span><span class="v" style="color:${fgt>0?"var(--money)":"var(--fg)"}">${fgt>0?"+":""}${nf.format(fgt)}</span><span class="s">TikTok ${fg.tt!=null?(fg.tt>=0?"+":"")+nf.format(fg.tt):"—"} · Instagram ${fg.ig!=null?(fg.ig>=0?"+":"")+nf.format(fg.ig):"—"}</span></div>
+      <div class="week-item"><span class="lbl">Lo mejor</span><span class="v" title="${esc(best?.titulo||"")}">${best?esc(best.titulo):"—"}</span><span class="s">${best?benchHtml(best)+" tu promedio":`${wk.length} clips esta semana`}</span></div>
+      <div class="week-item"><span class="lbl">Tema para repetir</span><span class="v">${tp?esc(tp.label):"—"}</span><span class="s">${tp?`${nf1.format(tp.avg)}× tu promedio en ${tp.n} clips`:"aparece con más clips"}</span></div>
+    </div>${worst && score(worst) < 0.6 ? `<div class="insight">El clip que menos rindió fue <b>${esc(worst.titulo)}</b> (${nf1.format(score(worst))}× tu promedio). Revisa su gancho de los primeros segundos o la hora en que lo subiste.</div>` : ""}`;
+}
+
+function renderGoals(){
+  const t = today(); const mStart = new Date(t.getFullYear(), t.getMonth(), 1); const mEnd = new Date(t.getFullYear(), t.getMonth()+1, 1);
+  const list = state.clips.filter(c => { const d=parse(c.fecha); return d>=mStart && d<mEnd && !c.noDisponible; });
+  const monthName = t.toLocaleDateString("es",{month:"long"});
+  const dim = new Date(t.getFullYear(), t.getMonth()+1, 0).getDate();
+  const dayFrac = t.getDate() / dim;
+  const pagosMes = state.pagos.filter(p=>{const d=parse(p.fecha); return d>=mStart && d<mEnd;}).reduce((a,p)=>a+num(p.monto),0);
+  const fm = follGrowth({start:mStart, end:mEnd, days:dim}); const segMes = (fm.tt||0)+(fm.ig||0);
+  const rows = [
+    ["Views", sum(list,"views"), num(state.cfg.metaViews), v=>nfc.format(v), "var(--p-tiktok)"],
+    ["Ganancias", sum(list,"ganancia") + pagosMes, num(state.cfg.metaGan), moneyC, "var(--money)"],
+    ["Clips", list.length, num(state.cfg.metaClips), v=>nf.format(Math.round(v)), "var(--rec)"],
+    ["Seguidores", segMes, num(state.cfg.metaSeg), v=>"+"+nf.format(Math.round(v)), "var(--accent)"]
+  ];
+  const withGoal = rows.filter(r=>r[2]>0);
+  const proj = rows.map(([n,cur,,fmt])=>`<b>${fmt(n==="Ganancias"?cur/dayFrac:Math.round(cur/dayFrac))}</b> ${n.toLowerCase()}`).join(" · ");
+  if (!withGoal.length){
+    $("#goals").innerHTML = `<div class="panel-head"><h2>Metas de ${monthName}</h2>${state.canWrite?'<button class="btn small" type="button" data-settings>Poner metas</button>':""}</div><div class="insight">A este ritmo cerrarás ${monthName} con ${proj}.</div>`;
+    return;
+  }
+  $("#goals").innerHTML = `<div class="panel-head"><h2>Metas de ${monthName}</h2><span class="sub">día ${t.getDate()} de ${dim}</span></div>` + withGoal.map(([n,cur,goal,fmt,col])=>{
+    const rnd = n==="Ganancias" ? (x=>x) : (x=>Math.ceil(x));
+    const pct = Math.min(100, cur/goal*100), p = cur/dayFrac, ok = p >= goal;
+    return `<div class="goal-row"><span class="name">${n}</span><div class="bar" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100" aria-label="${n}"><i style="width:${pct}%;background:${col}"></i></div><span class="num">${fmt(cur)} / ${fmt(goal)} <span class="delta ${cur>=goal||ok?"up":"down"}">${cur>=goal?"cumplida":ok?"vas bien":"atrasado"}</span></span><span class="proj">Proyección: ${fmt(rnd(p))} a fin de mes${!ok&&cur<goal?` · necesitas ${fmt(rnd(Math.max(0,(goal-cur)/Math.max(1,dim-t.getDate()))))} por día`:""}</span></div>`;
+  }).join("");
+}
+
+function buckets(list, r, metric){
+  let mode, start, end;
+  if (r && r.days <= 31){ mode="day"; start=new Date(r.start); end=new Date(r.end); }
+  else if (r && r.days <= 120){ mode="week"; start=new Date(r.start); end=new Date(r.end); }
+  else {
+    mode="month";
+    if (r){ start=new Date(r.start.getFullYear(), r.start.getMonth(), 1); end=new Date(r.end); }
+    else { if (!list.length) return {mode, bins:[]}; const ds = list.map(c=>parse(c.fecha).getTime()); const min = new Date(Math.min(...ds)); const max = new Date(Math.max(...ds)); start = new Date(min.getFullYear(), min.getMonth(), 1); end = new Date(max.getFullYear(), max.getMonth()+1, 1); }
+  }
+  const bins = []; const d = new Date(start);
+  while (d < end && bins.length < 400){ const s = new Date(d); if (mode==="day") d.setDate(d.getDate()+1); else if (mode==="week") d.setDate(d.getDate()+7); else d.setMonth(d.getMonth()+1); bins.push({s, e:new Date(d), v:0}); }
+  for (const c of list){ const cd = parse(c.fecha); const b = bins.find(b=>cd>=b.s && cd<b.e); if (b) b.v += num(c[metric]); }
+  if (metric==="ganancia") for (const p of pagosIn(r)){ const cd = parse(p.fecha); const b = bins.find(b=>cd>=b.s && cd<b.e); if (b) b.v += num(p.monto); }
+  return {mode, bins};
+}
+function niceMax(v){ if (v<=0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); const n = v/p; return (n<=1?1:n<=2?2:n<=5?5:10)*p; }
+function renderChart(list, r){
+  let metric = state.metric, note = "";
+  $("#metric").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", String(x.dataset.m===state.metric)));
+  if (metric==="views" && list.length && !list.some(c=>hasV(c.views)) && list.some(c=>num(c.likes)>0)){
+    metric = "likes"; $("#metric").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", String(x.dataset.m==="likes")));
+    note = "Instagram no muestra views sin iniciar sesión, así que aquí ves los likes. Cárgalas en Clips → \"Cargar views de Instagram\".";
+  }
+  const LBL = {views:"Views", likes:"Likes", ganancia:"Ganancias"};
+  const {mode, bins} = buckets(list, r, metric);
+  $("#chart-title").textContent = LBL[metric] + " por " + {day:"día", week:"semana", month:"mes"}[mode];
+  if (!bins.length || bins.every(b=>b.v===0)){ $("#chart").innerHTML = `<div class="empty-chart">Sin ${LBL[metric].toLowerCase()} registrados en este periodo.</div>`; return; }
+  const W=640, H=240, L=50, R=10, T=12, B=26;
+  const max = niceMax(Math.max(...bins.map(b=>b.v))); const iw = W-L-R, ih = H-T-B, bw = iw/bins.length;
+  const fmt = metric==="ganancia" ? (v=>state.cfg.moneda+nfc.format(v)) : (v=>nfc.format(v));
+  const col = metric==="views" ? "var(--p-tiktok)" : metric==="likes" ? "var(--p-ig)" : "var(--money)";
+  let g = `<defs><linearGradient id="barg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}"/><stop offset="1" stop-color="${col}" stop-opacity=".45"/></linearGradient></defs>`;
+  for (let i=0;i<=4;i++){ const val = max*i/4, y = T+ih - ih*i/4; g += `<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y+3}" text-anchor="end">${esc(fmt(val))}</text>`; }
+  const every = Math.ceil(bins.length/8);
+  bins.forEach((b,i)=>{
+    const h = ih*b.v/max, x = L + i*bw + bw*0.15, w = Math.max(1, bw*0.7);
+    const label = mode==="month" ? b.s.toLocaleDateString("es",{month:"short"}) + (b.s.getMonth()===0||i===0 ? " "+String(b.s.getFullYear()).slice(2):"") : b.s.getDate()+"/"+(b.s.getMonth()+1);
+    const tip = (mode==="week"?"Semana del ":"") + (mode==="month"? b.s.toLocaleDateString("es",{month:"long",year:"numeric"}) : b.s.toLocaleDateString("es",{day:"numeric",month:"short"})) + ": " + (metric==="ganancia"? money(b.v) : nf.format(b.v)+" "+metric);
+    g += `<rect x="${x}" y="${T+ih-h}" width="${w}" height="${h}" rx="${Math.min(4,w/2)}" fill="url(#barg)"><title>${esc(tip)}</title></rect>`;
+    if (i % every === 0) g += `<text x="${x+w/2}" y="${H-8}" text-anchor="middle">${esc(label)}</text>`;
+  });
+  $("#chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc($("#chart-title").textContent)}">${g}</svg>` + (note ? `<p class="status" style="margin-top:6px">${esc(note)}</p>` : "");
+}
+
+function renderPlats(list, r){
+  const by = {};
+  for (const c of list){ const k = PMAP[c.plataforma]?c.plataforma:"otro"; (by[k] ||= {v:0,g:0,n:0,l:0,hv:false}); by[k].v+=num(c.views); by[k].g+=num(c.ganancia); by[k].l+=num(c.likes); by[k].n++; if (hasV(c.views)) by[k].hv=true; }
+  for (const p of pagosIn(r)){ const k = PMAP[p.plataforma]?p.plataforma:"otro"; if (by[k]) by[k].g += num(p.monto); }
+  const rows = Object.entries(by).sort((a,b)=>b[1].v-a[1].v || b[1].l-a[1].l);
+  if (!rows.length){ $("#plats").innerHTML = `<p class="status">Cuando registres clips verás aquí qué red te da más y cuál paga mejor.</p>`; return; }
+  const maxV = Math.max(...rows.map(r=>r[1].v), 1), maxN = Math.max(...rows.map(r=>r[1].n), 1);
+  const totalG = rows.reduce((a,[,d])=>a+d.g,0);
+  $("#plats").innerHTML = rows.map(([k,d])=>`
+    <div class="plat">
+      <div class="plat-top"><b><i class="dot" style="background:${color(k)}"></i>${PMAP[k].n} <span>${d.n} clip${d.n===1?"":"s"}</span></b><span>${d.hv ? nfc.format(d.v)+" views" : nfc.format(d.l)+" likes"} · <span style="color:var(--money)">${moneyC(d.g)}</span>${d.hv?" · "+money(rpmOf(d.g,d.v)):""}</span></div>
+      <div class="bar"><i style="width:${d.hv ? d.v/maxV*100 : Math.max(4, d.n/maxN*100)}%;background:${color(k)};${d.hv?"":"opacity:.45"}"></i></div>
+      ${d.hv ? (totalG>0?`<span class="status">${(d.g/totalG*100).toFixed(0)}% de tus ganancias</span>`:"") : `<span class="status">Sin views (Instagram solo las muestra con sesión). La barra indica cantidad de clips.</span>`}
+    </div>`).join("");
+}
+
+function renderTop(list){
+  let rows = list.filter(c=>hasV(c.views)).sort((a,b)=>num(b.views)-num(a.views)).slice(0,5);
+  const byLikes = !rows.length;
+  if (byLikes) rows = list.filter(c=>hasV(c.likes)).sort((a,b)=>num(b.likes)-num(a.likes)).slice(0,5);
+  if (!rows.length){ $("#top").innerHTML = `<li class="status">Tus clips con más views aparecerán aquí.</li>`; return; }
+  const k = byLikes ? "likes" : "views";
+  let hotId = null, bg = 0; for (const c of list){ const g = gain1h(c); if (g > bg){ bg = g; hotId = c.id; } }
+  const max = num(rows[0][k]) || 1;
+  $("#top").innerHTML = rows.map((c,i)=>{
+    const ph = !byLikes ? perHour(c) : null, g1 = gain1h(c);
+    const sp = spark(snapOf(c).map(p=>num(p[1])), color(c.plataforma), {w:200, h:22, dot:false});
+    return `<li class="top-item" data-open="${esc(c.id)}">
+      <span class="rk">${i+1}</span>
+      <span class="tt"><i class="dot" style="background:${color(c.plataforma)}"></i><span class="t">${esc(c.titulo)}</span>${c.id===hotId?' <span class="hot">En racha</span>':""}</span>
+      <span class="vv">${nf.format(num(c[k]))} ${byLikes?"likes":""}<br><small>${g1>0?`<span class="grow">+${nf.format(g1)}/h</span>`:ph!=null?`${ph>=100?nfc.format(ph):nf1.format(ph)} prom./h`:""}</small></span>
+      <div class="meta">${sp || `<div class="bar" style="flex:1"><i style="width:${num(c[k])/max*100}%;background:${color(c.plataforma)}"></i></div>`}${benchHtml(c)}</div>
+    </li>`;
+  }).join("");
+}
+
+function renderFoll(){
+  const s = serie();
+  const series = [{k:"tiktok", n:"TikTok", cur: state.cfg.tiktokSeguidores, i:1}, {k:"instagram", n:"Instagram", cur: state.cfg.igSeguidores, i:2}].filter(x=>x.cur!=null);
+  if (!series.length){ $("#foll").innerHTML = `<p class="status">Los seguidores aparecen después de la primera actualización automática.</p>`; return; }
+  const fg = follGrowth(range("1"));
+  $("#foll").innerHTML = series.map(x=>{
+    const pts = s.filter(p=>p[x.i]!=null).slice(-200).map(p=>num(p[x.i]));
+    const td = x.k==="tiktok" ? fg.tt : fg.ig;
+    const first = s.find(p=>p[x.i]!=null);
+    const since = first ? new Date(first[0]*60000).toLocaleString("es",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "";
+    return `<div class="foll-row"><span class="fn"><i class="dot" style="background:${color(x.k)}"></i>${x.n}</span><span class="fv">${nf.format(num(x.cur))}</span>
+      <span class="fs">${td!=null?`<span class="delta ${td>0?"up":td<0?"down":""}">${td>0?"+":""}${nf.format(td)} hoy</span> · `:""}${pts.length>=2?`desde ${esc(since)}`:"la línea aparece con la próxima actualización"}</span>
+      ${pts.length>=2 ? spark(pts, color(x.k)) : ""}</div>`;
+  }).join("");
+}
+
+// ---------- Análisis ----------
+function topicStats(list){
+  const map = new Map();
+  const scoredClips = list.map(c=>[c, score(c)]).filter(x=>x[1]!=null);
+  for (const [c, s] of scoredClips){ for (const t of topicsOf(c.titulo)){ const e = map.get(t) || {t, n:0, sum:0, clips:[]}; e.n++; e.sum += s; e.clips.push(c); map.set(t, e); } }
+  const total = scoredClips.length || 1;
+  return [...map.values()].filter(e=>e.n>=2).map(e=>({ ...e, avg: e.sum/e.n, common: e.n/total > 0.7, label: e.t.replace(/^gta(\d)$/,"GTA $1").replace(/^./, ch=>ch.toUpperCase()) }))
+    .sort((a,b)=> (a.common - b.common) || (b.avg - a.avg));
+}
+function renderTopics(list){
+  const ts = topicStats(list);
+  if (!ts.length){ $("#topics").innerHTML = `<p class="status">Con más clips con títulos parecidos, aquí verás qué temas te traen más views. Hace falta que un tema aparezca en 2 clips o más.</p>`; return; }
+  const max = Math.max(...ts.map(t=>t.avg), 1);
+  const best = ts.find(t=>!t.common);
+  $("#topics").innerHTML = `<div style="display:grid;gap:10px">${ts.slice(0,9).map(t=>`<div class="topic"><span class="tn">${esc(t.label)} <small>${t.n} clips${t.common?" · casi todos":""}</small></span><div class="bar"><i style="width:${t.avg/max*100}%;background:${t.avg>=1.2?"var(--money)":t.avg<0.8?"var(--rec)":"var(--accent)"}"></i></div><span class="tv">${nf1.format(t.avg)}×</span></div>`).join("")}
+    ${best?`<div class="insight">Los clips sobre <b>${esc(best.label)}</b> rinden <b>${nf1.format(best.avg)}×</b> tu promedio. ${best.avg>=1.2?"Es un buen tema para repetir.":"Todavía no hay un tema que destaque claramente."}</div>`:""}</div>`;
+}
+function renderWhen(list){
+  const tt = list.filter(c => ttTime(c) && hasV(c.views));
+  if (!tt.length){ $("#when").innerHTML = `<p class="status">Cuando tengas videos de TikTok en este periodo verás aquí a qué hora y qué día te va mejor. Instagram no muestra la hora de publicación.</p>`; return; }
+  const w = whenStats(tt);
+  const max = Math.max(...w.F4.map(f=>f.avg), 1);
+  const fast = tt.slice().sort((a,b)=>perHour(b)-perHour(a))[0];
+  $("#when").innerHTML = `<div style="display:grid;gap:10px">
+    ${w.F4.map(f=>`<div class="franja ${f===w.bestF&&f.avg>0?"best":""}"><span class="fl">${f.n} <small>${f.rango}</small></span><div class="bar"><i style="width:${f.avg/max*100}%;background:var(--p-tiktok);${f===w.bestF?"":"opacity:.5"}"></i></div><span class="fv2">${f.n2?nfc.format(f.avg):"—"}</span></div>`).join("")}
+    <div class="insight">Tus videos publicados en la <b>${w.bestF.n.toLowerCase()}</b> promedian <b>${nfc.format(w.bestF.avg)}</b> views${w.byDay.length>1?`, y el mejor día es el <b>${w.bestD.d}</b>`:""}.${fast?` El que más rápido creció es <b>${esc(fast.titulo)}</b>, con <b>${nf1.format(perHour(fast))} views por hora</b> de promedio.`:""}${tt.length<10?` Con ${tt.length} videos es una primera pista.`:""}</div>
+  </div>`;
+}
+function whenStats(tt){
+  const F4 = [["Madrugada",0,6],["Mañana",6,12],["Tarde",12,18],["Noche",18,24]].map(([n,a,b])=>{ const xs = tt.filter(c=>{ const h = ttTime(c).getHours(); return h>=a && h<b; }); return {n, a, b, rango:`${a}–${b} h`, n2:xs.length, avg: xs.length ? sum(xs,"views")/xs.length : 0}; });
+  const DAYS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  const byDay = DAYS.map((d,i)=>{ const xs = tt.filter(c=>ttTime(c).getDay()===i); return {d, i, n:xs.length, avg: xs.length? sum(xs,"views")/xs.length : 0}; }).filter(x=>x.n);
+  return { F4, byDay, bestF: F4.slice().sort((a,b)=>b.avg-a.avg)[0], bestD: byDay.slice().sort((a,b)=>b.avg-a.avg)[0] };
+}
+function renderHeat(list){
+  const tt = list.filter(c => ttTime(c) && hasV(c.views));
+  if (!tt.length){ $("#heat").innerHTML = `<p class="status">Aparece cuando tengas videos de TikTok en este periodo. Instagram no muestra la hora de publicación.</p>`; return; }
+  const DAYS = [["Lun",1],["Mar",2],["Mié",3],["Jue",4],["Vie",5],["Sáb",6],["Dom",0]];
+  const cells = {}; for (const c of tt){ const d = ttTime(c); const k = d.getDay()+"-"+Math.floor(d.getHours()/3); (cells[k] ||= []).push(num(c.views)); }
+  const avg = k => cells[k] ? cells[k].reduce((a,b)=>a+b,0)/cells[k].length : null;
+  const vals = Object.keys(cells).map(avg); const max = Math.max(...vals, 1);
+  const bestK = Object.keys(cells).sort((a,b)=>avg(b)-avg(a))[0];
+  let h = `<div class="heat"><span></span>${[0,3,6,9,12,15,18,21].map(x=>`<span class="hh">${x}h</span>`).join("")}`;
+  for (const [n,i] of DAYS){
+    h += `<span class="hl">${n}</span>`;
+    for (let b=0;b<8;b++){ const k = i+"-"+b, a = avg(k);
+      const pct = a==null ? 0 : Math.round(15 + 85*a/max);
+      h += `<span class="c ${k===bestK?"best":""}" style="${a==null?"":`background:color-mix(in srgb, var(--p-tiktok) ${pct}%, var(--surface-3))`}" title="${n} ${b*3}–${b*3+3} h: ${a==null?"sin videos":nf.format(Math.round(a))+" views promedio en "+cells[k].length+" video"+(cells[k].length===1?"":"s")}">${a==null?"":nfc.format(a)}</span>`; }
+  }
+  h += `</div>`;
+  const [bd, bb] = bestK.split("-").map(Number);
+  const dn = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"][bd];
+  $("#heat").innerHTML = `<div class="heat-wrap">${h}</div><div class="row" style="justify-content:space-between"><span class="heat-legend">menos <i></i> más</span><span class="sub">Mejor casilla: <b style="color:var(--fg)">${dn} de ${bb*3} a ${bb*3+3} h</b> (${nf.format(Math.round(avg(bestK)))} views promedio)</span></div>${tt.length<15?`<p class="status">Con ${tt.length} videos el mapa todavía tiene muchos huecos; se llena a medida que publiques en distintos horarios.</p>`:""}`;
+}
+function renderVs(list, r){
+  const side = k => { const xs = list.filter(c=>c.plataforma===k); const wv = xs.filter(c=>hasV(c.views));
+    return { n:xs.length, views: wv.length? sum(wv,"views") : null, likes: sum(xs,"likes"), coms: sum(xs,"comentarios"), shares: k==="tiktok"? sum(xs,"compartidos") : null,
+      lpc: xs.length? sum(xs,"likes")/xs.length : 0, foll: k==="tiktok"? state.cfg.tiktokSeguidores : state.cfg.igSeguidores,
+      gan: sum(xs,"ganancia") + state.pagos.filter(p=>p.plataforma===k && inRange(p, r)).reduce((a,p)=>a+num(p.monto),0) }; };
+  const a = side("tiktok"), b = side("instagram");
+  if (!a.n && !b.n){ $("#vs").innerHTML = `<p class="status">Sin clips de TikTok ni Instagram en este periodo.</p>`; return; }
+  const row = (label, x, y, fmt) => { const wx = x!=null && y!=null && x>y, wy = x!=null && y!=null && y>x; return `<tr><td>${label}</td><td class="${wx?"win":""}">${x==null?"—":fmt(x)}</td><td class="${wy?"win":""}">${y==null?"—":fmt(y)}</td></tr>`; };
+  const n0 = v=>nf.format(Math.round(v));
+  $("#vs").innerHTML = `<table class="vs"><thead><tr><th style="text-align:left"></th><th><i class="dot" style="background:var(--p-tiktok)"></i> TikTok</th><th><i class="dot" style="background:var(--p-ig)"></i> Instagram</th></tr></thead><tbody>
+    ${row("Clips", a.n, b.n, n0)}${row("Views", a.views, b.views, v=>nfc.format(v))}${row("Likes", a.likes, b.likes, n0)}
+    ${row("Likes por clip", a.lpc, b.lpc, v=>nf1.format(v))}${row("Comentarios", a.coms, b.coms, n0)}${row("Compartidos", a.shares, b.shares, n0)}
+    ${row("Seguidores", a.foll==null?null:num(a.foll), b.foll==null?null:num(b.foll), n0)}${PUBLIC?"":row("Ganancias", a.gan, b.gan, money)}
+  </tbody></table>${b.views==null&&b.n?`<p class="status" style="margin-top:8px">Las views de Instagram aparecen cuando las cargues en Clips.</p>`:""}`;
+}
+function renderDist(list){
+  const sc = list.map(c=>score(c)).filter(s=>s!=null);
+  if (!sc.length){ $("#dist").innerHTML = `<p class="status">Hace falta tener al menos 3 clips por red para comparar cada uno con tu promedio.</p>`; return; }
+  const up = sc.filter(s=>s>=1.5).length, down = sc.filter(s=>s<0.6).length, mid = sc.length-up-down;
+  const pct = n => n/sc.length*100;
+  const top = list.filter(c=>score(c)!=null).sort((a,b)=>score(b)-score(a)).slice(0,3);
+  $("#dist").innerHTML = `<div class="dist" role="img" aria-label="${up} arriba, ${mid} normales, ${down} bajos"><i style="width:${pct(up)}%;background:var(--money)"></i><i style="width:${pct(mid)}%;background:var(--accent);opacity:.6"></i><i style="width:${pct(down)}%;background:var(--rec)"></i></div>
+    <div class="legend"><span><i class="dot" style="background:var(--money)"></i>${up} arriba de tu promedio</span><span><i class="dot" style="background:var(--accent)"></i>${mid} normales</span><span><i class="dot" style="background:var(--rec)"></i>${down} bajos</span></div>
+    <div style="display:grid;gap:8px">${top.map((c,i)=>`<div class="kit-clip" style="cursor:pointer" data-open="${esc(c.id)}"><span class="sub">${i+1}</span><b>${esc(c.titulo)}</b>${benchHtml(c)}</div>`).join("")}</div>
+    <p class="status">Tu promedio se calcula con la mediana de cada red, así un clip viral no distorsiona la comparación.</p>`;
+}
+
+// ---------- Dinero ----------
+function renderPagos(){
+  const all = state.pagos.slice().sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  const t = today(); const mStart = new Date(t.getFullYear(), t.getMonth(), 1);
+  const cobradoMes = all.filter(p=>p.estado==="cobrado" && parse(p.fecha)>=mStart).reduce((a,p)=>a+num(p.monto),0);
+  const pendiente = all.filter(p=>p.estado!=="cobrado").reduce((a,p)=>a+num(p.monto),0);
+  const total = all.filter(p=>p.estado==="cobrado").reduce((a,p)=>a+num(p.monto),0);
+  $("#pagos-kpis").innerHTML = `
+    <div class="pk"><span class="lbl">Cobrado este mes</span><span class="v" style="color:var(--money)">${money(cobradoMes)}</span></div>
+    <div class="pk"><span class="lbl">Por cobrar</span><span class="v" style="color:${pendiente>0?"var(--warn)":"var(--fg)"}">${money(pendiente)}</span></div>
+    <div class="pk"><span class="lbl">Cobrado en total</span><span class="v">${money(total)}</span></div>`;
+  $("#btn-pago").hidden = !state.canWrite;
+  $("#pagos-list").innerHTML = !all.length ? `<p class="status">Registra lo que te paga cada plataforma o campaña para saber cuánto has cobrado y cuánto te falta cobrar.</p>` : all.slice(0,15).map(p=>{
+    const pl = PMAP[p.plataforma]||PMAP.otro, ok = p.estado==="cobrado";
+    return `<div class="pago"><div class="pc"><b>${esc(p.concepto)}</b><span><i class="dot" style="background:${color(pl.k)}"></i> ${pl.n} · ${parse(p.fecha).toLocaleDateString("es",{day:"numeric",month:"short",year:"numeric"})}</span></div>
+      <span class="pm" style="color:${ok?"var(--money)":"var(--fg)"}">${money(num(p.monto))}</span>
+      <button class="pill ${ok?"ok":"pend"}" type="button" data-pago-toggle="${esc(p.id)}" ${state.canWrite?"":"disabled"}>${ok?"Cobrado":"Pendiente"}</button>
+      ${state.canWrite?`<div class="row-actions"><button class="icon-btn" type="button" data-pago-edit="${esc(p.id)}">Editar</button><button class="icon-btn" type="button" data-pago-del="${esc(p.id)}">Borrar</button></div>`:""}</div>`;
+  }).join("");
+  const months = []; for (let i=5;i>=0;i--){ const d = new Date(t.getFullYear(), t.getMonth()-i, 1); months.push(d); }
+  const vals = months.map(d=>{ const e = new Date(d.getFullYear(), d.getMonth()+1, 1); return all.filter(p=>p.estado==="cobrado" && parse(p.fecha)>=d && parse(p.fecha)<e).reduce((a,p)=>a+num(p.monto),0); });
+  const mx = Math.max(...vals, 1);
+  $("#pagos-mes").innerHTML = `<div style="display:grid;gap:10px">${months.map((d,i)=>`<div class="franja"><span class="fl" style="text-transform:capitalize">${d.toLocaleDateString("es",{month:"long"})}</span><div class="bar"><i style="width:${vals[i]/mx*100}%;background:var(--money)"></i></div><span class="fv2">${moneyC(vals[i])}</span></div>`).join("")}</div>`;
+}
+
+// ---------- Calendario ----------
+function bestSlot(){
+  const tt = state.clips.filter(c => ttTime(c) && hasV(c.views) && !c.noDisponible);
+  if (tt.length < 3) return null;
+  return whenStats(tt);
+}
+const ESTADOS = {idea:["Idea","idea"], listo:["Listo","pend"], publicado:["Publicado","ok"]};
+function planItem(p){
+  const e = ESTADOS[p.estado] || ESTADOS.idea, pl = PMAP[p.plataforma]||PMAP.otro;
+  return `<div class="cal-item"><b><i class="dot" style="background:${color(pl.k)}"></i>${esc(p.idea)}</b><button class="pill ${e[1]}" type="button" data-plan-cycle="${esc(p.id)}" ${state.canWrite?"":"disabled"} title="Cambiar estado">${e[0]}</button><small>${pl.n}${p.hora?` · ${esc(p.hora)}`:""}${p.notas?` · ${esc(p.notas)}`:""} ${state.canWrite?`<button class="icon-btn" type="button" data-plan-edit="${esc(p.id)}">Editar</button>`:""}</small></div>`;
+}
+function renderCal(){
+  const w = bestSlot();
+  $("#cal-tip").innerHTML = w ? `Según tus videos de TikTok, publica en la <b>${w.bestF.n.toLowerCase()} (${w.bestF.rango})</b>${w.byDay.length>1?` y prioriza el <b>${w.bestD.d}</b>`:""}. Los días que coinciden aparecen marcados.` : `Planea tus próximos clips aquí. Cuando tengas más videos de TikTok, te diré a qué hora te conviene publicar.`;
+  const t = today(); const plan = state.plan;
+  const days = []; for (let i=0;i<14;i++){ const d = new Date(t); d.setDate(t.getDate()+i); days.push(d); }
+  $("#cal-days").innerHTML = days.map((d,i)=>{
+    const items = plan.filter(p=>p.fecha===iso(d)).sort((a,b)=>String(a.hora||"").localeCompare(String(b.hora||"")));
+    const good = w && w.byDay.length>1 && d.getDay()===w.bestD.i;
+    return `<div class="cal-day ${i===0?"today":""}"><div class="cd"><b>${d.getDate()}</b><span>${i===0?"hoy":i===1?"mañana":d.toLocaleDateString("es",{weekday:"short"})}</span>${good?'<span class="cal-suggest" style="color:var(--money)">mejor día</span>':""}</div>
+      <div class="cal-items">${items.map(planItem).join("") || `<div class="cal-free">Libre${state.canWrite?` · <button class="icon-btn" type="button" data-plan-new="${iso(d)}">+ planear</button>`:""}</div>`}</div></div>`;
+  }).join("");
+  const ideas = plan.filter(p=>!p.fecha && p.estado!=="publicado");
+  const late = plan.filter(p=>p.fecha && parse(p.fecha) < t && p.estado!=="publicado");
+  $("#cal-ideas").innerHTML = ideas.map(planItem).join("") || `<p class="status">Guarda aquí ideas para cuando tengas tiempo de editarlas.</p>`;
+  $("#cal-late").innerHTML = late.map(planItem).join("") || `<p class="status">Nada atrasado.</p>`;
+  const pend = plan.filter(p=>p.estado!=="publicado").length;
+  $("#cal-count").textContent = pend ? `${pend} pendiente${pend===1?"":"s"}` : "";
+}
+
+// ---------- Media kit ----------
+function kitData(){
+  const live = state.clips.filter(c=>!c.noDisponible);
+  const wv = live.filter(c=>hasV(c.views));
+  const views = sum(wv,"views"), likes = sum(live,"likes");
+  const eng = views>0 ? (sum(wv,"likes")+sum(wv,"comentarios")+sum(wv,"compartidos"))/views*100 : 0;
+  const tt = state.cfg.tiktokSeguidores, ig = state.cfg.igSeguidores;
+  const top = wv.slice().sort((a,b)=>num(b.views)-num(a.views)).slice(0,3);
+  const name = state.cfg.nombre || (cuentas()[0]?.usuario||"").replace("@","") || "Mi canal";
+  return {live, wv, views, likes, eng, tt, ig, top, name, avg: wv.length? views/wv.length : 0, best: top[0]};
+}
+function renderKit(){
+  const k = kitData();
+  const handles = cuentas().map(a=>`${esc(a.usuario)} en ${esc((PMAP[a.plataforma]||PMAP.otro).n.split(" ")[0])}`).join(" · ");
+  $("#kit").innerHTML = `
+    <div class="kit-top"><span class="k-eyebrow">Media kit · ${new Date().toLocaleDateString("es",{month:"long",year:"numeric"})}</span><h2>${esc(k.name)}</h2><p>Clips de gaming y momentos virales. ${handles}</p></div>
+    <div class="kit-stats">
+      <div><b>${nf.format(num(k.tt)+num(k.ig))}</b><span>seguidores en total</span></div>
+      <div><b>${nfc.format(k.views)}</b><span>views totales</span></div>
+      <div><b>${nfc.format(k.avg)}</b><span>views promedio por clip</span></div>
+      <div><b>${nf1.format(k.eng)}%</b><span>engagement</span></div>
+      <div><b>${nf.format(k.likes)}</b><span>likes en total</span></div>
+      <div><b>${nf.format(k.live.length)}</b><span>clips publicados</span></div>
+    </div>
+    <div class="kit-sec"><h3>Audiencia por red</h3>
+      ${[["tiktok","TikTok",k.tt],["instagram","Instagram",k.ig]].filter(x=>x[2]!=null).map(([key,n,v])=>`<div class="franja"><span class="fl"><i class="dot" style="background:${color(key)}"></i> ${n}</span><div class="bar"><i style="width:${num(v)/Math.max(num(k.tt),num(k.ig),1)*100}%;background:${color(key)}"></i></div><span class="fv2">${nf.format(num(v))}</span></div>`).join("")}
+    </div>
+    <div class="kit-sec"><h3>Clips destacados</h3>${k.top.map((c,i)=>`<div class="kit-clip"><span class="sub">${i+1}</span><b>${esc(c.titulo)}</b><span>${nf.format(num(c.views))} views</span></div>`).join("") || `<p class="status">Aparecen cuando tengas clips con views.</p>`}</div>`;
+}
+function kitText(){
+  const k = kitData();
+  return [`${k.name} — Media kit (${new Date().toLocaleDateString("es",{month:"long",year:"numeric"})})`,
+    cuentas().map(a=>`${a.usuario} (${(PMAP[a.plataforma]||PMAP.otro).n})`).join(" · "),
+    `Seguidores: ${nf.format(num(k.tt)+num(k.ig))} (TikTok ${nf.format(num(k.tt))} · Instagram ${nf.format(num(k.ig))})`,
+    `Views en TikTok: ${nf.format(k.views)} · Promedio por clip: ${nf.format(Math.round(k.avg))}`,
+    `Engagement: ${nf1.format(k.eng)}% · Likes: ${nf.format(k.likes)} · Clips: ${k.live.length}`,
+    `Destacados:`, ...k.top.map((c,i)=>`${i+1}. ${c.titulo} — ${nf.format(num(c.views))} views`)].join("\n");
+}
+$("#btn-kit-copy").addEventListener("click", async ()=>{
+  const txt = kitText();
+  try { await navigator.clipboard.writeText(txt); $("#kit-status").textContent = "Texto copiado. Pégalo en tu mensaje a la marca."; }
+  catch(_){ $("#kit-status").innerHTML = `No se pudo copiar automáticamente. Selecciona y copia este texto:<br><textarea class="in" rows="8" readonly style="margin-top:8px">${esc(txt)}</textarea>`; const ta = $("#kit-status textarea"); ta.focus(); ta.select(); }
+});
+
+// ---------- Clips ----------
+function renderTable(list){
+  const q = state.q.trim().toLowerCase();
+  let rows = list.filter(c => !q || [c.titulo,c.cuenta,c.notas].some(x=>(x||"").toLowerCase().includes(q)));
+  const {k, dir} = state.sort; const m = dir==="asc"?1:-1;
+  rows.sort((a,b)=>{ let x, y;
+    if (k==="score"){ x=score(a)??-1; y=score(b)??-1; }
+    else if (["views","likes","comentarios","compartidos","guardados","ganancia"].includes(k)){ x=num(a[k]); y=num(b[k]); }
+    else { x=String(a[k]||"").toLowerCase(); y=String(b[k]||"").toLowerCase(); }
+    return (x>y?1:x<y?-1:0)*m; });
+  document.querySelectorAll("table.clips th[data-k]").forEach(th=>th.setAttribute("aria-sort", th.dataset.k===k ? (dir==="asc"?"ascending":"descending") : "none"));
+  const cell = v => hasV(v) ? nf.format(num(v)) : "—";
+  const off = c => c.noDisponible ? '<span class="tag off">No disponible</span>' : "";
+  $("#rows").innerHTML = rows.map(c=>{ const p = PMAP[c.plataforma]||PMAP.otro;
+    return `<tr class="${c.noDisponible?"off":""}" data-open="${esc(c.id)}">
+      <td class="num" style="text-align:left">${parse(c.fecha).toLocaleDateString("es",{day:"2-digit",month:"short"})}</td>
+      <td class="title-cell"><div class="t">${titleHtml(c)}${off(c)}</div>${subText(c)?`<div class="c">${esc(subText(c))}</div>`:""}</td>
+      <td><span class="chip"><i class="dot" style="background:${color(p.k)}"></i>${p.n.split(" ")[0]}</span></td>
+      <td class="num">${hasV(c.views)?nf.format(num(c.views))+(growth(c)>0?` <span class="grow">+${nf.format(growth(c))}</span>`:""):'<span title="Instagram no muestra las views sin sesión">—</span>'}</td>
+      <td class="spark-cell">${spark(snapOf(c).map(p=>num(p[1])), color(p.k), {w:90, h:24, dot:false})}</td>
+      <td class="num">${benchHtml(c)||"—"}</td>
+      <td class="num">${cell(c.likes)}</td><td class="num">${cell(c.comentarios)}</td><td class="num">${cell(c.compartidos)}</td><td class="num">${cell(c.guardados)}</td>
+      ${PUBLIC?"":`<td class="num money">${money(num(c.ganancia))}</td>`}</tr>`; }).join("");
+  document.querySelectorAll("[data-priv]").forEach(e=>e.hidden = PUBLIC);
+  $("#cards").innerHTML = rows.map(c=>{ const p = PMAP[c.plataforma]||PMAP.otro;
+    return `<div class="card-clip ${c.noDisponible?"off":""}" data-open="${esc(c.id)}">
+      <div class="cc-top"><span class="chip"><i class="dot" style="background:${color(p.k)}"></i>${p.n}</span><span class="row" style="gap:6px">${benchHtml(c)}${parse(c.fecha).toLocaleDateString("es",{day:"numeric",month:"short"})}</span></div>
+      <div class="cc-title">${esc(c.titulo)}${off(c)}</div>
+      <div class="cc-stats"><span><b>${hasV(c.views)?nf.format(num(c.views)):"—"}</b> views${growth(c)>0?` <span class="grow">+${nf.format(growth(c))}</span>`:""}</span>${hasV(c.likes)?`<span><b>${nf.format(num(c.likes))}</b> likes</span>`:""}${num(c.comentarios)>0?`<span><b>${nf.format(num(c.comentarios))}</b> coment.</span>`:""}${num(c.compartidos)>0?`<span><b>${nf.format(num(c.compartidos))}</b> compart.</span>`:""}${PUBLIC?"":`<span><b class="money">${money(num(c.ganancia))}</b></span>`}</div>
+      ${spark(snapOf(c).map(p=>num(p[1])), color(p.k), {w:300, h:26, dot:false})}</div>`; }).join("");
+  $("#sort-m").value = state.sort.k+":"+state.sort.dir;
+  $("#empty").hidden = !state.loaded || rows.length>0;
+  $("#btn-bulk").hidden = !state.canWrite || !state.clips.some(c=>c.plataforma==="instagram");
+  document.querySelectorAll("[data-add]").forEach(b=>b.hidden = !state.canWrite);
+}
+
+// ---------- Ficha de clip ----------
+function openDetail(c){
+  if (!c) return;
+  const p = PMAP[c.plataforma]||PMAP.otro, s = score(c), b = state.base[c.plataforma];
+  const v = num(c.views), per100 = k => v>0 && hasV(c[k]) ? nf1.format(num(c[k])/v*100) : "—";
+  const t = ttTime(c), ph = perHour(c), g1 = gain1h(c);
+  const url = linkOf(c);
+  $("#detail").innerHTML = `
+    <div class="detail-head"><div class="row" style="justify-content:space-between"><span class="chip"><i class="dot" style="background:${color(p.k)}"></i>${p.n}</span><span class="sub">${t ? t.toLocaleString("es",{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"}) : parse(c.fecha).toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"})}</span></div>
+      <h2>${esc(c.titulo)}</h2>${c.noDisponible?'<span class="tag off" style="margin:0;justify-self:start">No disponible: el video no responde</span>':""}</div>
+    <div class="detail-big">
+      <div><span>Views</span><b>${hasV(c.views)?nf.format(v):"—"}</b></div>
+      <div><span>Vs tu promedio</span><b style="color:${s==null?"var(--fg)":s>=1.5?"var(--money)":s<0.6?"var(--rec)":"var(--fg)"}">${s==null?"—":nf1.format(s)+"×"}</b></div>
+      <div><span>Ritmo</span><b>${g1>0?"+"+nf.format(g1)+"/h":ph!=null?nf1.format(ph)+"/h":"—"}</b></div>
+    </div>
+    <div class="panel" style="box-shadow:none;background:var(--bg-2)"><div class="panel-head"><h3>Crecimiento</h3><span class="sub">${snapOf(c).length} mediciones</span></div>${lineChart(snapOf(c), color(p.k))}</div>
+    <div class="ratios">
+      <div class="ratio">Likes<b>${hasV(c.likes)?nf.format(num(c.likes)):"—"}</b><span>${per100("likes")} por 100 views</span></div>
+      <div class="ratio">Comentarios<b>${hasV(c.comentarios)?nf.format(num(c.comentarios)):"—"}</b><span>${per100("comentarios")} por 100</span></div>
+      <div class="ratio">Compartidos<b>${hasV(c.compartidos)?nf.format(num(c.compartidos)):"—"}</b><span>${per100("compartidos")} por 100</span></div>
+      <div class="ratio">Guardados<b>${hasV(c.guardados)?nf.format(num(c.guardados)):"—"}</b><span>${per100("guardados")} por 100</span></div>
+    </div>
+    <div class="insight">${s==null ? "Con al menos 3 clips en esta red te diré cómo se compara con tu promedio." :
+      `Tu clip típico en ${p.n} tiene <b>${nf.format(Math.round(b.m))} ${b.k==="views"?"views":"likes"}</b>. Este va <b>${nf1.format(s)}×</b> ${s>=1.5?"por encima: repite el tema, la duración y la hora.":s<0.6?"por debajo: prueba otro gancho o súbelo en otra franja.":"en línea con lo normal."}`}
+      ${num(c.ganancia)>0&&v>0?` Ganó <b>${money(num(c.ganancia))}</b> (RPM ${money(rpmOf(num(c.ganancia),v))}).`:""}</div>
+    <div class="dlg-actions">${url?`<a class="btn ghost" href="${esc(url)}" target="_blank" rel="noopener">Abrir video ↗</a>`:""}${state.canWrite?`<button class="btn ghost" type="button" id="d-del">Borrar</button><button class="btn" type="button" id="d-edit">Editar</button>`:""}<button class="btn primary" type="button" id="d-close">Cerrar</button></div>`;
+  $("#d-close").onclick = ()=>$("#dlg-detail").close();
+  if (state.canWrite){
+    $("#d-edit").onclick = ()=>{ $("#dlg-detail").close(); openClip(c); };
+    $("#d-del").onclick = async ()=>{ const btn = $("#d-del"); if (btn.dataset.c!=="1"){ btn.dataset.c="1"; btn.textContent="¿Borrar de verdad?"; btn.classList.add("primary"); return; }
+      btn.disabled = true; try { await state.db.doc("clips/"+c.id).delete(); $("#dlg-detail").close(); setStatus("Clip borrado."); } catch(_){ btn.disabled=false; btn.textContent="No se pudo borrar"; } };
+  }
+  $("#dlg-detail").showModal();
+}
+document.addEventListener("click", e=>{
+  if (e.target.closest("[data-stop]")) return;
+  const o = e.target.closest("[data-open]"); if (o){ openDetail(state.clips.find(c=>c.id===o.dataset.open)); return; }
+  if (e.target.closest("[data-add]")) openClip(null);
+  if (e.target.closest("[data-settings]")) openSettings();
+});
+
+// ---------- Interacción general ----------
+$("#period").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; state.period=b.dataset.p; $("#period").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", String(x===b))); render(); });
+$("#metric").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; state.metric=b.dataset.m; render(); });
+$("#plat-filter").addEventListener("change", e=>{ state.plat=e.target.value; render(); });
+$("#acct-filter").addEventListener("change", e=>{ state.acct=e.target.value; render(); });
+$("#search").addEventListener("input", e=>{ state.q=e.target.value; render(); });
+$("#sort-m").addEventListener("change", e=>{ const [k,dir] = e.target.value.split(":"); state.sort = {k, dir}; render(); });
+document.querySelector("table.clips thead").addEventListener("click", e=>{ const th=e.target.closest("th[data-k]"); if(!th) return; const k=th.dataset.k; state.sort = state.sort.k===k ? {k, dir: state.sort.dir==="asc"?"desc":"asc"} : {k, dir: ["titulo","plataforma"].includes(k)?"asc":"desc"}; render(); });
+$("#btn-add").addEventListener("click", ()=>openClip(null));
+$("#fab-add").addEventListener("click", ()=>{ if (state.view==="calendario") openPlan(null); else if (state.view==="dinero") openPago(null); else openClip(null); });
+$("#btn-settings").addEventListener("click", openSettings);
+$("#btn-menu-m").addEventListener("click", openSettings);
+const askRefresh = async ()=>{
+  if (!state.db) return; $("#btn-refresh").disabled = true; $("#s-refresh-m").disabled = true;
+  try { await state.db.doc("config/ajustes").update({ solicitudManual: new Date().toISOString() }); setStatus("Actualización pedida."); }
+  catch(err){ setStatus("No se pudo pedir la actualización. Intenta de nuevo.", true); }
+};
+$("#btn-refresh").addEventListener("click", askRefresh);
+$("#s-refresh-m").addEventListener("click", ()=>{ askRefresh(); $("#dlg-settings").close(); location.hash = "#resumen"; });
+// Tema: automático → oscuro → claro (se recuerda en este navegador)
+const THEMES = [["", "Tema: automático"], ["dark", "Tema: oscuro"], ["light", "Tema: claro"]];
+function applyTheme(t){ if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; const lbl = (THEMES.find(x=>x[0]===t)||THEMES[0])[1]; $("#btn-theme").title = lbl; $("#btn-theme").setAttribute("aria-label", lbl); $("#btn-theme").textContent = t==="dark" ? "☾" : t==="light" ? "☀" : "◐"; }
+let curTheme = ""; try { curTheme = localStorage.getItem("panel-tema") || ""; } catch(_){}
+applyTheme(curTheme);
+$("#btn-theme").addEventListener("click", ()=>{ const i = THEMES.findIndex(x=>x[0]===curTheme); curTheme = THEMES[(i+1)%THEMES.length][0]; applyTheme(curTheme); try { localStorage.setItem("panel-tema", curTheme); } catch(_){} render(); });
+const mq = matchMedia("(max-width:760px)");
+const syncMenu = () => { $("#btn-menu-m").style.display = mq.matches ? "" : "none"; };
+mq.addEventListener ? mq.addEventListener("change", syncMenu) : mq.addListener(syncMenu); syncMenu();
+
+// Formulario de clip
+const F = id => $("#f-"+id);
+function historicRpm(plat){ const list = state.clips.filter(c=>c.plataforma===plat && num(c.views)>0 && num(c.ganancia)>0); const v = sum(list,"views"); return v ? sum(list,"ganancia")/v*1000 : 0; }
+function updateEst(){
+  const rpm = historicRpm(F("plataforma").value), v = num(F("views").value);
+  if (rpm>0 && v>0){ const est = v/1000*rpm; F("est").innerHTML = `Con tu RPM en ${PMAP[F("plataforma").value].n} (${money(rpm)}), este clip debería dejar unos <b>${money(est)}</b>. <button type="button" id="use-est">Usar estimado</button>`; $("#use-est").onclick = ()=>{ F("ganancia").value = est.toFixed(2); }; }
+  else F("est").textContent = "Deja la ganancia en 0 si todavía no te pagan por este clip; puedes editarla después.";
+}
+["plataforma","views"].forEach(k=>F(k).addEventListener("input", updateEst));
+F("plataforma").addEventListener("change", ()=>{ const cur = F("cuenta").value.trim().toLowerCase(); const isOther = cuentas().some(a=>a.usuario.toLowerCase()===cur && a.plataforma!==F("plataforma").value); if (!cur || isOther) F("cuenta").value = defaultAcct(F("plataforma").value); });
+F("link").addEventListener("input", ()=>{
+  const p = parseLink(F("link").value);
+  if (!p){ F("link-hint").textContent = F("link").value.trim() ? "Ese link no parece de un video de TikTok o Instagram. Se guardará, pero no se actualizará solo." : "Con el link, el panel actualiza solo los números de este clip."; return; }
+  F("plataforma").value = p.plataforma; if (!F("cuenta").value.trim() || p.cuenta) F("cuenta").value = p.cuenta || defaultAcct(p.plataforma);
+  const dup = state.clips.find(c => c.id !== state.editing && ((p.igCode && c.igCode===p.igCode) || (p.tiktokId && c.tiktokId===p.tiktokId)));
+  F("link-hint").textContent = dup ? `Este video ya está en el panel como "${dup.titulo}".` : (p.plataforma==="instagram" ? "Reel detectado. Likes y comentarios se actualizarán solos; las views de Instagram se cargan a mano." : "Video de TikTok detectado. Views, likes, comentarios y compartidos se actualizarán solos.");
+  updateEst();
+});
+function openClip(c){
+  if (!state.canWrite || !state.db) return;
+  state.editing = c ? c.id : null;
+  $("#dlg-title").textContent = c ? "Editar clip" : "Nuevo clip"; F("save").textContent = c ? "Guardar cambios" : "Guardar clip";
+  const firstPlat = (cuentas()[0]||{}).plataforma || "tiktok";
+  F("titulo").value = c?.titulo||""; F("plataforma").value = c?.plataforma || state.plat || firstPlat;
+  F("cuenta").value = c ? (c.cuenta||"") : (state.acct || defaultAcct(F("plataforma").value));
+  F("fecha").value = c?.fecha || iso(today());
+  for (const k of ["views","likes","comentarios","ganancia"]) F(k).value = c?.[k] ?? "";
+  F("notas").value = c && !isAutoNote(c) ? (c.notas||"") : "";
+  F("link").value = c ? linkOf(c) : ""; F("link").disabled = !!(c && (c.tiktokId || c.igCode));
+  F("link-hint").textContent = F("link").disabled ? "Este clip está vinculado y se actualiza solo." : "Con el link, el panel actualiza solo los números de este clip.";
+  F("err").hidden = true; updateEst(); $("#dlg-clip").showModal(); (c ? F("titulo") : F("link")).focus();
+}
+$("#f-cancel").addEventListener("click", ()=>$("#dlg-clip").close());
+$("#form-clip").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const editing = state.editing, prev = editing ? state.clips.find(c=>c.id===editing) : null;
+  const opt = k => F(k).value==="" ? null : num(F(k).value);
+  const body = prev ? {...prev} : {}; delete body.id;
+  Object.assign(body, { titulo: F("titulo").value.trim(), plataforma: F("plataforma").value, cuenta: F("cuenta").value.trim(), fecha: F("fecha").value, views: opt("views"), likes: opt("likes"), comentarios: opt("comentarios"), ganancia: num(F("ganancia").value), ejemplo: false });
+  const notes = F("notas").value.trim(); if (notes || !prev || !isAutoNote(prev)) body.notas = notes;
+  if (!body.titulo || !body.fecha){ F("err").textContent="Escribe un título y la fecha de publicación."; F("err").hidden=false; return; }
+  const linkTxt = F("link").value.trim(), p = parseLink(linkTxt);
+  if (!F("link").disabled){ delete body.link; if (p){ body.plataforma = p.plataforma; if (p.igCode) body.igCode = p.igCode; if (p.tiktokId) body.tiktokId = p.tiktokId; } else if (linkTxt) body.link = /^https?:\/\//i.test(linkTxt) ? linkTxt : "https://"+linkTxt; }
+  const dup = p && state.clips.find(c => c.id !== editing && ((p.igCode && c.igCode===p.igCode) || (p.tiktokId && c.tiktokId===p.tiktokId)));
+  if (dup){ F("err").textContent = `Este video ya está en el panel como "${dup.titulo}". Edita ese clip en vez de crear otro.`; F("err").hidden=false; return; }
+  if (body.plataforma!=="instagram" && body.views==null) body.views = 0;
+  F("save").disabled = true;
+  try {
+    if (editing){ body.creado = prev?.creado || Date.now(); await state.db.doc("clips/"+editing).set(body); }
+    else { body.creado = Date.now(); const newId = body.igCode ? "ig-"+body.igCode : body.tiktokId ? "tt-"+body.tiktokId : null; if (newId) await state.db.doc("clips/"+newId).set(body); else await state.db.collection("clips").add(body); }
+    $("#dlg-clip").close(); setStatus(editing ? "Clip actualizado." : "Clip guardado.");
+  } catch(err){ F("err").textContent = err?.code==="quota_exceeded" ? "Llegaste al límite de clips guardados. Borra algunos antiguos para seguir." : "No se pudo guardar. Revisa tu conexión e intenta de nuevo."; F("err").hidden = false; }
+  F("save").disabled = false;
+});
+
+// Carga rápida de views de Instagram
+$("#btn-bulk").addEventListener("click", ()=>{
+  const ig = state.clips.filter(c=>c.plataforma==="instagram").sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  $("#bulk-list").innerHTML = ig.map(c=>`<label class="bulk-row"><span style="min-width:0"><b>${esc(c.titulo)}</b><span>${parse(c.fecha).toLocaleDateString("es",{day:"numeric",month:"short"})} · ${nf.format(num(c.likes))} likes</span></span><input class="in" type="number" min="0" step="1" inputmode="numeric" data-bulk="${esc(c.id)}" value="${hasV(c.views)?num(c.views):""}" placeholder="views" aria-label="Views de ${esc(c.titulo)}"></label>`).join("");
+  $("#b-err").hidden = true; $("#dlg-bulk").showModal(); const first = $("#bulk-list input"); if (first) first.focus();
+});
+$("#b-cancel").addEventListener("click", ()=>$("#dlg-bulk").close());
+$("#form-bulk").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const changes = [...document.querySelectorAll("[data-bulk]")].map(inp=>{ const c = state.clips.find(x=>x.id===inp.dataset.bulk); const v = inp.value==="" ? null : num(inp.value); return c && (v !== (hasV(c.views)?num(c.views):null)) ? {c, v} : null; }).filter(Boolean);
+  if (!changes.length){ $("#dlg-bulk").close(); return; }
+  $("#b-save").disabled = true;
+  try { for (const {c, v} of changes){ const upd = {views: v}; if (hasV(c.views) && v!=null && v!==num(c.views)) upd.viewsAnterior = num(c.views); await state.db.doc("clips/"+c.id).update(upd); }
+    $("#dlg-bulk").close(); setStatus(`Views guardadas en ${changes.length} reel${changes.length===1?"":"s"}.`); }
+  catch(err){ $("#b-err").textContent = "No se pudieron guardar todas las views. Revisa tu conexión e intenta de nuevo."; $("#b-err").hidden = false; }
+  $("#b-save").disabled = false;
+});
+
+// Pagos
+let editingPago = null, pendingPagoDel = null;
+function openPago(p){
+  if (!state.canWrite || !state.db) return;
+  editingPago = p ? p.id : null; $("#pago-title").textContent = p ? "Editar pago" : "Registrar pago";
+  $("#p-concepto").value = p?.concepto || ""; $("#p-plataforma").value = p?.plataforma || state.plat || "tiktok";
+  $("#p-monto").value = p?.monto ?? ""; $("#p-fecha").value = p?.fecha || iso(today()); $("#p-estado").value = p?.estado || "pendiente";
+  $("#p-err").hidden = true; $("#dlg-pago").showModal(); $("#p-concepto").focus();
+}
+$("#btn-pago").addEventListener("click", ()=>openPago(null));
+$("#p-cancel").addEventListener("click", ()=>$("#dlg-pago").close());
+$("#form-pago").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const body = { concepto: $("#p-concepto").value.trim(), plataforma: $("#p-plataforma").value, monto: num($("#p-monto").value), fecha: $("#p-fecha").value, estado: $("#p-estado").value };
+  if (!body.concepto || !body.fecha || !(body.monto>0)){ $("#p-err").textContent = "Escribe un concepto, una fecha y un monto mayor que 0."; $("#p-err").hidden = false; return; }
+  $("#p-save").disabled = true;
+  try { if (editingPago){ const prev = state.pagos.find(x=>x.id===editingPago); body.creado = prev?.creado || Date.now(); await state.db.doc("pagos/"+editingPago).set(body); } else { body.creado = Date.now(); await state.db.collection("pagos").add(body); }
+    $("#dlg-pago").close(); setStatus(editingPago ? "Pago actualizado." : "Pago registrado."); }
+  catch(err){ $("#p-err").textContent = "No se pudo guardar el pago. Intenta de nuevo."; $("#p-err").hidden = false; }
+  $("#p-save").disabled = false;
+});
+$("#pagos-list").addEventListener("click", async e=>{
+  const tg = e.target.closest("[data-pago-toggle]"), ed = e.target.closest("[data-pago-edit]"), del = e.target.closest("[data-pago-del]");
+  if (tg){ const p = state.pagos.find(x=>x.id===tg.dataset.pagoToggle); if(!p) return; tg.disabled = true; try { await state.db.doc("pagos/"+p.id).update({estado: p.estado==="cobrado" ? "pendiente" : "cobrado"}); } catch(_){ setStatus("No se pudo cambiar el estado del pago.", true); tg.disabled = false; } }
+  if (ed) openPago(state.pagos.find(x=>x.id===ed.dataset.pagoEdit));
+  if (del){ const id = del.dataset.pagoDel;
+    if (pendingPagoDel !== id){ pendingPagoDel = id; del.classList.add("confirm"); del.textContent = "¿Seguro?"; setTimeout(()=>{ if (pendingPagoDel===id){ pendingPagoDel=null; del.classList.remove("confirm"); del.textContent="Borrar"; } }, 3500); return; }
+    pendingPagoDel = null; del.disabled = true; try { await state.db.doc("pagos/"+id).delete(); setStatus("Pago borrado."); } catch(_){ setStatus("No se pudo borrar el pago.", true); del.disabled = false; } }
+});
+
+// Calendario
+let editingPlan = null;
+function openPlan(p, fecha){
+  if (!state.canWrite || !state.db) return;
+  editingPlan = p ? p.id : null; $("#plan-title").textContent = p ? "Editar plan" : "Planear clip";
+  $("#pl-idea").value = p?.idea || ""; $("#pl-plataforma").value = p?.plataforma || (cuentas()[0]||{}).plataforma || "tiktok";
+  $("#pl-estado").value = p?.estado || "idea"; $("#pl-fecha").value = p?.fecha ?? (fecha || ""); $("#pl-hora").value = p?.hora || "";
+  const w = bestSlot(); $("#pl-tip").textContent = w ? `Sugerencia: tus videos rinden más en la ${w.bestF.n.toLowerCase()} (${w.bestF.rango}).` : "";
+  if (!p?.hora && w) $("#pl-hora").value = pad(Math.min(23, w.bestF.a + 2)) + ":00";
+  $("#pl-notas").value = p?.notas || ""; $("#pl-del").hidden = !p; $("#pl-del").textContent = "Borrar"; $("#pl-del").dataset.c = "";
+  $("#pl-err").hidden = true; $("#dlg-plan").showModal(); $("#pl-idea").focus();
+}
+$("#btn-plan").addEventListener("click", ()=>openPlan(null));
+$("#pl-cancel").addEventListener("click", ()=>$("#dlg-plan").close());
+$("#pl-del").addEventListener("click", async ()=>{
+  const b = $("#pl-del"); if (b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="¿Borrar de verdad?"; return; }
+  try { await state.db.doc("plan/"+editingPlan).delete(); $("#dlg-plan").close(); } catch(_){ $("#pl-err").textContent="No se pudo borrar."; $("#pl-err").hidden=false; }
+});
+$("#form-plan").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const body = { idea: $("#pl-idea").value.trim(), plataforma: $("#pl-plataforma").value, estado: $("#pl-estado").value, fecha: $("#pl-fecha").value || "", hora: $("#pl-hora").value || "", notas: $("#pl-notas").value.trim() };
+  if (!body.idea){ $("#pl-err").textContent = "Escribe la idea o el título."; $("#pl-err").hidden = false; return; }
+  $("#pl-save").disabled = true;
+  try { if (editingPlan){ const prev = state.plan.find(x=>x.id===editingPlan); body.creado = prev?.creado || Date.now(); await state.db.doc("plan/"+editingPlan).set(body); } else { body.creado = Date.now(); await state.db.collection("plan").add(body); } $("#dlg-plan").close(); }
+  catch(err){ $("#pl-err").textContent = "No se pudo guardar. Intenta de nuevo."; $("#pl-err").hidden = false; }
+  $("#pl-save").disabled = false;
+});
+document.querySelector('[data-view="calendario"]').addEventListener("click", async e=>{
+  const cy = e.target.closest("[data-plan-cycle]"), ed = e.target.closest("[data-plan-edit]"), nw = e.target.closest("[data-plan-new]");
+  if (cy){ const p = state.plan.find(x=>x.id===cy.dataset.planCycle); if (!p) return; const next = {idea:"listo", listo:"publicado", publicado:"idea"}[p.estado||"idea"]; cy.disabled = true; try { await state.db.doc("plan/"+p.id).update({estado: next}); } catch(_){ cy.disabled = false; } }
+  if (ed) openPlan(state.plan.find(x=>x.id===ed.dataset.planEdit));
+  if (nw) openPlan(null, nw.dataset.planNew);
+});
+
+// Ajustes
+let draftCuentas = [];
+function openSettings(){
+  if (!state.canWrite || !state.db) return;
+  $("#s-moneda").value = state.cfg.moneda; $("#s-meta-views").value = state.cfg.metaViews||""; $("#s-meta-gan").value = state.cfg.metaGan||""; $("#s-meta-clips").value = state.cfg.metaClips||""; $("#s-meta-seg").value = state.cfg.metaSeg||""; $("#s-nombre").value = state.cfg.nombre||"";
+  draftCuentas = cuentas().map(a=>({...a})); $("#s-new-user").value = ""; renderDraft(); $("#dlg-settings").showModal();
+}
+function renderDraft(){ $("#s-cuentas").innerHTML = draftCuentas.length ? draftCuentas.map((a,i)=>`<div class="acct-item"><span><i class="dot" style="background:${color(a.plataforma)}"></i>${esc(a.usuario)} <small>${esc((PMAP[a.plataforma]||PMAP.otro).n)}</small></span><button class="icon-btn" type="button" data-rm="${i}">Quitar</button></div>`).join("") : `<p class="est">Aún no agregas cuentas.</p>`; }
+$("#s-cuentas").addEventListener("click", e=>{ const b=e.target.closest("[data-rm]"); if(!b) return; draftCuentas.splice(Number(b.dataset.rm),1); renderDraft(); });
+function addDraft(){ const u = normUser($("#s-new-user").value); if (!u) { $("#s-new-user").focus(); return; } const p = $("#s-new-plat").value; if (!draftCuentas.some(a=>a.plataforma===p && a.usuario.toLowerCase()===u.toLowerCase())) draftCuentas.push({plataforma:p, usuario:u}); $("#s-new-user").value = ""; renderDraft(); $("#s-new-user").focus(); }
+$("#s-add-acct").addEventListener("click", addDraft);
+$("#s-new-user").addEventListener("keydown", e=>{ if (e.key==="Enter"){ e.preventDefault(); addDraft(); } });
+$("#s-cancel").addEventListener("click", ()=>$("#dlg-settings").close());
+$("#form-settings").addEventListener("submit", async e=>{
+  e.preventDefault(); if (normUser($("#s-new-user").value)) addDraft();
+  const cfg = { moneda: $("#s-moneda").value.trim()||"$", metaViews: num($("#s-meta-views").value), metaGan: num($("#s-meta-gan").value), metaClips: num($("#s-meta-clips").value), metaSeg: num($("#s-meta-seg").value), nombre: $("#s-nombre").value.trim(), cuentas: draftCuentas };
+  try { await state.db.doc("config/ajustes").update(cfg); $("#dlg-settings").close(); setStatus("Ajustes guardados."); } catch(err){ setStatus("No se pudieron guardar los ajustes.", true); $("#dlg-settings").close(); }
+});
+
+function setStatus(msg, err){ const s=$("#status"); s.textContent=msg; s.classList.toggle("err", !!err); }
+
+// ---------- Arranque ----------
+$("#site-foot").hidden = !PUBLIC;
+showView();
+(async ()=>{
+  let db = null;
+  try { db = await window.claude?.use?.("db"); } catch(_){}
+  if (!db){ state.loaded = true; state.canWrite=false; for (const id of ["#btn-add","#btn-settings","#btn-refresh"]) $(id).disabled = true; $("#fab-add").hidden = true; setStatus("Abre esta página con tu cuenta de Claude para ver y guardar tus clips.", true); render(); return; }
+  state.db = db;
+  try { const user = await window.claude.use("user"); if (user){ const w = await user.can("data.write"); if (w === false){ state.canWrite=false; for (const id of ["#btn-add","#btn-settings","#btn-refresh","#fab-add","#btn-menu-m"]) $(id).hidden=true; } } } catch(_){}
+  const timer = setTimeout(()=>{ if(!state.loaded) setStatus("Todavía no se pudo conectar con tus datos. Sigue intentando…", true); }, 10000);
+  let raf = 0; const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
+  db.collection("clips").onSnapshot(snap=>{
+    state.clips = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if (!snap.metadata.fromCache){ state.loaded = true; clearTimeout(timer); const n = state.clips.length; setStatus(n ? `${n} clip${n===1?"":"s"} en el panel.` : "Sin clips todavía."); }
+    schedule();
+  }, ()=>{ clearTimeout(timer); state.loaded = true; setStatus("Se perdió la conexión con tus datos. Recarga la página.", true); schedule(); });
+  db.doc("config/ajustes").onSnapshot(s=>{ if (s.exists){ state.cfg = {...state.cfg, ...s.data()}; schedule(); } }, ()=>{});
+  db.collection("historial").onSnapshot(snap=>{ state.hist = snap.docs.map(d=>d.data()); schedule(); }, ()=>{});
+  db.collection("pagos").onSnapshot(snap=>{ state.pagos = snap.docs.map(d=>({id:d.id, ...d.data()})); schedule(); }, ()=>{});
+  db.collection("plan").onSnapshot(snap=>{ state.plan = snap.docs.map(d=>({id:d.id, ...d.data()})); schedule(); }, ()=>{});
+  // snaps/<clipId> = {pts:[{t: minutoEpoch, v: views}]} ; serie/seguidores = {pts:[{t, tt, ig, tv}]}
+  db.collection("snaps").onSnapshot(snap=>{ const m = {}; for (const d of snap.docs){ const x = d.data(); if (Array.isArray(x.pts)) m[d.id] = x.pts.filter(o=>o&&o.t!=null).sort((a,b)=>a.t-b.t).map(o=>[num(o.t), o.v]); } state.snaps = m; schedule(); }, ()=>{});
+  db.doc("serie/seguidores").onSnapshot(s=>{ const pts = s.exists && Array.isArray(s.data().pts) ? s.data().pts : []; state.serie = pts.filter(o=>o&&o.t!=null).sort((a,b)=>a.t-b.t).map(o=>[num(o.t), o.tt??null, o.ig??null, o.tv??null]); schedule(); }, ()=>{});
+  setInterval(()=>{ renderAccounts(); }, 60000);
+})();
+})();
+</script>
+
+</body></html>

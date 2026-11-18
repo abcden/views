@@ -444,6 +444,15 @@ body{background:radial-gradient(ellipse 70% 36% at 7% -8%,color-mix(in srgb,var(
 .news-item span,.big .s,.big .lbl,.panel-head .sub,.kpi .hint,.week-item .s{color:var(--muted)}
 .panel h2,.panel .val,.panel .vv,.panel b,.kpi .val,.top-item,.week-item,.foll-row{color:var(--fg)}
 .hero .big .v{color:var(--fg)}
+.smart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.smart-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.smart-row:last-child{border-bottom:0}.smart-row strong{display:block;font-size:13px;overflow-wrap:anywhere}
+.smart-row small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.smart-val{font-family:var(--f-mono);font-size:17px;font-weight:700;text-align:right;white-space:nowrap}
+.smart-label{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 8px;background:color-mix(in srgb,var(--money) 13%,var(--surface));color:var(--money);font-size:11px;font-weight:700}
+.smart-warning{color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--surface))}
+.smart-note{font-size:12px;color:var(--muted);line-height:1.6}
+@media(max-width:760px){.smart-grid{grid-template-columns:minmax(0,1fr)}}
 .view{animation:studioAppear .3s ease both}@keyframes studioAppear{from{opacity:.6;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 :focus-visible{outline:2px solid #aaa2ff!important;outline-offset:3px}
 @media(max-width:760px){.nav h1::before{font-size:20px;margin-right:6px}.hero{border-radius:19px}.panel,.kpi{border-radius:16px}.filters{padding:9px;border-radius:14px}.bottom-nav{background:var(--studio-nav);backdrop-filter:blur(20px);border-top:1px solid var(--studio-border)}}
@@ -492,6 +501,10 @@ body{background:radial-gradient(ellipse 70% 36% at 7% -8%,color-mix(in srgb,var(
       <p class="refresh-note" id="refresh-status" hidden></p>
     </div>
     <section class="kpis" id="kpis" aria-label="Resumen del periodo"></section>
+    <div class="smart-grid" aria-label="Inteligencia de crecimiento">
+      <section class="panel"><div class="panel-head"><h2>⚡ Alertas de clips en racha</h2><span class="sub">últimas mediciones</span></div><div id="viral-alerts"></div></section>
+      <section class="panel"><div class="panel-head"><h2>↗ Proyección de views</h2><span class="sub">próximas 24 horas</span></div><div id="viral-forecast"></div></section>
+    </div>
     <section class="panel" id="week" aria-label="Resumen de la semana"></section>
     <section class="panel" id="goals" aria-label="Metas del mes"></section>
     <div class="grid2">
@@ -577,6 +590,7 @@ body{background:radial-gradient(ellipse 70% 36% at 7% -8%,color-mix(in srgb,var(
   <!-- ANÁLISIS -->
   <section class="view" data-view="analisis" hidden>
     <div class="view-head"><div><h2>Análisis</h2><p>Qué te funciona, cuándo publicar y cómo se compara cada red.</p></div></div>
+    <section class="panel"><div class="panel-head"><h2>📈 Publicaciones y crecimiento de seguidores</h2><span class="sub">relación por día y plataforma</span></div><div id="followers-insights"></div></section>
     <div class="grid2 even">
       <section class="panel">
         <div class="panel-head"><h2>Temas que funcionan</h2><span class="sub">vs tu promedio</span></div>
@@ -963,9 +977,9 @@ function render(){
   const v = state.view;
   if (v==="resumen"){
     const prev = r ? state.clips.filter(c => platOk(c) && !c.noDisponible && inRange(c, prevRange(r))) : null;
-    renderHero(); renderNews(); renderKpis(list, prev, r); renderWeek(); renderGoals(); renderChart(list, r); renderPlats(list, r); renderTop(list); renderFoll();
+    renderHero(); renderNews(); renderKpis(list, prev, r); renderSmart(list); renderWeek(); renderGoals(); renderChart(list, r); renderPlats(list, r); renderTop(list); renderFoll();
   } else if (v==="clips") renderTable(all);
-  else if (v==="analisis"){ renderTopics(list); renderWhen(list); renderHeat(list); renderVs(list, r); renderDist(list); }
+  else if (v==="analisis"){ renderFollowerInsights(list); renderTopics(list); renderWhen(list); renderHeat(list); renderVs(list, r); renderDist(list); }
   else if (v==="dinero") renderPagos();
   else if (v==="calendario") renderCal();
   else if (v==="kit") renderKit();
@@ -1198,6 +1212,53 @@ function renderPlats(list, r){
       <div class="bar"><i style="width:${d.hv ? d.v/maxV*100 : Math.max(4, d.n/maxN*100)}%;background:${color(k)};${d.hv?"":"opacity:.45"}"></i></div>
       ${d.hv ? (totalG>0?`<span class="status">${(d.g/totalG*100).toFixed(0)}% de tus ganancias</span>`:"") : `<span class="status">Sin views (Instagram solo las muestra con sesión). La barra indica cantidad de clips.</span>`}
     </div>`).join("");
+}
+
+// Señales orientativas basadas exclusivamente en historiales medidos, sin inventar datos.
+function smartRate(c){
+  const pts = snapOf(c), end = pts.at(-1);
+  if (!end || pts.length < 2 || Date.now()/60000 - end[0] > 150) return null;
+  const recent = pts.filter(p=>p[0] >= end[0]-180);
+  if (recent.length < 2) return null;
+  const first = recent[0], hours = (end[0]-first[0])/60;
+  if (hours < 0.4 || hours > 3.1) return null;
+  return Math.max(0,(num(end[1])-num(first[1]))/hours);
+}
+function renderSmart(list){
+  const measured = list.filter(c=>hasV(c.views)).map(c=>({c,rate:smartRate(c)})).filter(x=>x.rate!=null);
+  const positive = measured.filter(x=>x.rate>0);
+  const baseline = median(positive.map(x=>x.rate));
+  const hot = positive.filter(x=>x.rate>=Math.max(5,baseline*1.5)).sort((a,b)=>b.rate-a.rate).slice(0,3);
+  const alertEl = $("#viral-alerts"), forecastEl = $("#viral-forecast");
+  if (!measured.length){
+    alertEl.innerHTML = `<p class="smart-note">Esperando al menos dos mediciones recientes por clip. Las alertas aparecerán cuando GitHub recopile datos suficientes.</p>`;
+    forecastEl.innerHTML = `<p class="smart-note">Todavía no hay mediciones recientes suficientes para proyectar views con fundamento.</p>`;
+    return;
+  }
+  alertEl.innerHTML = hot.length ? hot.map(({c,rate})=>`<div class="smart-row"><div><span class="smart-label">● En racha</span><strong>${titleHtml(c)}</strong><small>${esc((PMAP[c.plataforma]||PMAP.otro).n)} · ${nf.format(num(c.views))} views</small></div><div class="smart-val" style="color:var(--money)">+${nfc.format(rate)}/h</div></div>`).join("") : `<p class="smart-note">Se midieron ${measured.length} clips, pero ninguno supera claramente el ritmo habitual. Esto no significa que estén fallando.</p>`;
+  const candidates = positive.sort((a,b)=>b.rate-a.rate).slice(0,3);
+  forecastEl.innerHTML = candidates.length ? candidates.map(({c,rate})=>{
+    const current=num(c.views), low=Math.round(current+rate*24*.2), high=Math.round(current+rate*24);
+    const target = [1000,10000,100000].find(t=>current<t && high>=t);
+    return `<div class="smart-row"><div><strong>${titleHtml(c)}</strong><small>${nf.format(current)} ahora · ritmo ${nf1.format(rate)} views/h</small>${target?`<small><span class="smart-label">Podría alcanzar ${nf.format(target)} views</span></small>`:""}</div><div class="smart-val">${nfc.format(low)}–${nfc.format(high)}<small>estimado</small></div></div>`;
+  }).join("") + `<p class="smart-note">Escenarios ilustrativos a 24 h calculados con el ritmo reciente (20–100%). No son una predicción garantizada: un clip puede acelerarse o frenarse.</p>` : `<p class="smart-note">No se observó aumento de views en las mediciones recientes; todavía no hay proyección útil.</p>`;
+}
+function renderFollowerInsights(list){
+  const el=$("#followers-insights"), hist=state.hist.slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha)));
+  const groups = [["tiktok","TikTok","tiktokSeguidores"],["instagram","Instagram","igSeguidores"]];
+  el.innerHTML = `<div class="smart-grid">` + groups.map(([platform,label,key])=>{
+    const rows=hist.map(h=>{
+      const start=h[key+"Inicio"], end=h[key];
+      if (start==null || end==null) return null;
+      const count=list.filter(c=>c.plataforma===platform && c.fecha===h.fecha).length;
+      return {date:h.fecha,gain:num(end)-num(start),count};
+    }).filter(Boolean);
+    const posted=rows.filter(x=>x.count), rested=rows.filter(x=>!x.count);
+    if (rows.length<2 || !posted.length) return `<div class="week-item"><strong>${label}</strong><p class="smart-note">Hacen falta varios días con registros de seguidores y publicaciones para detectar una relación.</p></div>`;
+    const avg=a=>a.length ? a.reduce((s,r)=>s+r.gain,0)/a.length : null;
+    const best=posted.slice().sort((a,b)=>b.gain-a.gain)[0];
+    return `<div class="week-item"><strong>${label}</strong><div class="smart-row"><span>Días con publicaciones (${posted.length})</span><span class="smart-val">${nf1.format(avg(posted))} <small>seg./día</small></span></div><div class="smart-row"><span>Días sin publicaciones (${rested.length})</span><span class="smart-val">${rested.length ? nf1.format(avg(rested)) : "—"}<small>seg./día</small></span></div><p class="smart-note">Mejor día observado: ${esc(best.date)} · ${best.count} clip(s) · ${best.gain>=0?"+":""}${nf.format(best.gain)} seguidores.</p></div>`;
+  }).join("") + `</div><p class="smart-note">Esta comparación muestra coincidencias diarias, no cuántos seguidores aportó un clip concreto. Sin datos de atribución de TikTok e Instagram no es posible saberlo con exactitud.</p>`;
 }
 
 function renderTop(list){

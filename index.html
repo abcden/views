@@ -9,7 +9,10 @@ window.PANEL_PUBLICO = true;
   var D = null, subs = [], firma = "";
   function cargar(){
     fetch("datos.json?t=" + Date.now(), {cache:"no-store"}).then(function(r){ return r.ok ? r.text() : null; }).then(function(txt){
-      if (!txt || txt === firma) return; firma = txt; D = JSON.parse(txt); subs.slice().forEach(function(f){ f(); });
+      if (!txt || txt === firma) return;
+      var nuevo = JSON.parse(txt);
+      firma = txt; D = nuevo;
+      subs.slice().forEach(function(f){ f(); });
     }).catch(function(){});
   }
   function col(p){ if (!D) return []; return p === "clips" ? (D.clips||[]) : p === "historial" ? (D.historial||[]) : p === "snaps" ? (D.snaps||[]) : []; }
@@ -417,6 +420,26 @@ label.f{display:grid;gap:5px;font-size:12px;font-weight:600;color:var(--muted)}
   .topic .bar{grid-column:1/-1;order:3}
 }
 @media (prefers-reduced-motion:reduce){.rec::before,.live-dot{animation:none}.bar > i{transition:none}}
+
+/* BANCITO CLIPS STUDIO — premium visual layer */
+:root{--bg:#070a12;--bg-2:#0a0e19;--surface:#111827;--surface-2:#172134;--surface-3:#1e2a40;--line:#28354b;--fg:#f3f7ff;--muted:#a0acc2;--faint:#71809a;--accent:#8d80ff;--rec:#ff547a;--money:#32e6b4;--p-tiktok:#40e6f0;--nav-bg:rgba(8,12,23,.91);--shadow:0 18px 48px rgba(0,0,0,.25)}
+body{background:radial-gradient(ellipse 70% 36% at 7% -8%,rgba(92,84,230,.20),transparent 70%),radial-gradient(ellipse 55% 40% at 95% 15%,rgba(21,186,201,.10),transparent 72%),var(--bg);background-attachment:fixed;color:var(--fg)}
+.nav{background:rgba(9,13,24,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(130,150,200,.13);box-shadow:0 10px 35px rgba(0,0,0,.15)}
+.nav-in{max-width:1540px}.nav h1{letter-spacing:-.7px}.nav h1::before{content:'◈';color:#8e8bff;margin-right:10px;font-size:24px}
+.tabs{background:rgba(255,255,255,.025);border-radius:14px;padding:4px;border:1px solid rgba(255,255,255,.045)}
+.tab{border-radius:10px;transition:background .2s,color .2s,transform .2s}.tab:hover{background:rgba(125,143,255,.12);transform:translateY(-1px)}
+.wrap{max-width:1500px}.filters{border:1px solid rgba(135,158,207,.12);border-radius:18px;padding:12px 15px;background:rgba(15,22,38,.75);box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.hero{position:relative;overflow:hidden;background:linear-gradient(125deg,rgba(31,37,73,.96),rgba(14,24,45,.96) 55%,rgba(14,46,61,.89));border:1px solid rgba(149,153,255,.27);border-radius:26px;box-shadow:0 25px 80px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.09)}
+.hero::after{content:'';pointer-events:none;position:absolute;width:350px;height:350px;right:-130px;top:-180px;border-radius:50%;background:radial-gradient(circle,rgba(68,230,234,.23),transparent 70%)}
+.panel,.kpi{background:linear-gradient(155deg,rgba(24,33,52,.94),rgba(13,19,32,.96));border:1px solid rgba(132,151,189,.16);border-radius:20px;box-shadow:0 15px 40px rgba(0,0,0,.13),inset 0 1px rgba(255,255,255,.025);transition:transform .2s,border-color .2s,box-shadow .2s}
+.panel:hover,.kpi:hover{border-color:rgba(143,151,250,.34);box-shadow:0 18px 50px rgba(0,0,0,.20)}
+.kpi:hover{transform:translateY(-3px)}.kpi .val,.big .v{letter-spacing:-1.4px;font-variant-numeric:tabular-nums}.panel-head h2,.view-head h2{letter-spacing:-.45px}
+.btn,.seg button,.in{border-radius:11px}.btn.primary{background:linear-gradient(120deg,#726aff,#a16cff);box-shadow:0 8px 22px rgba(119,104,255,.23)}
+.chip{border-color:rgba(180,193,225,.17);background:rgba(255,255,255,.055)}.rec{box-shadow:0 0 22px rgba(255,84,122,.15)}
+.view{animation:studioAppear .3s ease both}@keyframes studioAppear{from{opacity:.6;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+:focus-visible{outline:2px solid #aaa2ff!important;outline-offset:3px}
+@media(max-width:760px){.nav h1::before{font-size:20px;margin-right:6px}.hero{border-radius:19px}.panel,.kpi{border-radius:16px}.filters{padding:9px;border-radius:14px}.bottom-nav{background:rgba(9,13,24,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(150,160,210,.18)}}
+@media(prefers-reduced-motion:reduce){.view{animation:none}.panel,.kpi,.tab{transition:none}}
 </style>
 
 <nav class="nav" aria-label="Secciones">

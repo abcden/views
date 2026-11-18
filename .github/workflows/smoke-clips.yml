@@ -72,7 +72,7 @@ jobs:
           python -m pip install --disable-pip-version-check 'requests>=2.32,<3'
       - name: Descargar MP4 de muestra mediante enlace HTTPS y generar recortes
         env:
-          VIDEO_URL: https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4
+          VIDEO_URL: https://upload.wikimedia.org/wikipedia/commons/6/66/Public_domain_upload_demonstration.webm
           CLIP_SECONDS: '15'
         run: |
           set -euo pipefail

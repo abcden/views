@@ -12,6 +12,7 @@ import math
 import os
 from pathlib import Path
 import re
+import shutil
 import statistics
 import subprocess
 import sys
@@ -46,14 +47,23 @@ def ejecutar(cmd, *, timeout=900, **kwargs):
 
 def obtener_archivo(url, carpeta):
     plantilla = str(carpeta / "source.%(ext)s")
-    ejecutar([
+    try:
+        ejecutar([
         sys.executable, "-m", "yt_dlp", "--no-playlist",
         "--js-runtimes", "node",
         "--no-progress", "--restrict-filenames", "--max-filesize", "750M",
         "--match-filter", "duration <= 1800 & !is_live",
         "--format", "bv*[height<=1080]+ba/b[height<=1080]/b",
         "--merge-output-format", "mp4", "-o", plantilla, "--", url,
-    ], timeout=900)
+        ], timeout=900, capture_output=True, text=True)
+    except subprocess.CalledProcessError as exc:
+        mensaje = (exc.stderr or "") + "\n" + (exc.stdout or "")
+        texto = mensaje.lower()
+        if "sign in to confirm" in texto or "not a bot" in texto:
+            raise RuntimeError("YOUTUBE_VERIFICATION") from None
+        if any(s in texto for s in ("private video", "video unavailable", "unsupported url", "not available", "login required")):
+            raise RuntimeError("SOURCE_UNAVAILABLE") from None
+        raise RuntimeError("DOWNLOAD_FAILED") from None
     encontrados = [p for p in carpeta.glob("source.*") if p.is_file() and p.suffix not in (".part", ".ytdl")]
     if not encontrados:
         raise RuntimeError("No se pudo descargar un video compatible con este enlace.")
@@ -165,6 +175,8 @@ def main():
     salida.mkdir(parents=True, exist_ok=True)
     carpeta = salida.parent / "video_temporal"
     carpeta.mkdir(parents=True, exist_ok=True)
+    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+        raise RuntimeError("FFMPEG_MISSING")
     archivo = Path(a.archivo_local).resolve() if a.archivo_local else obtener_archivo(url, carpeta)
     duracion = informacion(archivo)
     print(f"Video de {duracion:.0f} segundos. Buscando momentos destacados...", flush=True)
@@ -190,4 +202,16 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        codigo = str(exc) if str(exc) in {
+            "YOUTUBE_VERIFICATION", "SOURCE_UNAVAILABLE", "DOWNLOAD_FAILED", "FFMPEG_MISSING"
+        } else "PROCESSING_FAILED"
+        carpeta_error = Path(os.getenv("CLIP_ERROR_DIR", "clips_generados"))
+        carpeta_error.mkdir(parents=True, exist_ok=True)
+        (carpeta_error / "error.json").write_text(
+            json.dumps({"code": codigo}, ensure_ascii=False), encoding="utf8"
+        )
+        print(f"CLIP_FORGE_ERROR: {codigo}", file=sys.stderr, flush=True)
+        sys.exit(1)

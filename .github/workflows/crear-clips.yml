@@ -1,0 +1,61 @@
+name: Crear clips automáticos autorizados
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Enlace HTTPS de un video PUBLICO que tengas derecho a reutilizar'
+        type: string
+        required: true
+      clip_seconds:
+        description: 'Duración de cada clip'
+        type: choice
+        required: true
+        default: '30'
+        options:
+          - '15'
+          - '20'
+          - '30'
+          - '45'
+          - '60'
+      authorized_public:
+        description: 'Confirmo que el video es publico, tengo permiso y acepto que los recortes sean accesibles desde este repositorio publico durante 1 dia'
+        type: boolean
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: clip-forge-${{ github.actor }}
+  cancel-in-progress: false
+
+jobs:
+  crear:
+    if: inputs.authorized_public == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Obtener el codigo del generador
+        uses: actions/checkout@v4
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar procesador gratuito
+        run: |
+          python -m pip install --upgrade 'yt-dlp>=2025.1'
+          ffmpeg -version | head -n 1
+      - name: Detectar momentos y exportar MP4
+        env:
+          VIDEO_URL: ${{ inputs.video_url }}
+          CLIP_SECONDS: ${{ inputs.clip_seconds }}
+        run: python procesar_clips.py
+      - name: Entregar clips editables (caducan en 1 dia)
+        uses: actions/upload-artifact@v4
+        with:
+          name: clips-mp4-editables-${{ github.run_number }}
+          path: clips_generados/
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0

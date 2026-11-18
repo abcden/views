@@ -41,7 +41,7 @@ window.PANEL_PUBLICO = true;
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
 })();
 </script>
-<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?version=9').catch(()=>{}));</script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?version=10').catch(()=>{}));</script>
 </head><body>
 <title>Panel de Clips | GTA VI Studio Pro</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -904,7 +904,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 <nav class="bottom-nav" id="bottom-nav" aria-label="Secciones"></nav>
 
 <div class="wrap">
-  <div class="shell-intro" aria-label="Acciones del panel">
+  <div class="shell-intro" data-home-only aria-label="Acciones del panel">
     <div class="shell-path"><span class="shell-dot"></span><span>GTA VI STUDIO</span><span class="shell-slash">/</span><span>INTELIGENCIA PARA CREADORES</span><span class="shell-version">V6.0 PRO</span></div>
     <div class="shell-actions">
       <button class="shell-button" type="button" id="quick-find" title="Buscar en mis clips (Ctrl/⌘ + K)"><span aria-hidden="true">⌕</span> Buscar clips <kbd>⌘ K</kbd></button>
@@ -912,7 +912,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
       <button class="shell-button shell-button-share" type="button" id="quick-share"><span aria-hidden="true">↗</span> Compartir</button>
     </div>
   </div>
-  <section class="command-banner" aria-label="Centro de control del creador">
+  <section class="command-banner" data-home-only aria-label="Centro de control del creador">
     <div class="command-content">
       <div class="command-eyebrow">GTA VI CLIPS / STUDIO PRO</div>
       <h2>El poder de tus clips.<br><em>En tus manos.</em></h2>
@@ -928,8 +928,8 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
       <div class="command-cta"><span class="command-tag" id="command-sync-status">● CONSULTANDO DATOS</span><a class="command-action" href="#estudio">Explorar herramientas ↗</a></div>
     </div>
   </section>
-  <section class="network-status" id="network-status" aria-label="Estado de los datos por red" aria-live="polite"></section>
-  <aside class="v6-health" id="v6-health" aria-live="polite" aria-label="Monitor de datos"><strong>◈ SYSTEM MONITOR</strong><span class="v6-status">Consultando el origen de datos…</span></aside>
+  <section class="network-status" id="network-status" data-home-only aria-label="Estado de los datos por red" aria-live="polite"></section>
+  <aside class="v6-health" id="v6-health" data-home-only aria-live="polite" aria-label="Monitor de datos"><strong>◈ SYSTEM MONITOR</strong><span class="v6-status">Consultando el origen de datos…</span></aside>
   <div class="filters" id="filters">
     <div class="seg" id="period" role="group" aria-label="Periodo">
       <button type="button" data-p="7" aria-pressed="false">7 días</button>
@@ -1503,11 +1503,17 @@ function showView(){
   const v = VIEWS.some(x=>x[0]===h) ? h : "resumen";
   state.view = v;
   document.querySelectorAll("[data-view]").forEach(s=>s.hidden = s.dataset.view !== v);
+  // La portada de Resumen no debe tapar las otras pestañas, sobre todo en móvil.
+  document.querySelectorAll("[data-home-only]").forEach(s=>s.hidden = v !== "resumen");
   document.querySelectorAll("[data-tab]").forEach(a=>{ if (a.dataset.tab===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
   $("#filters").hidden = !["resumen","clips","analisis"].includes(v);
   render();
 }
-addEventListener("hashchange", ()=>{ showView(); scrollTo({top:0, behavior: REDUCED ? "auto" : "smooth"}); });
+addEventListener("hashchange", ()=>{ showView(); scrollTo({top:0, behavior:"auto"}); });
+document.addEventListener("click", e=>{
+  const a = e.target.closest("[data-tab]");
+  if (a && a.hash === location.hash) scrollTo({top:0, behavior:"auto"});
+});
 
 // ---------- Render ----------
 function render(){

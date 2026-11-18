@@ -365,7 +365,7 @@
   heading.style.margin='0 0 7px';
   const explanation=document.createElement('p');
   explanation.style.cssText='font-size:12px;opacity:.85;line-height:1.5;margin:0 0 12px';
-  explanation.textContent='Alternativa gratuita externa mientras YouTube bloquea nuestro servidor. Copiamos el enlace y abrimos el generador; allí lo pegas y utilizas sus créditos gratuitos. No se envía tu token.';
+  explanation.textContent='Servicios externos con planes de $0 mientras YouTube bloquea nuestro servidor: ClipSDK ofrece 3 clips sin registro para videos de hasta 10 minutos; OpenShorts ofrece minutos gratuitos mensuales con marca de agua. Se abrirá su página y copiará el enlace. No se envía tu token.';
   const bridgeActions=document.createElement('div');
   bridgeActions.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
   function bridgeButton(label,destination){
@@ -386,8 +386,8 @@
     return b;
   }
   bridgeActions.append(
-    bridgeButton('▶ Vizard · YouTube gratis','https://vizard.ai/'),
-    bridgeButton('✂ Klap · prueba gratis','https://klap.app/')
+    bridgeButton('▶ ClipSDK · 3 clips gratis','https://clipsdk.com/tools/youtube-clipper'),
+    bridgeButton('✂ OpenShorts · plan $0','https://www.openshorts.app/')
   );
   alternatives.append(heading,explanation,bridgeActions);
   guestArea.append(alternatives);

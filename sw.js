@@ -1,4 +1,4 @@
-const CACHE = 'clips-studio-nexus-v4';
+const CACHE = 'clips-studio-gta-vi-v5';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));

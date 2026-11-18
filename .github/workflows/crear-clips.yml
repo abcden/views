@@ -75,7 +75,7 @@ jobs:
         run: |
           codigo=$(jq -r '.code // "PROCESSING_FAILED"' clips_generados/error.json 2>/dev/null || echo PROCESSING_FAILED)
           case "$codigo" in
-            YOUTUBE_VERIFICATION|SOURCE_UNAVAILABLE|DOWNLOAD_FAILED|FFMPEG_MISSING|PROCESSING_FAILED) ;;
+            YOUTUBE_VERIFICATION|SOURCE_UNAVAILABLE|DOWNLOAD_FAILED|FFMPEG_MISSING|PROCESSING_FAILED|DIRECT_LINK_INVALID|DIRECT_DOWNLOAD_FAILED|DIRECT_TOO_LARGE) ;;
             *) codigo=PROCESSING_FAILED ;;
           esac
           gh release create "clip-${JOB_KEY}" \

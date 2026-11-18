@@ -1,0 +1,56 @@
+name: Prueba real del generador de clips
+
+on:
+  push:
+    branches: [studio-pro]
+    paths:
+      - procesar_clips.py
+      - .github/workflows/smoke-clips.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mp4-real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preparar FFmpeg y requests
+        run: |
+          set -euo pipefail
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          python -m pip install --disable-pip-version-check 'requests>=2.32,<3'
+      - name: Generar video de prueba con sonido (sin descargar contenido de terceros)
+        run: |
+          ffmpeg -hide_banner -loglevel error -y \
+            -f lavfi -i 'testsrc2=size=320x180:rate=12' \
+            -f lavfi -i 'sine=frequency=440:sample_rate=16000' \
+            -t 88 -c:v libx264 -preset ultrafast -crf 33 -pix_fmt yuv420p \
+            -c:a aac -b:a 64k /tmp/clip-forge-source.mp4
+      - name: Generar cinco clips MP4 verticales reales
+        run: |
+          python procesar_clips.py --archivo-local /tmp/clip-forge-source.mp4 --carpeta /tmp/clip-forge-smoke --duracion 15
+          test "$(find /tmp/clip-forge-smoke -name 'clip_*_vertical.mp4' -type f | wc -l)" -eq 5
+          for f in /tmp/clip-forge-smoke/clip_*_vertical.mp4; do
+            test -s "$f"
+            dims=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$f")
+            test "$dims" = "720x1280"
+            ffmpeg -v error -i "$f" -f null - </dev/null
+          done
+      - name: Conservar MP4 de prueba por un día
+        uses: actions/upload-artifact@v4
+        with:
+          name: clip-forge-smoke-mp4
+          path: /tmp/clip-forge-smoke/clip_*_vertical.mp4
+          retention-days: 1
+          compression-level: 0

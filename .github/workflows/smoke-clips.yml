@@ -54,3 +54,30 @@ jobs:
           path: /tmp/clip-forge-smoke/clip_*_vertical.mp4
           retention-days: 1
           compression-level: 0
+
+  enlace-mp4-publico:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar dependencias explícitas
+        run: |
+          set -euo pipefail
+          if ! command -v ffmpeg >/dev/null; then sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; fi
+          python -m pip install --disable-pip-version-check 'requests>=2.32,<3'
+      - name: Descargar MP4 de muestra mediante enlace HTTPS y generar recortes
+        env:
+          VIDEO_URL: https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4
+          CLIP_SECONDS: '15'
+        run: |
+          set -euo pipefail
+          python procesar_clips.py --carpeta /tmp/clip-forge-link-test
+          test "$(find /tmp/clip-forge-link-test -name 'clip_*_vertical.mp4' -type f | wc -l)" -ge 1
+          for f in /tmp/clip-forge-link-test/clip_*_vertical.mp4; do
+            ffmpeg -v error -i "$f" -f null - </dev/null
+          done

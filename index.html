@@ -791,7 +791,7 @@ body{background:
         <ol class="top-list" id="top"></ol>
       </section>
       <section class="panel">
-        <div class="panel-head"><h2>Seguidores</h2><span class="sub">cada 15 minutos</span></div>
+        <div class="panel-head"><h2>Seguidores</h2><span class="sub">cada 10 minutos</span></div>
         <div id="foll"></div>
       </section>
     </div>
@@ -1273,10 +1273,12 @@ function ago(isoStr){
   return new Date(t).toLocaleString("es",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 }
 function nextRunMin(){
-  // De 8:00 a 24:00 la tarea corre cada 15 min; de 0:00 a 8:00, una vez por hora (al minuto 5). Más unos minutos de margen.
-  const now = new Date(); const m = now.getMinutes() + now.getSeconds()/60;
-  if (now.getHours() < 8){ let wait = ((65 - m) % 60) + 4; if (wait < 1) wait = 1; return Math.round(wait); }
-  let wait = (15 - (m % 15)) + 6; if (wait > 21) wait -= 15; if (wait < 1) wait = 1; return Math.round(wait);
+  // La tarea de GitHub Actions se programa cada 10 minutos, en el minuto 7 de cada decena.
+  // El procesamiento y la publicación pueden tardar unos minutos adicionales.
+  const now = new Date();
+  const minute = now.getMinutes() + now.getSeconds()/60;
+  const untilNext = (7 - minute % 10 + 10) % 10;
+  return Math.max(1, Math.ceil(untilNext + 3));
 }
 function renderAccounts(){
   const f = k => k==="tiktok" ? state.cfg.tiktokSeguidores : k==="instagram" ? state.cfg.igSeguidores : null;

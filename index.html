@@ -37,7 +37,7 @@ window.PANEL_PUBLICO = true;
 </script>
 <script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>
 </head><body>
-<title>Panel de Clips</title>
+<title>Panel de Clips | Future Studio 3.0</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -451,6 +451,57 @@ body{background:radial-gradient(ellipse 70% 36% at 7% -8%,color-mix(in srgb,var(
 .news-item span,.big .s,.big .lbl,.panel-head .sub,.kpi .hint,.week-item .s{color:var(--muted)}
 .panel h2,.panel .val,.panel .vv,.panel b,.kpi .val,.top-item,.week-item,.foll-row{color:var(--fg)}
 .hero .big .v{color:var(--fg)}
+/* NEO FUTURE — HUD de creador. Todos los colores siguen los tokens de tema. */
+:root[data-theme="dark"]{
+  --bg:#050917;--bg-2:#090f21;--surface:#0e1930;--surface-2:#16243d;--surface-3:#263756;
+  --line:#2b4260;--fg:#f4f9ff;--muted:#bacbe5;--faint:#93a9c8;--accent:#aa9bff;
+  --money:#50edc4;--p-tiktok:#4ae6f7;--studio-hero:linear-gradient(122deg,rgba(16,29,61,.98),rgba(9,30,55,.98) 54%,rgba(21,32,78,.96));
+  --studio-panel:linear-gradient(150deg,rgba(19,35,64,.98),rgba(10,20,39,.98));
+  --studio-filter:rgba(14,28,54,.9);--studio-nav:rgba(5,10,25,.95);--studio-border:rgba(115,160,221,.29);
+}
+body{background:
+  radial-gradient(ellipse 70% 34% at 2% -7%,rgba(76,113,255,.25),transparent 68%),
+  radial-gradient(ellipse 38% 27% at 99% 13%,rgba(55,223,232,.12),transparent 75%),
+  linear-gradient(90deg,color-mix(in srgb,var(--accent) 4%,transparent) 1px,transparent 1px),
+  linear-gradient(color-mix(in srgb,var(--accent) 4%,transparent) 1px,transparent 1px),var(--bg);
+  background-size:auto,auto,56px 56px,56px 56px,auto;background-attachment:fixed;color:var(--fg)}
+.nav{box-shadow:0 1px 0 color-mix(in srgb,var(--p-tiktok) 30%,transparent),0 18px 50px rgba(0,0,0,.13)}
+.nav h1{font-family:var(--f-display);font-size:19px;letter-spacing:-.6px}
+.nav h1::before{content:'◈';color:var(--p-tiktok);text-shadow:0 0 18px color-mix(in srgb,var(--p-tiktok) 75%,transparent)}
+.nav h1::after{content:'STUDIO / PRO';color:var(--accent);font:700 9px var(--f-mono);letter-spacing:.12em;margin-left:2px;align-self:flex-end;margin-bottom:3px}
+.tab[aria-current="page"]{background:color-mix(in srgb,var(--accent) 18%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 32%,transparent);color:var(--fg)}
+.tab[aria-current="page"] svg{color:var(--p-tiktok)}
+.tabs{padding:5px;border-color:var(--studio-border);background:color-mix(in srgb,var(--surface) 87%,transparent)}
+.wrap{gap:18px}.view{gap:18px}
+.command-banner{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  padding:26px 28px;border-radius:24px;border:1px solid color-mix(in srgb,var(--p-tiktok) 30%,var(--line));
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 88%,var(--accent)),var(--studio-filter));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 16px 60px rgba(0,0,0,.14);overflow:hidden}
+.command-banner::after{content:'';z-index:-1;position:absolute;width:480px;height:240px;right:-100px;top:-115px;
+  border:1px solid color-mix(in srgb,var(--p-tiktok) 30%,transparent);border-radius:50%;
+  box-shadow:0 0 0 40px color-mix(in srgb,var(--accent) 5%,transparent),0 0 0 90px color-mix(in srgb,var(--accent) 3%,transparent)}
+.command-eyebrow{font:700 10px var(--f-mono);letter-spacing:.22em;color:var(--p-tiktok);text-transform:uppercase;display:flex;gap:10px;align-items:center}
+.command-eyebrow::before{content:'';width:7px;height:7px;background:var(--money);box-shadow:0 0 15px var(--money);border-radius:100%}
+.command-banner h2{font-size:clamp(25px,3vw,43px);font-weight:800;letter-spacing:-.05em;line-height:1.12;margin:7px 0}
+.command-banner h2 em{font-style:normal;color:var(--p-tiktok);text-shadow:0 0 25px color-mix(in srgb,var(--p-tiktok) 30%,transparent)}
+.command-banner p{color:var(--muted);font-size:13px;max-width:600px}
+.command-right{display:grid;justify-items:end;gap:10px}
+.command-tag{font:700 10px var(--f-mono);letter-spacing:.11em;color:var(--money);border:1px solid color-mix(in srgb,var(--money) 40%,var(--line));padding:8px 12px;background:color-mix(in srgb,var(--money) 7%,var(--surface));border-radius:999px}
+.command-action{color:var(--fg);font-weight:700;font-size:12px;text-decoration:none;padding:10px 15px;border-radius:11px;background:linear-gradient(105deg,#485fe1,#7756d9);border:1px solid rgba(190,209,255,.32);box-shadow:0 8px 25px rgba(53,74,224,.27)}
+.command-action:hover{filter:brightness(1.15)}
+.hero{padding:22px;border-color:color-mix(in srgb,var(--p-tiktok) 38%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--p-tiktok) 10%,transparent),0 22px 80px rgba(0,0,0,.14)}
+.hero::before{content:'';pointer-events:none;position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,transparent,var(--p-tiktok),var(--accent),transparent);opacity:.85}
+.hero .big .v{font-size:clamp(39px,5vw,56px);letter-spacing:-.06em;color:var(--fg)}
+.hero-grid{gap:22px}.big{gap:6px}.big .lbl,.kpi .lbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.15em}
+.panel,.kpi{position:relative;overflow:hidden;border-color:var(--studio-border)}
+.panel::before,.kpi::before{content:'';position:absolute;top:0;left:18px;right:18px;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--p-tiktok) 30%,transparent),transparent);pointer-events:none}
+.panel{padding:20px;gap:15px}.panel-head h2{font-size:16px}.view-head h2{font-size:29px;letter-spacing:-.04em}
+.kpi{min-height:124px;padding:19px}.kpi .val{font-size:27px}
+.filters{backdrop-filter:blur(20px)}.seg button[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 20%,var(--surface));color:var(--fg)}
+.news-item{border-radius:11px;border-color:color-mix(in srgb,var(--p-tiktok) 20%,var(--line))}
+.studio-progress i,.bar i{box-shadow:0 0 15px color-mix(in srgb,var(--p-tiktok) 30%,transparent)}
+:root[data-theme="light"] .command-action{color:#fff}
+@media(max-width:760px){.command-banner{padding:20px 17px;border-radius:18px}.command-banner h2{font-size:28px}.command-right{justify-items:start}.nav h1::after{display:none}.panel{padding:16px}.kpi{min-height:110px;padding:15px}.hero{padding:18px}.hero .big .v{font-size:41px}}
 .studio-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .studio-span{grid-column:1/-1}
 .studio-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -497,6 +548,14 @@ body{background:radial-gradient(ellipse 70% 36% at 7% -8%,color-mix(in srgb,var(
 <nav class="bottom-nav" id="bottom-nav" aria-label="Secciones"></nav>
 
 <div class="wrap">
+  <section class="command-banner" aria-label="Centro de control del creador">
+    <div>
+      <div class="command-eyebrow">CREATOR INTELLIGENCE / V.3</div>
+      <h2>Tu crecimiento.<br><em>Bajo control.</em></h2>
+      <p>Señales de viralidad, estadísticas y análisis de tus clips de TikTok e Instagram en un solo lugar.</p>
+    </div>
+    <div class="command-right"><span class="command-tag">● AUTO SYNC ACTIVADO</span><a class="command-action" href="#estudio">Explorar Estudio Pro ↗</a></div>
+  </section>
   <div class="filters" id="filters">
     <div class="seg" id="period" role="group" aria-label="Periodo">
       <button type="button" data-p="7" aria-pressed="false">7 días</button>

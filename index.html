@@ -41,7 +41,7 @@ window.PANEL_PUBLICO = true;
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
 })();
 </script>
-<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?version=10').catch(()=>{}));</script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?version=11').catch(()=>{}));</script>
 </head><body>
 <title>Panel de Clips | GTA VI Studio Pro</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -882,6 +882,15 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 .forge-privacy{margin-top:11px;font-size:11px;color:var(--muted);line-height:1.7;border-top:1px solid var(--pro-border);padding-top:10px}
 .forge-link-form{display:grid;grid-template-columns:minmax(0,2fr) minmax(160px,1fr);gap:11px;margin:15px 0 11px}.forge-link-form label{font-size:11px;font-weight:700;color:var(--muted);display:grid;gap:6px}.forge-link-form input,.forge-link-form select{width:100%;min-width:0}.forge-consent{display:flex;align-items:flex-start;gap:10px;font-size:11px;line-height:1.6;color:var(--muted);cursor:pointer}.forge-consent input{accent-color:var(--pro-pink);margin-top:3px}.forge-link-panel .forge-help{margin-top:14px}.forge-link-panel a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .forge-steps{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.forge-steps span{border-radius:8px;padding:6px 9px;background:rgba(192,135,233,.12);border:1px solid rgba(215,148,236,.22);font-size:10px;color:#f1d9ff;font-weight:700}
+.forge-embed{margin-top:13px;padding:13px;border:1px solid var(--pro-border);border-radius:14px;background:var(--surface)}
+.forge-embed h3{font-size:14px;margin:0 0 9px}.forge-embed p{color:var(--muted);font-size:12px;line-height:1.6;margin:10px 0}
+.forge-embed iframe{display:block;width:100%;max-width:780px;aspect-ratio:16/9;border:0;border-radius:10px;background:#090d19}
+.forge-embed.vertical iframe{max-width:370px;aspect-ratio:9/16}
+.forge-inline-action{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.forge-inline-action label{display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.forge-download-ready{margin-top:12px;padding:12px;border:1px solid rgba(95,214,164,.4);border-radius:12px;background:rgba(56,163,123,.1);display:grid;gap:8px}
+.forge-download-ready a{justify-self:start;text-decoration:none}
+.forge-download-ready p{font-size:11px;margin:0;color:var(--muted)}
 :root[data-theme="light"] .forge-hero{background:linear-gradient(115deg,#f8e8f8,#eeeaff);border-color:#d6badf}:root[data-theme="light"] .forge-hero h2{color:#2c2440}:root[data-theme="light"] .forge-hero p{color:#5b536b}:root[data-theme="light"] .forge-steps span{color:#78388d;background:#f5e2f5}
 @media(max-width:930px){.forge-grid{grid-template-columns:1fr}.forge-preview-shell{max-width:270px}.forge-preview-panel{display:block}}
 @media(max-width:760px){.publico .bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}.bottom-nav a{font-size:9px!important;padding-inline:3px}.forge-hero{padding:22px 17px}.forge-hero h2{font-size:29px}.forge-logo{width:64px;height:64px}.forge-form,.forge-link-form{grid-template-columns:1fr}.forge-form label.wide{grid-column:auto}}
@@ -1025,17 +1034,19 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
   <section class="view" data-view="editor" hidden>
     <div class="view-head"><div><h2>Editor de Video</h2><p>Crea clips de GTA VI directamente aquí, gratis y sin enviar tus videos a ningún servidor.</p></div></div>
     <div class="forge-hero">
-      <div><div class="v6-eyebrow">GTA VI / CLIP FORGE / ENLACES + EDICIÓN GRATUITA</div><h2>Tu video. Tu mejor momento.</h2><p>Pega un enlace de un video público autorizado, genera recortes con GitHub Actions y continúa editándolos aquí. También puedes trabajar con un archivo de tu dispositivo.</p><div class="forge-steps" style="margin-top:15px"><span>01 · PEGA ENLACE</span><span>02 · GENERA EN GITHUB</span><span>03 · EDITA</span><span>04 · DESCARGA</span></div></div>
+      <div><div class="v6-eyebrow">GTA VI / CLIP FORGE / EDICIÓN EN TU NAVEGADOR</div><h2>Tu video. Tu mejor momento.</h2><p>Reproduce enlaces compatibles aquí mismo. Importa un MP4 directo o un archivo de tu dispositivo y descubre los momentos más intensos sin salir de la página.</p><div class="forge-steps" style="margin-top:15px"><span>01 · PEGA O CARGA</span><span>02 · DETECTA</span><span>03 · EDITA</span><span>04 · DESCARGA</span></div></div>
       <img class="forge-logo" src="icon.svg?logo=original-v5" width="88" height="88" alt="Logo GTA VI">
     </div>
-    <section class="panel forge-link-panel" aria-label="Crear clips automáticos desde un enlace" style="margin-top:16px">
-      <div class="panel-head"><div><span class="v6-head-note">AUTOMATIC HIGHLIGHTS / GITHUB ACTIONS</span><h2>🔗 Crear clips desde YouTube y otros enlaces</h2></div><span class="sub">gratis · solo administrador GitHub</span></div>
-      <p class="studio-note">Compatible según disponibilidad de cada plataforma: YouTube, Twitch, Kick, TikTok, Instagram, Vimeo y Dailymotion. Solo videos públicos propios o con permiso; no se sortean accesos privados ni protecciones.</p>
-      <div class="forge-link-form"><label for="forge-url">Enlace del video<input class="in" id="forge-url" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." maxlength="500" autocomplete="off"></label><label for="forge-job-length">Duración de cada clip<select class="in" id="forge-job-length"><option value="15">15 segundos</option><option value="20">20 segundos</option><option value="30" selected>30 segundos</option><option value="45">45 segundos</option><option value="60">60 segundos</option></select></label></div>
-      <label class="forge-consent"><input id="forge-authorized" type="checkbox"> Confirmo que el video es público, tengo derecho a reutilizarlo y entiendo que los clips de este repositorio público pueden verse por terceros durante un día.</label>
-      <div class="forge-export" style="margin-top:12px"><button class="btn primary" id="forge-github" type="button">⚡ Preparar generación en GitHub</button><a class="btn" href="https://github.com/abcden/views/actions/workflows/crear-clips.yml" target="_blank" rel="noopener noreferrer">Ver trabajos y descargar ZIP ↗</a></div>
-      <p class="forge-status" id="forge-url-status" aria-live="polite">El botón copiará el enlace y abrirá el formulario seguro de GitHub. Solo tú, con permiso de escritura, podrás iniciar el trabajo.</p>
-      <div class="forge-help"><b>Cómo funciona:</b> 1. Pega la URL y confirma el permiso. 2. Pulsa «Preparar generación». 3. En GitHub selecciona <b>Run workflow</b>, pega la URL en <b>video_url</b>, elige duración y marca la confirmación. 4. Al finalizar, descarga el ZIP de la ejecución (Artifacts). 5. Abre un MP4 aquí abajo para seguir editándolo. La ejecución tarda varios minutos y algunos enlaces pueden fallar por restricciones de la plataforma.</div>
+    <section class="panel forge-link-panel" aria-label="Crear clips desde un enlace sin salir de la página" style="margin-top:16px">
+      <div class="panel-head"><div><span class="v6-head-note">AUTOMATIC HIGHLIGHTS / ON DEVICE</span><h2>🔗 Pega un enlace o sube tu video</h2></div><span class="sub">gratis · sin redirecciones</span></div>
+      <p class="studio-note">Los enlaces directos a MP4 o WebM permiten edición automática si el servidor autoriza el acceso del navegador. YouTube y otras plataformas se pueden previsualizar aquí, pero para crear un archivo de clip necesitas el video original: su reproductor integrado no permite extraerlo.</p>
+      <div class="forge-link-form"><label for="forge-url">Enlace de video<input class="in" id="forge-url" type="url" inputmode="url" placeholder="https://tu-sitio.com/mi-video.mp4 o YouTube" maxlength="500" autocomplete="off"></label><label for="forge-job-length">Duración de cada clip<select class="in" id="forge-job-length"><option value="15">15 segundos</option><option value="20">20 segundos</option><option value="30" selected>30 segundos</option><option value="45">45 segundos</option><option value="60">60 segundos</option></select></label></div>
+      <label class="forge-consent"><input id="forge-authorized" type="checkbox"> Confirmo que el video es mío o tengo autorización para editarlo. Las vistas previas de otras plataformas se reproducen mediante sus propios reproductores.</label>
+      <div class="forge-inline-action"><button class="btn primary" id="forge-process" type="button">⚡ Procesar aquí sin salir</button><label class="btn" for="forge-file">📁 Elegir video de mi dispositivo</label><button class="btn" id="forge-url-cancel" type="button" hidden>Cancelar carga</button></div>
+      <div class="forge-progress" id="forge-url-progress" hidden><i id="forge-url-bar"></i></div>
+      <p class="forge-status" id="forge-url-status" aria-live="polite">No necesitas abrir GitHub. Pega un enlace compatible o elige el MP4 de tu teléfono o computadora.</p>
+      <div class="forge-embed" id="forge-remote-preview" hidden><h3 id="forge-remote-label">Vista previa integrada</h3><iframe id="forge-remote-frame" title="Reproductor de video público" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe><p>Este reproductor permite ver el video, no extraer su archivo. Para detectar momentos y descargar clips editados, utiliza «Elegir video de mi dispositivo» con tu copia autorizada.</p><label class="btn primary" for="forge-file">✂️ Cargar original para editarlo</label></div>
+      <div class="forge-help"><b>Todo aquí:</b> al cargar un archivo o importar un enlace directo compatible, el editor detecta hasta cinco momentos, permite recortar y añadir texto, y deja el archivo preparado para descargar. Para enlaces de YouTube, TikTok y otras plataformas, la vista previa puede funcionar sin salir de esta página; la extracción automática desde esos reproductores requiere un servidor autorizado y no está disponible en GitHub Pages. No se solicita ningún token ni contraseña.</div>
     </section>
     <div class="forge-grid">
       <section class="panel forge-preview-panel" aria-label="Vista previa del video">
@@ -1044,7 +1055,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
         <video id="forge-video" playsinline preload="metadata" hidden></video>
         <div class="forge-preview-shell" id="forge-frame"><canvas id="forge-canvas" width="540" height="960" aria-label="Vista previa de tu clip en formato vertical"></canvas><div class="forge-empty" id="forge-empty"><img src="icon.svg?logo=original-v5" alt=""><strong>CLIP FORGE</strong><span>Selecciona un video de tu teléfono o computadora para empezar.</span></div></div>
         <div class="forge-play-row"><button id="forge-play" class="btn" type="button" disabled>▶ Reproducir</button><input id="forge-seek" type="range" min="0" max="1" step="0.05" value="0" aria-label="Moverse por el video" disabled><span class="forge-time" id="forge-clock">00:00 / 00:00</span></div>
-        <div class="forge-help">🎬 El editor de abajo funciona localmente: el MP4 que selecciones no se envía a GitHub. Los videos procesados por GitHub Actions sí quedan temporalmente como artefactos del repositorio público.</div>
+        <div class="forge-help">🎬 La detección y edición de tu archivo se realiza localmente en este dispositivo. No se sube a GitHub ni se comparte con otros visitantes.</div>
       </section>
       <section class="panel forge-controls" aria-label="Herramientas del editor">
         <div class="panel-head"><h2>✂️ Herramientas de edición</h2><span class="sub">sin suscripción</span></div>
@@ -1065,9 +1076,10 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
           <label style="display:flex;align-items:center;gap:9px;font-size:12px;margin-top:12px"><input id="forge-watermark" type="checkbox"> Mostrar la marca GTA VI en el clip</label>
         </div>
         <div class="forge-section"><h3>⬇️ Exportar clip</h3><p>Se grabará el fragmento seleccionado en tiempo real con los cambios que ves. Mantén esta pestaña abierta mientras se exporta.</p>
-          <div class="forge-export"><button class="btn primary" id="forge-export" type="button" disabled>⬇ Descargar clip editado</button><button class="btn" id="forge-cancel" type="button" hidden>Cancelar</button><span class="v6-head-note" id="forge-format">MP4 si tu navegador lo permite</span></div>
+          <div class="forge-export"><button class="btn primary" id="forge-export" type="button" disabled>⬇ Preparar clip editado</button><button class="btn" id="forge-export-all" type="button" disabled>🎞️ Preparar los 5 clips (ZIP)</button><button class="btn" id="forge-cancel" type="button" hidden>Cancelar</button><span class="v6-head-note" id="forge-format">MP4 si tu navegador lo permite</span></div>
           <div class="forge-progress" id="forge-export-progress" hidden><i id="forge-export-bar"></i></div>
           <p class="forge-status" id="forge-status" aria-live="polite">Selecciona un video para empezar.</p>
+          <div class="forge-download-ready" id="forge-download-ready" hidden><strong>✅ Tu descarga está lista</strong><a class="btn primary" id="forge-download-link" href="#" download>⬇ Descargar archivo editado</a><p>En iPhone, toca el botón y guarda el archivo en Archivos. Si preparaste varios clips, se incluyen juntos en un ZIP.</p></div>
           <p class="forge-privacy">🔒 Tu archivo permanece local. Los recortes no se publican automáticamente en TikTok o Instagram y no cambian los datos del panel. La descarga será MP4 cuando el navegador admita grabación MP4; si no, WebM.</p>
         </div>
       </section>

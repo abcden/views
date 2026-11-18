@@ -1,8 +1,13 @@
 name: Crear clips automáticos autorizados
+run-name: Clip Forge ${{ inputs.job_key || 'limpieza' }}
 
 on:
   workflow_dispatch:
     inputs:
+      job_key:
+        description: 'Identificador generado por el editor (32 caracteres hexadecimales)'
+        type: string
+        required: true
       video_url:
         description: 'Enlace HTTPS de un video PUBLICO que tengas derecho a reutilizar'
         type: string
@@ -12,54 +17,83 @@ on:
         type: choice
         required: true
         default: '30'
-        options:
-          - '15'
-          - '20'
-          - '30'
-          - '45'
-          - '60'
+        options: ['15', '20', '30', '45', '60']
       authorized_public:
-        description: 'Confirmo que el video es publico, tengo permiso y acepto que los recortes sean accesibles desde este repositorio publico durante 1 dia'
+        description: 'Tengo permiso y acepto que los clips serán públicos hasta su eliminación automática (24-30 h)'
         type: boolean
         required: true
+  schedule:
+    - cron: '17 */6 * * *'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: clip-forge-${{ github.actor }}
+  group: clip-forge-publicaciones
   cancel-in-progress: false
 
 jobs:
   crear:
-    if: inputs.authorized_public == true
+    if: github.event_name == 'workflow_dispatch' && inputs.authorized_public == true
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - name: Obtener el codigo del generador
+      - name: Obtener el generador
         uses: actions/checkout@v4
+      - name: Verificar identificador y autorización
+        env:
+          JOB_KEY: ${{ inputs.job_key }}
+        run: |
+          [[ "$JOB_KEY" =~ ^[a-f0-9]{32}$ ]] || { echo 'Identificador inválido'; exit 1; }
       - name: Preparar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Preparar JavaScript para videos de YouTube
+      - name: Preparar JavaScript para medios compatibles
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Instalar procesador gratuito
+      - name: Instalar el procesador gratuito
         run: |
           python -m pip install --upgrade 'yt-dlp[default]'
           ffmpeg -version | head -n 1
-      - name: Detectar momentos y exportar MP4
+      - name: Detectar momentos y exportar MP4 verticales
         env:
           VIDEO_URL: ${{ inputs.video_url }}
           CLIP_SECONDS: ${{ inputs.clip_seconds }}
         run: python procesar_clips.py
-      - name: Entregar clips editables (caducan en 1 dia)
+      - name: Publicar clips temporales para el editor web
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_KEY: ${{ inputs.job_key }}
+        run: |
+          [[ "$JOB_KEY" =~ ^[a-f0-9]{32}$ ]] || exit 1
+          gh release create "clip-${JOB_KEY}" clips_generados/clip_*_vertical.mp4 clips_generados/recortes.json \
+            --target "$GITHUB_SHA" \
+            --title "Clip Forge | ${JOB_KEY}" \
+            --notes "Recortes generados automáticamente para un video público autorizado. Revisar antes de publicar. Archivos públicos y temporales: se eliminan durante la limpieza posterior a 24 horas."
+      - name: Respaldo temporal del trabajo (1 día)
         uses: actions/upload-artifact@v4
         with:
-          name: clips-mp4-editables-${{ github.run_number }}
+          name: clips-mp4-${{ inputs.job_key }}
           path: clips_generados/
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
+
+  limpieza:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Eliminar exclusivamente clips generados hace más de 24 horas
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          corte=$(date -u -d '24 hours ago' '+%Y-%m-%dT%H:%M:%SZ')
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,publishedAt | \
+            jq -r --arg corte "$corte" '.[] | select(.tagName | test("^clip-[a-f0-9]{32}$")) | select(.publishedAt < $corte) | .tagName' | \
+            while IFS= read -r etiqueta; do
+              [[ "$etiqueta" =~ ^clip-[a-f0-9]{32}$ ]] || continue
+              gh release delete "$etiqueta" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes
+            done

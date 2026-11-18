@@ -1,0 +1,53 @@
+name: Actualizar estadisticas de clips
+
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/actualizar-datos.yml'
+      - 'recolector.mjs'
+      - 'config.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: panel-datos
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      - name: Recoger estadisticas publicas
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: node recolector.mjs --completo --sin-publicar
+      - name: Publicar solo datos nuevos
+        run: |
+          if git diff --quiet -- datos.json; then
+            echo "Sin nuevos datos; se conserva el historial anterior."
+            exit 0
+          fi
+          git config user.name "Panel de Clips Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add datos.json
+          git commit -m "Actualizar estadisticas publicas"
+          git pull --rebase origin main
+          git push origin HEAD:main

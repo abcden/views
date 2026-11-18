@@ -8,22 +8,55 @@ de cambios de escena y aumentos de volumen; no son una comprensión semántica.
 import argparse
 import array
 import json
+import ipaddress
 import math
 import os
 from pathlib import Path
 import re
 import shutil
+import socket
 import statistics
 import subprocess
 import sys
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
+
+import requests
 
 DOMINIOS = (
     "youtube.com", "youtu.be", "twitch.tv", "clips.twitch.tv",
     "kick.com", "tiktok.com", "instagram.com", "vimeo.com", "dailymotion.com",
 )
+# Fuentes públicas admitidas para archivos MP4/WebM: lista cerrada, sin URLs a redes internas.
+DOMINIOS_DIRECTOS = (
+    "archive.org", "upload.wikimedia.org", "github.com",
+    "storage.googleapis.com", "r2.dev",
+)
+DOMINIOS_REDIRECT = DOMINIOS_DIRECTOS + (
+    "release-assets.githubusercontent.com", "objects.githubusercontent.com",
+)
+EXTENSIONES_VIDEO = (".mp4", ".webm", ".mov", ".m4v")
+MAX_DESCARGA = 750 * 1024 * 1024
 MAX_DURACION = 30 * 60
 MAX_CLIPS = 5
+
+
+def dominio_permitido(host, directos=False, redireccion=False):
+    permitidos = DOMINIOS_REDIRECT if redireccion else DOMINIOS_DIRECTOS if directos else DOMINIOS
+    return any(host == d or host.endswith("." + d) for d in permitidos)
+
+
+def enlace_directo(url):
+    parts = urlparse(url)
+    host = (parts.hostname or "").lower().rstrip(".")
+    return dominio_permitido(host, directos=True) and parts.path.lower().endswith(EXTENSIONES_VIDEO)
+
+
+def host_publico(host):
+    try:
+        ips = {item[4][0] for item in socket.getaddrinfo(host, 443, proto=socket.IPPROTO_TCP)}
+        return bool(ips) and all(ipaddress.ip_address(ip).is_global for ip in ips)
+    except (OSError, ValueError):
+        return False
 
 
 def comprobar_url(url):
@@ -34,8 +67,13 @@ def comprobar_url(url):
     host = (parts.hostname or "").lower().rstrip(".")
     if parts.scheme != "https" or parts.username or parts.password or parts.port:
         raise ValueError("Usa enlaces HTTPS normales sin usuario, contraseña ni puerto.")
-    if not any(host == d or host.endswith("." + d) for d in DOMINIOS):
-        raise ValueError("Plataforma no habilitada. Verifica los dominios compatibles.")
+    if not (dominio_permitido(host) or enlace_directo(url)):
+        raise ValueError("Fuente no admitida. Usa una plataforma compatible o un MP4/WebM público en un dominio permitido.")
+    if enlace_directo(url):
+        if any(x in parts.query.lower() for x in ("token=", "signature=", "x-amz-", "x-goog-", "apikey=", "api_key=", "auth=")):
+            raise ValueError("No se aceptan enlaces con claves o firmas privadas.")
+        if not host_publico(host):
+            raise ValueError("El dominio del archivo no resuelve a una dirección pública.")
     if not parts.path or parts.path == "/":
         raise ValueError("Necesitas el enlace de un video concreto, no el perfil.")
     return url
@@ -45,7 +83,71 @@ def ejecutar(cmd, *, timeout=900, **kwargs):
     return subprocess.run(cmd, check=True, timeout=timeout, **kwargs)
 
 
+
+def obtener_directo(url, carpeta):
+    """Descarga un archivo de medios público con límites y redirecciones controladas."""
+    destino = carpeta / ("source" + Path(urlparse(url).path).suffix.lower())
+    actual = url
+    sesion = requests.Session()
+    sesion.trust_env = False
+    try:
+        for salto in range(6):
+            parts = urlparse(actual)
+            host = (parts.hostname or "").lower().rstrip(".")
+            if parts.scheme != "https" or parts.username or parts.password or parts.port:
+                raise RuntimeError("DIRECT_LINK_INVALID")
+            if not dominio_permitido(host, redireccion=True) or not host_publico(host):
+                raise RuntimeError("DIRECT_LINK_INVALID")
+            try:
+                respuesta = sesion.get(
+                    actual, allow_redirects=False, stream=True,
+                    timeout=(20, 45), headers={"Accept": "video/*, application/octet-stream"}
+                )
+            except requests.RequestException:
+                raise RuntimeError("DIRECT_DOWNLOAD_FAILED") from None
+            with respuesta:
+                if respuesta.status_code in (301, 302, 303, 307, 308):
+                    location = respuesta.headers.get("Location", "")
+                    if not location or salto == 5:
+                        raise RuntimeError("DIRECT_DOWNLOAD_FAILED")
+                    actual = urljoin(actual, location)
+                    continue
+                if respuesta.status_code != 200:
+                    raise RuntimeError("DIRECT_DOWNLOAD_FAILED")
+                tipo = respuesta.headers.get("Content-Type", "").split(";", 1)[0].lower()
+                if tipo and not (tipo.startswith("video/") or tipo in (
+                    "application/octet-stream", "binary/octet-stream"
+                )):
+                    raise RuntimeError("DIRECT_LINK_INVALID")
+                try:
+                    esperado = int(respuesta.headers.get("Content-Length", "0"))
+                except ValueError:
+                    esperado = 0
+                if esperado > MAX_DESCARGA:
+                    raise RuntimeError("DIRECT_TOO_LARGE")
+                total = 0
+                try:
+                    with destino.open("wb") as archivo:
+                        for bloque in respuesta.iter_content(chunk_size=262144):
+                            if not bloque:
+                                continue
+                            total += len(bloque)
+                            if total > MAX_DESCARGA:
+                                raise RuntimeError("DIRECT_TOO_LARGE")
+                            archivo.write(bloque)
+                except requests.RequestException:
+                    raise RuntimeError("DIRECT_DOWNLOAD_FAILED") from None
+                if total < 1024:
+                    raise RuntimeError("DIRECT_LINK_INVALID")
+                return destino
+        raise RuntimeError("DIRECT_DOWNLOAD_FAILED")
+    finally:
+        sesion.close()
+
+
 def obtener_archivo(url, carpeta):
+    if enlace_directo(url):
+        return obtener_directo(url, carpeta)
     plantilla = str(carpeta / "source.%(ext)s")
     try:
         ejecutar([
@@ -206,7 +308,8 @@ if __name__ == "__main__":
         main()
     except Exception as exc:
         codigo = str(exc) if str(exc) in {
-            "YOUTUBE_VERIFICATION", "SOURCE_UNAVAILABLE", "DOWNLOAD_FAILED", "FFMPEG_MISSING"
+            "YOUTUBE_VERIFICATION", "SOURCE_UNAVAILABLE", "DOWNLOAD_FAILED", "FFMPEG_MISSING",
+            "DIRECT_LINK_INVALID", "DIRECT_DOWNLOAD_FAILED", "DIRECT_TOO_LARGE"
         } else "PROCESSING_FAILED"
         carpeta_error = Path(os.getenv("CLIP_ERROR_DIR", "clips_generados"))
         carpeta_error.mkdir(parents=True, exist_ok=True)

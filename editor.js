@@ -108,6 +108,7 @@
     if(!(file.type.startsWith("video/")||/\.(mp4|mov|webm|m4v)$/i.test(file.name))){out("Selecciona un archivo de video válido.","error");return;}
     if(file.size>850*1024*1024){out("Este editor admite archivos de hasta 850 MB. Usa un video más corto.","error");return;}
     video.pause();
+    video.removeAttribute("crossorigin");
     if(tool.url)URL.revokeObjectURL(tool.url);
     tool.url=URL.createObjectURL(file);tool.file=file;tool.duration=0;tool.moments=[];tool.needsScan=autoScan;
     $("forge-file-name").textContent=file.name;
@@ -446,7 +447,7 @@
     e.preventDefault();clearTimeout(previewDelay);
     $("forge-process").click();
   });
-  const MAX_REMOTE=350*1024*1024;
+  // El video remoto se reproduce por streaming y no necesita almacenarse entero en memoria.
   $("forge-url-cancel").addEventListener("click",()=>tool.abort?.abort());
   $("forge-process").addEventListener("click",async()=>{
     const status=$("forge-url-status"),raw=$("forge-url").value.trim();
@@ -464,36 +465,69 @@
     }
     if(!direct){status.textContent="El enlace no apunta a un MP4/WebM directo compatible. Si es tu video, guarda el archivo original y usa «Elegir video de mi dispositivo».";return;}
     if(!$("forge-authorized").checked){status.textContent="Para crear clips, confirma que el video es tuyo o tienes autorización para editarlo.";return;}
+    // Modo gratuito: reproducir MP4 remoto por streaming, sin subir ni crear un archivo en el telefono.
+    // Para editar/exportar con canvas el origen debe permitir CORS. No funciona con embeds de YouTube.
     const abort=new AbortController();tool.abort=abort;tool.loading=true;
-    $("forge-process").disabled=true;$("forge-url-cancel").hidden=false;$("forge-url-progress").hidden=false;$("forge-url-bar").style.width="3%";
+    $("forge-process").disabled=true;
+    $("forge-url-cancel").hidden=false;
+    $("forge-url-progress").hidden=false;
+    $("forge-url-bar").style.width="15%";
     try{
-      status.textContent="Conectando con el archivo… No cierres esta pestaña.";
-      const r=await fetch(parsed.href,{signal:abort.signal,credentials:"omit",mode:"cors",cache:"no-store"});
-      if(!r.ok)throw new Error(`El servidor respondió ${r.status}.`);
-      const size=Number(r.headers.get("content-length"))||0;
-      if(size>MAX_REMOTE)throw new Error("El archivo supera 350 MB. Guárdalo primero y selecciónalo desde tu dispositivo.");
-      const type=(r.headers.get("content-type")||"").split(";")[0].trim().toLowerCase();
-      if(type&&!type.startsWith("video/")&&!/^(application\/octet-stream|binary\/octet-stream)$/.test(type))throw new Error("La URL devolvió una página o un archivo que no es video.");
-      const parts=[];let read=0;
-      if(r.body?.getReader){
-        const reader=r.body.getReader();
-        while(true){
-          const {done,value}=await reader.read();if(done)break;
-          read+=value.byteLength;if(read>MAX_REMOTE){await reader.cancel();throw new Error("El archivo supera el límite de 350 MB.");}
-          parts.push(value);
-          if(size)$("forge-url-bar").style.width=Math.min(100,Math.round(read/size*100))+"%";
-          status.textContent=`Importando video directamente aquí: ${(read/1048576).toFixed(1)} MB${size?" de "+(size/1048576).toFixed(1)+" MB":""}…`;
+      status.textContent="Conectando al video remoto. Se necesita permiso CORS del servidor de origen…";
+      video.pause();
+      if(tool.url)URL.revokeObjectURL(tool.url);
+      tool.url=null;
+      tool.duration=0;
+      tool.moments=[];
+      tool.needsScan=true;
+      tool.file={name:"video_remoto."+((parsed.pathname.match(/\.(mp4|webm|mov|m4v|ogv)$/i)||[])[1]||"mp4")};
+      $("forge-file-name").textContent="Video remoto · streaming (sin subida)";
+      $("forge-empty").hidden=true;
+      $("forge-download-ready").hidden=true;
+      controls(false);
+      hideRemotePreview();
+      video.crossOrigin="anonymous";
+      await new Promise((resolve,reject)=>{
+        const timer=setTimeout(()=>finish(new Error("El origen no respondió en 20 segundos.")),20000);
+        const onAbort=()=>finish(new DOMException("Cancelado","AbortError"));
+        const onError=()=>finish(new Error("El origen rechazó la reproducción externa o no permite CORS."));
+        const onReady=()=>{
+          try{
+            draw();
+            ctx.getImageData(0,0,1,1);
+            finish();
+          }catch(_){finish(new Error("El video se reproduce, pero el origen no permite editarlo (CORS)."));}
+        };
+        let ended=false;
+        function finish(err){
+          if(ended)return;
+          ended=true;clearTimeout(timer);
+          video.removeEventListener("loadeddata",onReady);
+          video.removeEventListener("error",onError);
+          abort.signal.removeEventListener("abort",onAbort);
+          err?reject(err):resolve();
         }
-      }else{
-        const b=await r.blob();read=b.size;if(read>MAX_REMOTE)throw new Error("El archivo supera 350 MB.");parts.push(b);
-      }
-      if(read<1024)throw new Error("El archivo está vacío o es incompatible.");
-      const ext=parsed.pathname.match(/\.(mp4|webm|mov|m4v|ogv)$/i)?.[1].toLowerCase()||"mp4";
-      const file=new File(parts,`video_importado.${ext}`,{type:type||({mp4:"video/mp4",webm:"video/webm",mov:"video/quicktime"}[ext]||"video/mp4")});
-      if(loadFile(file)){status.textContent="Video importado en esta página. Detectando momentos automáticamente…";}
+        video.addEventListener("loadeddata",onReady);
+        video.addEventListener("error",onError);
+        abort.signal.addEventListener("abort",onAbort,{once:true});
+        video.src=parsed.href;
+        video.load();
+      });
+      $("forge-url-bar").style.width="100%";
+      status.textContent="✓ Video cargado por streaming: edita y exporta sin subirlo ni descargar el original completo.";
+      out("✓ Video remoto listo. Detecta momentos o ajusta los cortes manualmente.","success");
     }catch(err){
-      status.textContent=err.name==="AbortError"?"Importación cancelada.":`No se pudo importar: ${err.message?.includes("fetch")?"el servidor bloquea el acceso desde otros sitios (CORS)":err.message}. Si es tu video, súbelo directamente desde Archivos.`;
-    }finally{tool.loading=false;tool.abort=null;$("forge-process").disabled=false;$("forge-url-cancel").hidden=true;$("forge-url-progress").hidden=true;}
+      video.pause();video.removeAttribute("src");video.load();video.removeAttribute("crossorigin");
+      tool.file=null;tool.duration=0;tool.needsScan=false;controls(false);
+      $("forge-empty").hidden=false;
+      status.textContent=err.name==="AbortError"?"Importación cancelada.":"No se pudo editar desde el enlace: "+err.message+" Prueba un MP4 directo con acceso CORS habilitado.";
+      out("No fue posible abrir esta fuente para edición. Ningún archivo se subió.","error");
+    }finally{
+      tool.loading=false;tool.abort=null;
+      $("forge-process").disabled=false;
+      $("forge-url-cancel").hidden=true;
+      $("forge-url-progress").hidden=true;
+    }
   });
   setFormat();
   window.addEventListener("pagehide",()=>{if(tool.url)URL.revokeObjectURL(tool.url);if(tool.lastDownload)URL.revokeObjectURL(tool.lastDownload);});

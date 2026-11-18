@@ -923,7 +923,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 
 <nav class="nav" aria-label="Secciones">
   <div class="nav-in">
-    <div class="brand-stack"><img class="brand-logo" src="icon.svg?logo=original-v5" width="45" height="45" alt="Logo GTA VI"><span class="brand-overline">GTA VI / CREATOR STUDIO · V14</span><h1>Panel de Clips <span class="rec">REC</span></h1></div>
+    <div class="brand-stack"><img class="brand-logo" src="icon.svg?logo=original-v5" width="45" height="45" alt="Logo GTA VI"><span class="brand-overline">GTA VI / CREATOR STUDIO · V18</span><h1>Panel de Clips <span class="rec">REC</span></h1></div>
     <div class="tabs" id="tabs"></div>
     <div class="nav-live">PUBLIC VIEW</div>
     <div class="nav-actions">
@@ -1059,7 +1059,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
   <section class="view" data-view="editor" hidden>
     <div class="view-head"><div><h2>Editor de Video</h2><p>Crea clips de GTA VI directamente aquí, gratis y sin enviar tus videos a ningún servidor.</p></div></div>
     <div class="forge-hero">
-      <div><div class="v6-eyebrow">GTA VI / CLIP FORGE V17 / CLOUD ENGINE</div><h2>Tu video. Tu mejor momento.</h2><p>Pega el enlace: puedes reproducirlo inmediatamente aquí o, como administrador, enviarlo al servidor gratuito para generar hasta cinco clips verticales sin descargar el original en tu móvil.</p><div class="forge-steps" style="margin-top:15px"><span>01 · PEGA EL ENLACE</span><span>02 · GENERA EN NUBE</span><span>03 · REVISA Y EDITA</span><span>04 · DESCARGA</span></div></div>
+      <div><div class="v6-eyebrow">GTA VI / CLIP FORGE V18 / CLOUD ENGINE</div><h2>Tu video. Tu mejor momento.</h2><p>Pega el enlace: puedes reproducirlo inmediatamente aquí o, como administrador, enviarlo al servidor gratuito para generar hasta cinco clips verticales sin descargar el original en tu móvil.</p><div class="forge-steps" style="margin-top:15px"><span>01 · PEGA EL ENLACE</span><span>02 · GENERA EN NUBE</span><span>03 · REVISA Y EDITA</span><span>04 · DESCARGA</span></div></div>
       <img class="forge-logo" src="icon.svg?logo=original-v5" width="88" height="88" alt="Logo GTA VI">
     </div>
     <section class="panel forge-link-panel" aria-label="Crear clips desde un enlace sin salir de la página" style="margin-top:16px">
@@ -1074,7 +1074,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
       <section class="forge-cloud" aria-label="Generador automático de clips en la nube">
         <span class="cloud-eyebrow">CLOUD CLIP ENGINE / SOLO ADMINISTRADOR</span>
         <h3>☁️ Genera 5 clips automáticamente desde el enlace</h3>
-        <p>Esta opción ejecuta el análisis en un servidor temporal de GitHub Actions, no en tu iPhone. Ahora acepta enlaces públicos compatibles o archivos directos MP4/WebM desde Archive.org, Wikimedia Commons, GitHub Releases, Google Cloud Storage y Cloudflare R2. Detecta cambios de escena y audio para generar clips verticales. No necesitas descargar el original en tu teléfono. Algunos enlaces de plataformas, como YouTube, pueden bloquear la extracción.</p>
+        <p>Esta opción ejecuta el análisis en un servidor temporal de GitHub Actions, no en tu iPhone. Ahora acepta enlaces públicos compatibles o archivos directos MP4/WebM desde Archive.org, Wikimedia Commons, GitHub Releases, Google Cloud Storage y Cloudflare R2. Detecta cambios de escena y audio para generar clips verticales. No necesitas descargar el original en tu teléfono. El estado se actualiza cada 20 segundos con la etapa real del servidor. Las instalaciones tienen límite de tiempo y los errores aparecen aquí. Algunos enlaces de plataformas, como YouTube, pueden bloquear la extracción.</p>
         <div class="forge-cloud-info">🔒 Tus amigos pueden ver el panel, pero solo la cuenta <b>abcden</b> puede iniciar trabajos. Para activarlo, se requiere una configuración única de GitHub y un token de permisos limitados a Actions. Nunca introduzcas ese token en ChatGPT: pégalo únicamente en este campo, donde queda solo en memoria salvo que actives voluntariamente «Recordarme en este dispositivo».</div>
         <p class="forge-cloud-info"><b>Activación única:</b> en <a href="https://github.com/abcden/views/settings" target="_blank" rel="noopener noreferrer">Settings del repositorio</a>, cambia <b>Default branch</b> a <code>studio-pro</code> (la página y los datos seguirán en sus ramas actuales). Después, <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">crea un token fine-grained</a> con acceso únicamente a <code>abcden/views</code> y permiso <b>Actions: Read and write</b>. El token nunca se publica en GitHub ni debe enviarse por chat.</p>
         <div class="forge-cloud-auth"><label for="forge-cloud-token">Acceso temporal del administrador<input class="in" id="forge-cloud-token" type="password" autocomplete="off" spellcheck="false" placeholder="Token de GitHub (solo Actions: escritura)"></label><button class="btn" id="forge-cloud-connect" type="button">🔐 Conectar administrador</button><button class="btn" id="forge-cloud-disconnect" type="button" hidden>Desconectar</button></div>
@@ -2708,6 +2708,6 @@ showView();
 })();
 </script>
 <script src="editor.js?build=14" defer></script>
-<script src="cloud.js?build=17" defer></script>
+<script src="cloud.js?build=18" defer></script>
 
 </body></html>

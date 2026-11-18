@@ -30,7 +30,8 @@ window.PANEL_PUBLICO = true;
     doc: function(p){ return { onSnapshot: function(next){ return sub(function(){ var d = doc(p); next({id:p.split("/").pop(), exists:!!d, data:function(){ return d; }, metadata:meta}); }); }, set:soloLectura, update:soloLectura, delete:soloLectura }; }
   };
   window.claude = { use: function(n){ return Promise.resolve(n === "db" ? db : n === "user" ? {can: function(){ return Promise.resolve(false); }} : null); } };
-  cargar(); setInterval(cargar, 60000);
+  // Comprueba la versión publicada cada 15 segundos mientras la pestaña está visible.
+  cargar(); setInterval(function(){ if (!document.hidden) cargar(); }, 15000);
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
 })();
 </script>
@@ -1040,7 +1041,8 @@ function nextRunMin(){
 }
 function renderAccounts(){
   const f = k => k==="tiktok" ? state.cfg.tiktokSeguidores : k==="instagram" ? state.cfg.igSeguidores : null;
-  $("#accounts").innerHTML = cuentas().map(a=>`<span class="chip"><i class="dot" style="background:${color(a.plataforma)}"></i>${esc(a.usuario)}${f(a.plataforma)!=null?` <span class="m">· ${nf.format(num(f(a.plataforma)))} seg.</span>`:""}</span>`).join("")
+  const syncRed = k => k==="tiktok" ? state.cfg.tiktokUltimaSync : k==="instagram" ? state.cfg.igUltimaSync : null;
+  $("#accounts").innerHTML = cuentas().map(a=>`<span class="chip"><i class="dot" style="background:${color(a.plataforma)}"></i>${esc(a.usuario)}${f(a.plataforma)!=null?` <span class="m">· ${nf.format(num(f(a.plataforma)))} seg.</span>`:""}${syncRed(a.plataforma)?` <span class="m" title="Última medición de ${esc(a.plataforma)}: ${esc(new Date(syncRed(a.plataforma)).toLocaleString("es"))}">· ${esc(ago(syncRed(a.plataforma)))}</span>`:""}</span>`).join("")
     || `<span class="chip"><span class="m">Agrega tus cuentas en Ajustes</span></span>`;
   $("#cuentas-list").innerHTML = cuentas().map(a=>`<option value="${esc(a.usuario)}">${esc((PMAP[a.plataforma]||PMAP.otro).n)}</option>`).join("");
   const names = new Map();
@@ -1051,9 +1053,9 @@ function renderAccounts(){
   sel.value = state.acct; if (sel.value !== state.acct){ state.acct = ""; sel.value = ""; }
   const sync = state.cfg.ultimaSync, chip = $("#sync-chip");
   if (sync){
-    const stale = (Date.now()-Date.parse(sync)) > 90*60000;
+    const stale = (Date.now()-Date.parse(sync)) > 45*60000;
     chip.hidden = false; chip.style.color = stale ? "var(--warn)" : "var(--muted)";
-    chip.innerHTML = `<i class="dot ${stale?"":"live-dot"}" style="background:${stale?"var(--warn)":"var(--money)"}"></i>${stale?"Sin datos nuevos":"En vivo"} · ${esc(ago(sync))}`;
+    chip.innerHTML = `<i class="dot ${stale?"":"live-dot"}" style="background:${stale?"var(--warn)":"var(--money)"}"></i>${stale?"Datos retrasados":"Última medición"} · ${esc(ago(sync))}`;
     chip.title = new Date(Date.parse(sync)).toLocaleString("es");
   } else chip.hidden = true;
   renderRefresh();

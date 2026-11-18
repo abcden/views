@@ -35,7 +35,7 @@ window.PANEL_PUBLICO = true;
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
 })();
 </script>
-<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?version=7').catch(()=>{}));</script>
 </head><body>
 <title>Panel de Clips | GTA VI Studio Pro</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -701,6 +701,110 @@ body{background:
 :root[data-theme="light"] .command-pills span{color:#49385c;background:rgba(255,255,255,.8);border-color:#e0bddc}
 @media(max-width:760px){.brand-stack{grid-template-columns:37px auto;column-gap:9px}.brand-logo{width:37px;height:37px}.brand-stack h1{font-size:17px}.brand-overline{margin-left:0;font-size:8px}.command-banner{background:linear-gradient(117deg,#1f1439,#151a34 56%,#21162f)}.orbit-core{width:192px;height:192px}.hero::after{width:225px;height:225px;right:-65px;bottom:-105px}.view-head h2::before{width:32px!important;height:32px!important}.kit-top{padding-right:24px}.kit-top::after{width:54px;height:54px;right:12px;top:12px;opacity:.5}}
 @media(max-width:400px){.brand-overline{font-size:7px}.brand-stack h1{font-size:16px}}
+
+/* STUDIO PRO V5 — consola editorial, alta legibilidad y señales comprobables. */
+:root{
+  --pro-border:rgba(177,169,226,.17);--pro-panel:linear-gradient(155deg,#15192b 0%,#101425 100%);
+  --pro-raised:#1c2034;--pro-subtle:#a9b1ce;--pro-pink:#f77bbf;--pro-violet:#aa94ff;
+  --pro-shadow:0 20px 55px rgba(1,3,13,.26);
+}
+:root[data-theme="dark"]{--bg:#090a13;--bg-2:#0f1220;--surface:#161b2c;--surface-2:#20243a;--surface-3:#2c3049;--line:#32374f;--fg:#faf9ff;--muted:#c0c2d7;--faint:#9a9cb6;--studio-nav:rgba(10,11,24,.92);--studio-border:var(--pro-border)}
+:root[data-theme="light"]{--pro-border:#dde1ee;--pro-panel:linear-gradient(155deg,#ffffff,#f5f6fd);--pro-raised:#eff0f8;--pro-subtle:#5c6680;--pro-pink:#bd3686;--pro-violet:#7149c2;--pro-shadow:0 15px 45px rgba(50,43,91,.08)}
+body{background:radial-gradient(ellipse 55% 31% at 8% -2%,rgba(149,91,238,.17),transparent 80%),radial-gradient(ellipse 45% 28% at 100% 19%,rgba(221,69,151,.1),transparent 83%),var(--bg);background-attachment:fixed}
+.wrap{max-width:1420px;gap:19px;padding-top:18px}.nav-in{max-width:1420px}
+.nav{border-bottom:1px solid var(--pro-border);background:var(--studio-nav)}
+.brand-stack h1{font-size:19px;letter-spacing:-.045em}.brand-overline{letter-spacing:.23em;font-size:9px}
+.brand-logo{box-shadow:0 0 0 2px rgba(246,125,201,.51),0 0 28px rgba(230,80,187,.19)}
+.tabs{background:rgba(21,23,43,.5);border:1px solid var(--pro-border);padding:5px}
+.tab{font-size:12px;font-weight:700;letter-spacing:.01em;padding:10px 13px;border-radius:10px}
+.tab[aria-current="page"]{background:linear-gradient(120deg,rgba(162,110,244,.27),rgba(245,102,193,.13));border:1px solid rgba(190,143,242,.36);box-shadow:0 6px 20px rgba(107,57,193,.13)}
+.nav-live{font-size:9px;letter-spacing:.16em}
+.shell-intro{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;min-height:38px}
+.shell-path{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font:700 10px var(--f-mono);letter-spacing:.12em;color:var(--pro-subtle)}
+.shell-path>span:nth-child(2){color:var(--fg)}.shell-dot{width:8px;height:8px;border-radius:50%;background:var(--money);box-shadow:0 0 13px rgba(101,244,189,.5)}
+.shell-slash{opacity:.4}.shell-version{padding:3px 8px;background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid var(--pro-border);border-radius:5px;color:var(--pro-violet)}
+.shell-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.shell-button{display:inline-flex;gap:7px;align-items:center;justify-content:center;border:1px solid var(--pro-border);border-radius:10px;background:color-mix(in srgb,var(--surface) 72%,transparent);color:var(--fg);padding:9px 13px;font:600 12px var(--f-body);cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
+.shell-button>span{font-size:17px;line-height:12px;color:var(--pro-pink)}.shell-button:hover{background:var(--surface-2);border-color:var(--pro-violet);transform:translateY(-1px)}
+.shell-button-share{background:linear-gradient(105deg,rgba(175,96,221,.22),rgba(227,83,163,.2));border-color:rgba(241,126,198,.32)}
+.shell-button kbd{font:600 10px var(--f-mono);color:var(--pro-subtle);padding:2px 5px;border:1px solid var(--pro-border);border-radius:4px}
+.command-banner{min-height:255px;grid-template-columns:minmax(0,1fr) 290px;padding:29px 37px;border-radius:22px;border:1px solid rgba(216,132,206,.28);background:radial-gradient(ellipse 54% 140% at 96% 0,rgba(224,90,175,.23),transparent 75%),radial-gradient(ellipse 55% 85% at 0 130%,rgba(93,77,208,.22),transparent 75%),linear-gradient(110deg,#1b1632,#14162a 51%,#1e1833);box-shadow:var(--pro-shadow)}
+.command-banner::before{opacity:.16;background:repeating-linear-gradient(125deg,transparent 0 41px,rgba(178,137,239,.22) 42px,transparent 43px 84px)}
+.command-banner h2{font-size:clamp(36px,4vw,58px);line-height:1.035;margin:11px 0 12px;letter-spacing:-.07em}
+.command-banner h2 em{background:linear-gradient(98deg,#ff93ce 1%,#c5a0ff 55%,#84deee);color:transparent;background-clip:text;-webkit-background-clip:text}
+.command-banner p{font-size:13px;line-height:1.7;max-width:565px;color:#c7c4dd}
+.command-eyebrow{font:700 10px var(--f-mono);letter-spacing:.25em;color:#ffa8d2}
+.command-pills{margin-top:19px}.command-pills span{border-radius:7px;font-size:9px;letter-spacing:.08em;padding:7px 10px;border-color:rgba(236,168,235,.2);background:rgba(12,13,33,.35);color:#ded9f3}
+.orbit-console{transform:scale(.86);margin:-17px -5px}.orbit-console::after{box-shadow:0 0 0 18px rgba(233,107,191,.03),0 0 0 41px rgba(159,103,239,.027)}
+.command-cta{justify-content:center;margin-top:-12px}.command-action{padding:11px 17px;background:linear-gradient(105deg,#8c4ad1,#ec529b);border:1px solid rgba(255,186,223,.34);border-radius:10px;box-shadow:0 10px 30px rgba(214,61,161,.24)}
+.command-tag{font:700 9px var(--f-mono);letter-spacing:.07em;white-space:nowrap}.command-tag[data-health="late"]{border-color:rgba(255,183,85,.5);color:#ffcd95;background:rgba(96,62,29,.4)}
+.network-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.network-card{min-height:95px;padding:17px 19px;border:1px solid var(--pro-border);border-radius:15px;background:var(--pro-panel);box-shadow:0 7px 22px rgba(2,4,16,.09);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;gap:9px}
+.network-card::before{content:"";position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--tone,var(--pro-violet))}
+.network-card.tiktok{--tone:#4adbea}.network-card.instagram{--tone:#f66dad}.network-card.scheduled{--tone:#ab92ff}
+.network-top,.network-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}.network-top b{font:700 11px var(--f-mono);letter-spacing:.11em;text-transform:uppercase;color:var(--fg)}
+.network-status-indicator{font:700 10px var(--f-body);padding:4px 8px;border-radius:999px;background:rgba(85,229,179,.1);color:var(--money);white-space:nowrap}
+.network-status-indicator.warning{color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.network-bottom strong{font:700 24px var(--f-display);letter-spacing:-.045em;line-height:1.1}.network-bottom small{font-size:11px;color:var(--muted);text-align:right}
+.filters{border:1px solid var(--pro-border);background:var(--pro-panel);border-radius:14px;padding:12px 15px;box-shadow:none}
+.seg{background:rgba(5,8,24,.24);border:1px solid var(--pro-border)}.seg button{font-size:12px;padding:8px 15px}
+.seg button[aria-pressed="true"]{background:linear-gradient(105deg,rgba(138,99,230,.35),rgba(236,93,178,.22));color:var(--fg);border-radius:8px;box-shadow:inset 0 0 0 1px rgba(207,158,247,.28)}
+.btn.ghost#filters-reset{border-color:var(--pro-border);background:transparent;font-weight:700}
+.hero{background:radial-gradient(ellipse 75% 115% at 100% 0,rgba(129,82,242,.12),transparent 80%),var(--pro-panel);border:1px solid var(--pro-border);box-shadow:var(--pro-shadow);border-radius:19px;padding:25px 28px 20px}
+.hero::before{height:2px;background:linear-gradient(90deg,#9e6fea,#ef6fb5,#7fdfe8);opacity:.84}
+.hero-grid .big:not(:last-child){border-right:1px solid var(--pro-border)}
+.hero .big .v{font-size:clamp(43px,5vw,67px);letter-spacing:-.08em}.hero .big .lbl{color:var(--muted);font-size:10px}
+.hero .chip{font-size:11px;background:rgba(72,54,102,.14);border-color:var(--pro-border)}
+.news-item{background:rgba(93,71,130,.1);border:1px solid var(--pro-border);font-size:11px}
+.kpis{gap:12px}.kpi{background:var(--pro-panel);border:1px solid var(--pro-border);border-radius:15px;min-height:127px;padding:20px;box-shadow:0 7px 24px rgba(2,4,16,.08)}
+.kpi::after{top:auto;left:17px;bottom:0;height:2px;width:calc(100% - 34px);background:linear-gradient(90deg,transparent,var(--pro-violet),transparent);opacity:.65}
+.kpi:nth-child(3n)::after{background:linear-gradient(90deg,transparent,var(--pro-pink),transparent)}
+.kpi .val{font-size:29px;letter-spacing:-.06em}.kpi .hint{font-size:11px;color:var(--muted)}
+.panel{border:1px solid var(--pro-border);background:var(--pro-panel);border-radius:17px;padding:22px;box-shadow:0 10px 35px rgba(1,3,13,.09)}
+.panel::before,.kpi::before{opacity:.4}.panel-head{gap:9px;padding-bottom:14px;margin-bottom:6px;border-color:var(--pro-border)}
+.panel-head h2{font-size:17px;letter-spacing:-.038em}.panel-head h2::before{width:3px;height:17px;border-radius:9px;background:linear-gradient(180deg,#f57bbf,#9e8af6)}
+.panel-head .sub{font-size:11px;color:var(--muted);letter-spacing:.015em}
+.view-head h2{font-size:clamp(27px,3.2vw,36px);letter-spacing:-.06em}.view-head p{font-size:13px;color:var(--muted)}
+.studio-grid{gap:16px}.studio-item{padding:14px 0}.studio-item strong{font-size:13px;line-height:1.5}.studio-number{font-family:var(--f-display);letter-spacing:-.03em;color:var(--fg)}
+.studio-progress{height:8px;background:var(--surface-3)}.studio-progress i{background:linear-gradient(90deg,#bc7df4,#f475b7)}
+.studio-metric>div{background:color-mix(in srgb,var(--surface) 60%,transparent);border-color:var(--pro-border);padding:14px;border-radius:12px}
+.smart-row{padding:14px 0;gap:12px}.smart-row strong{font-size:13px}.smart-val{font-family:var(--f-display);font-size:18px}
+.intel-focus{border-color:rgba(183,131,232,.32);background:linear-gradient(120deg,rgba(58,37,91,.48),rgba(20,21,42,.94) 48%,rgba(36,27,65,.83))}
+.intel-eyebrow{display:block;font:700 9px var(--f-mono);letter-spacing:.18em;color:var(--pro-pink);margin-bottom:7px}
+.intel-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:6px}
+.intel-item{padding:18px;border:1px solid rgba(198,165,240,.2);border-radius:13px;background:rgba(10,12,31,.36);min-width:0;display:grid;align-content:start;gap:10px}
+.intel-item .index{display:flex;align-items:center;justify-content:space-between;font:700 9px var(--f-mono);letter-spacing:.13em;color:#c0a5ff}.intel-item .index .icon{font-size:20px;letter-spacing:0}
+.intel-item strong{font-family:var(--f-display);font-size:17px;line-height:1.23;letter-spacing:-.04em;color:#fff}
+.intel-item p{font-size:12px;line-height:1.55;color:#c4c4dd}.intel-item a{font-size:11px;color:#ffc0e6;font-weight:700;text-decoration:none;align-self:end}
+.intel-item a:hover{text-decoration:underline}
+.table-wrap{border-radius:11px;border:1px solid var(--pro-border);overflow:auto}
+table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{background:rgba(170,117,232,.07)}
+.top-item:hover{background:rgba(169,133,225,.085)}.bar{height:8px;background:var(--surface-3)}
+.site-foot{padding-top:24px;color:var(--muted)}.bottom-nav{background:var(--studio-nav)}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--pro-border:#dde1ee;--pro-panel:linear-gradient(155deg,#ffffff,#f5f6fd);--pro-raised:#eff0f8;--pro-subtle:#5c6680;--pro-pink:#bd3686;--pro-violet:#7149c2;--pro-shadow:0 15px 45px rgba(50,43,91,.08)}}
+:root[data-theme="light"] .tabs,.publico:root[data-theme="light"] .tabs{background:#f8f8ff}
+:root[data-theme="light"] .command-banner,:root[data-theme="light"] .intel-focus{background:linear-gradient(115deg,#fdf2fb,#f3f0ff 55%,#f4e9f8);border-color:#dabee7}
+:root[data-theme="light"] .command-banner p,:root[data-theme="light"] .intel-item p{color:#52566b}
+:root[data-theme="light"] .intel-item{background:rgba(255,255,255,.72);border-color:#ddd5ed}
+:root[data-theme="light"] .intel-item strong{color:#241d3c}
+:root[data-theme="light"] .intel-item .index{color:#7b409e}
+:root[data-theme="light"] .intel-item a{color:#ad317e}
+:root[data-theme="light"] .shell-button{background:#fff}
+@media(max-width:1050px){.nav-in{gap:12px}.tab{padding:9px 10px}.command-banner{grid-template-columns:minmax(0,1fr) 240px}.orbit-console{transform:scale(.8)}.network-card{padding:15px}}
+@media(max-width:760px){
+  .wrap{gap:13px;padding-top:13px}.shell-intro{gap:11px}.shell-path{font-size:8px;letter-spacing:.1em}.shell-path .shell-slash,.shell-path>span:nth-child(4){display:none}
+  .shell-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:6px}.shell-button{padding:10px 5px;font-size:11px;gap:5px}.shell-button kbd{display:none}
+  .command-banner{display:block;min-height:0;padding:24px 20px;border-radius:18px}.command-banner h2{font-size:clamp(32px,8vw,45px)}.command-banner p{font-size:12px;max-width:370px}.command-right{margin-top:16px}
+  .orbit-console{transform:scale(.83);top:-225px;right:-108px;opacity:.27}.command-cta{margin-top:0;justify-content:flex-start}
+  .network-status{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.network-card{min-height:89px;padding:14px}.network-card.scheduled{grid-column:1/-1;min-height:65px}.network-card.scheduled .network-bottom{align-items:baseline}.network-top b{font-size:10px}.network-bottom strong{font-size:20px}.network-bottom small{font-size:10px}
+  .filters{padding:10px}.filters>.row{width:100%;display:grid;grid-template-columns:1fr 1fr auto;gap:6px}.filters>.row select{width:100%;min-width:0;font-size:11px;padding:9px 5px}.seg button{padding:8px 9px}
+  .hero{padding:17px 16px}.hero-grid .big{padding:13px 0}.hero-grid .big:first-child{padding:8px 0 13px}.hero-grid .big:not(:last-child){border-right:0;border-bottom:1px solid var(--pro-border)}
+  .hero .big .v{font-size:clamp(40px,10vw,57px)}.kpi{padding:16px 14px;min-height:112px}.kpi .val{font-size:26px}
+  .intel-grid{grid-template-columns:1fr;gap:8px}.intel-item{padding:15px}.panel{padding:17px}.panel-head h2{font-size:16px}.studio-grid{gap:12px}
+  .publico .bottom-nav{grid-template-columns:repeat(5,1fr)!important}.bottom-nav a{font-size:10px}
+}
+@media(max-width:390px){.shell-button{font-size:10px}.seg button{padding:7px 6px;font-size:10px}.network-bottom strong{font-size:19px}.intel-item strong{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.shell-button{transition:none}}
 </style>
 
 <nav class="nav" aria-label="Secciones">
@@ -720,11 +824,19 @@ body{background:
 <nav class="bottom-nav" id="bottom-nav" aria-label="Secciones"></nav>
 
 <div class="wrap">
+  <div class="shell-intro" aria-label="Acciones del panel">
+    <div class="shell-path"><span class="shell-dot"></span><span>GTA VI STUDIO</span><span class="shell-slash">/</span><span>INTELIGENCIA PARA CREADORES</span><span class="shell-version">V5.0</span></div>
+    <div class="shell-actions">
+      <button class="shell-button" type="button" id="quick-find" title="Buscar en mis clips (Ctrl/⌘ + K)"><span aria-hidden="true">⌕</span> Buscar clips <kbd>⌘ K</kbd></button>
+      <button class="shell-button" type="button" id="quick-export"><span aria-hidden="true">↓</span> Exportar CSV</button>
+      <button class="shell-button shell-button-share" type="button" id="quick-share"><span aria-hidden="true">↗</span> Compartir</button>
+    </div>
+  </div>
   <section class="command-banner" aria-label="Centro de control del creador">
     <div class="command-content">
       <div class="command-eyebrow">GTA VI CLIPS / STUDIO PRO</div>
-      <h2>Tus clips.<br><em>Tu próximo nivel.</em></h2>
-      <p>Tu centro de inteligencia para crecer en TikTok e Instagram. Seguimiento automático, señales de viralidad y todo tu rendimiento en una sola pantalla.</p>
+      <h2>El poder de tus clips.<br><em>En tus manos.</em></h2>
+      <p>Un centro de control para conocer cada tendencia, comparar resultados y decidir tu siguiente jugada con datos reales.</p>
       <div class="command-pills">
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m4 12 5 5L20 6"/></svg> TRACKING AUTOMÁTICO</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M16 7h5v5"/></svg> INSIGHTS EN VIVO</span>
@@ -733,9 +845,10 @@ body{background:
     </div>
     <div class="command-right">
       <div class="orbit-console" aria-hidden="true"><div class="orbit-ring"></div><div class="orbit-core"><img src="icon.svg?logo=original-v5" width="192" height="192" alt=""></div><span class="orbit-data top">GTA VI // ONLINE</span><span class="orbit-data bottom">CLIP SIGNAL ACTIVE</span></div>
-      <div class="command-cta"><span class="command-tag">● AUTO SYNC ON</span><a class="command-action" href="#estudio">Abrir Estudio Pro ↗</a></div>
+      <div class="command-cta"><span class="command-tag" id="command-sync-status">● CONSULTANDO DATOS</span><a class="command-action" href="#estudio">Explorar herramientas ↗</a></div>
     </div>
   </section>
+  <section class="network-status" id="network-status" aria-label="Estado de los datos por red" aria-live="polite"></section>
   <div class="filters" id="filters">
     <div class="seg" id="period" role="group" aria-label="Periodo">
       <button type="button" data-p="7" aria-pressed="false">7 días</button>
@@ -747,6 +860,7 @@ body{background:
     <div class="row">
       <select class="in compact" id="plat-filter" aria-label="Filtrar por plataforma"><option value="">Todas las plataformas</option></select>
       <select class="in compact" id="acct-filter" aria-label="Filtrar por cuenta"><option value="">Todas las cuentas</option></select>
+      <button class="btn small ghost" id="filters-reset" type="button" title="Quitar todos los filtros">Limpiar</button>
     </div>
   </div>
 
@@ -766,6 +880,10 @@ body{background:
       <section class="panel"><div class="panel-head"><h2>⚡ Alertas de clips en racha</h2><span class="sub">últimas mediciones</span></div><div id="viral-alerts"></div></section>
       <section class="panel"><div class="panel-head"><h2>↗ Proyección de views</h2><span class="sub">próximas 24 horas</span></div><div id="viral-forecast"></div></section>
     </div>
+    <section class="panel intel-focus" aria-label="Recomendaciones basadas en tus datos">
+      <div class="panel-head"><div><span class="intel-eyebrow">GROWTH INTELLIGENCE / 01</span><h2>Tu próxima oportunidad</h2></div><span class="sub">Señales detectadas en tus clips</span></div>
+      <div class="intel-grid" id="intel-recommendations"></div>
+    </section>
     <section class="panel" id="week" aria-label="Resumen de la semana"></section>
     <section class="panel" id="goals" aria-label="Metas del mes"></section>
     <div class="grid2">
@@ -819,6 +937,7 @@ body{background:
     <div class="view-head">
       <div><h2>Clips</h2><p>Toca un clip para ver su ficha completa.</p></div>
       <div class="row">
+        <button class="btn small" type="button" id="clips-export-csv">Descargar clips</button>
         <button class="btn small" type="button" id="btn-bulk">Cargar views de Instagram</button>
         <button class="btn small primary" type="button" data-add>+ Nuevo clip</button>
       </div>
@@ -1250,13 +1369,14 @@ addEventListener("hashchange", ()=>{ showView(); scrollTo({top:0, behavior: REDU
 function render(){
   computeBase();
   renderAccounts();
+  renderLiveStatus();
   const r = range(state.period);
   const all = state.clips.filter(c => platOk(c) && inRange(c,r));
   const list = all.filter(c => !c.noDisponible);
   const v = state.view;
   if (v==="resumen"){
     const prev = r ? state.clips.filter(c => platOk(c) && !c.noDisponible && inRange(c, prevRange(r))) : null;
-    renderHero(); renderNews(); renderKpis(list, prev, r); renderSmart(list); renderWeek(); renderGoals(); renderChart(list, r); renderPlats(list, r); renderTop(list); renderFoll();
+    renderHero(); renderNews(); renderKpis(list, prev, r); renderSmart(list); renderIntel(list); renderWeek(); renderGoals(); renderChart(list, r); renderPlats(list, r); renderTop(list); renderFoll();
   } else if (v==="clips") renderTable(all);
   else if (v==="analisis"){ renderFollowerInsights(list); renderTopics(list); renderWhen(list); renderHeat(list); renderVs(list, r); renderDist(list); }
   else if (v==="estudio") renderStudio(list);
@@ -1271,6 +1391,26 @@ function ago(isoStr){
   if (m < 1) return "hace un momento"; if (m < 60) return `hace ${m} min`;
   const h = Math.round(m/60); if (h < 24) return `hace ${h} h`;
   return new Date(t).toLocaleString("es",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+}
+function renderLiveStatus(){
+  const platforms=[
+    {key:"tiktok",label:"TikTok",stamp:state.cfg.tiktokUltimaSync,value:state.cfg.tiktokSeguidores},
+    {key:"instagram",label:"Instagram",stamp:state.cfg.igUltimaSync,value:state.cfg.igSeguidores}
+  ];
+  const results=platforms.map(p=>{
+    const ms=Date.parse(p.stamp||"");
+    const age=Number.isFinite(ms)?Math.max(0,(Date.now()-ms)/60000):Infinity;
+    const health=age<=35?"ok":age<=90?"late":"missing";
+    const status=health==="ok"?"Datos recientes":health==="late"?"Con retraso":"Sin medición reciente";
+    const last=Number.isFinite(ms)?`Medido ${ago(p.stamp)}`:"Esperando primera medición";
+    return { ...p, health, status, last };
+  });
+  $("#network-status").innerHTML=results.map(p=>`<div class="network-card ${p.key}"><div class="network-top"><b>${esc(p.label)}</b><span class="network-status-indicator ${p.health!=="ok"?"warning":""}">${esc(p.status)}</span></div><div class="network-bottom"><strong>${p.value==null?"—":nf.format(num(p.value))} <small>seguidores</small></strong><small>${esc(p.last)}</small></div></div>`).join("")+
+    `<div class="network-card scheduled"><div class="network-top"><b>Recolección programada</b><span class="network-status-indicator">Automática</span></div><div class="network-bottom"><strong>Cada 10 min</strong><small>GitHub consulta ambas redes; la disponibilidad depende de cada plataforma.</small></div></div>`;
+  const late=results.some(p=>p.health!=="ok");
+  const label=$("#command-sync-status");
+  label.dataset.health=late?"late":"ok";
+  label.textContent=late?"● UNA RED CON RETRASO":"● MEDICIONES RECIENTES";
 }
 function nextRunMin(){
   // La tarea de GitHub Actions se programa cada 10 minutos, en el minuto 7 de cada decena.
@@ -1546,6 +1686,38 @@ function renderFollowerInsights(list){
 
 // Herramientas del Estudio. Los cálculos se hacen en el navegador con datos públicos.
 const studio = {sort:"views",idea:0,copyText:""};
+function renderIntel(list){
+  const valid=list.filter(c=>hasV(c.views));
+  const best=valid.map(c=>({c,ratio:score(c)})).filter(x=>x.ratio!=null).sort((a,b)=>b.ratio-a.ratio)[0];
+  const fastest=valid.map(c=>({c,rate:smartRate(c)})).filter(x=>x.rate!=null&&x.rate>0).sort((a,b)=>b.rate-a.rate)[0];
+  const ig=Date.parse(state.cfg.igUltimaSync||"");
+  const igStale=!Number.isFinite(ig)||(Date.now()-ig)>35*60000;
+  const opportunities=[
+    best ? {
+      eyebrow:"01 / FORMATO DESTACADO",icon:"↗",title:"Repite tu mejor formato",
+      detail:`“${best.c.titulo.slice(0,62)}” lleva ${nf1.format(best.ratio)}× la mediana de ${(PMAP[best.c.plataforma]||PMAP.otro).n}. Prueba otra versión del tema; el resultado no está garantizado.`,
+      view:"clips",action:"Explorar clips"
+    } : {
+      eyebrow:"01 / PUNTO DE PARTIDA",icon:"◈",title:"Construye tu referencia",
+      detail:"Necesitamos más clips con métricas comparables para identificar un formato que destaque con evidencia.",view:"clips",action:"Revisar publicaciones"
+    },
+    fastest ? {
+      eyebrow:"02 / RITMO OBSERVADO",icon:"⚡",title:"Hay un clip acelerando",
+      detail:`“${fastest.c.titulo.slice(0,60)}” sumó aproximadamente ${nf1.format(fastest.rate)} views por hora en las mediciones recientes. Revisa cómo empieza el video.`,view:"estudio",action:"Abrir radar"
+    } : {
+      eyebrow:"02 / RADAR",icon:"◎",title:"Observando el crecimiento",
+      detail:"El radar necesita al menos dos mediciones cercanas por clip. Seguirá evaluando el ritmo cuando haya datos suficientes.",view:"estudio",action:"Ver radar"
+    },
+    igStale ? {
+      eyebrow:"03 / CALIDAD DEL DATO",icon:"◉",title:"Instagram requiere atención",
+      detail:"La consulta automática sigue programada, pero Instagram no ha entregado métricas recientes. Conservamos su último valor conocido sin presentarlo como nuevo.",view:"analisis",action:"Comparar redes"
+    } : {
+      eyebrow:"03 / DATOS EN CONTEXTO",icon:"▤",title:"Compara ambas redes",
+      detail:`Hay ${valid.length} clips con views registradas en este filtro. Compara los resultados de TikTok e Instagram teniendo en cuenta las fechas de publicación.`,view:"analisis",action:"Ver análisis"
+    }
+  ];
+  $("#intel-recommendations").innerHTML=opportunities.map(o=>`<article class="intel-item"><div class="index"><span>${esc(o.eyebrow)}</span><span class="icon" aria-hidden="true">${o.icon}</span></div><strong>${esc(o.title)}</strong><p>${esc(o.detail)}</p><a href="#${o.view}">${esc(o.action)} →</a></article>`).join("");
+}
 const studioEng = c => hasV(c.views) && num(c.views)>0 ? (num(c.likes)+num(c.comentarios)+num(c.compartidos)+num(c.guardados))/num(c.views)*100 : null;
 function studioScore(c){
   const ratio=score(c), eng=studioEng(c), rate=smartRate(c);
@@ -1600,19 +1772,27 @@ function renderStudio(list){
   $("#studio-report").innerHTML=`<div class="studio-metric"><div><small>Clips de la última semana</small><b>${last7.length}</b></div><div><small>Views acumuladas de esos clips</small><b>${nfc.format(views)}</b></div><div><small>Likes acumulados</small><b>${nf.format(likes)}</b></div><div><small>Seguidores nuevos (aprox.)</small><b>${week}</b></div></div><p class="studio-note">Las vistas son totales de clips publicados en los últimos siete días, no necesariamente vistas ganadas durante esos días. Exporta el CSV para analizarlos.</p>`;
 }
 function renderStudioIdeas(list){
-  const topics=topicStats(list), theme=topics.find(x=>!x.common)?.label || "GTA 6";
+  const topics=topicStats(list), theme=String(topics.find(x=>!x.common)?.label||"GTA 6").slice(0,35).toUpperCase();
+  const topicalTag="#"+theme.replace(/[^A-Z0-9]/g,"");
+  const tags=["#GTA6","#GTAVI","#RockstarGames","#Gaming",topicalTag].filter((x,i,a)=>x.length>1&&a.indexOf(x)===i).slice(0,5).join(" ");
   const ideas=[
-    [`5 ${theme.toUpperCase()} DETAILS YOU PROBABLY MISSED! 👀`,`#GTA6 #GTAVI #RockstarGames #GTA6Español #Gaming`],
-    [`IS THIS THE BIGGEST ${theme.toUpperCase()} SECRET IN GTA 6? 🤯`,`#GTA6 #GTAVI #GTA6Secrets #ViceCity #Videojuegos`],
-    [`GTA 5 VS GTA 6: THE DIFFERENCE IS INSANE! 🔥`,`#GTA6 #GTA5 #GTAVI #RockstarGames #GamingLatino`],
-    [`WOULD YOU WANT THIS IN GTA 6? 👀`,`#GTA6 #GTAVI #GTA6Features #Gaming #ParaTi`]
+    [`3 ${theme} DETAILS YOU PROBABLY MISSED IN GTA 6 👀`,"Lista de 3 detalles con ejemplos verificables"],
+    [`COULD THIS ${theme} SECRET CHANGE GTA 6? 🤯`,"Pregunta abierta que invita a comentar"],
+    [`GTA 5 VS GTA 6: WHAT ACTUALLY CHANGED? 🔥`,"Comparación visual entre ambos juegos"],
+    [`WHY EVERYONE IS TALKING ABOUT ${theme} 🎮`,"Explica el contexto antes de la conclusión"],
+    [`5 THINGS WE STILL DON'T KNOW ABOUT GTA 6 👀`,"Distingue hechos confirmados de rumores"],
+    [`WHAT IF GTA 6 ADDED THIS FEATURE? 🤔`,"Pregunta hipotética para fomentar respuestas"],
+    [`THE MOST UNDERRATED DETAIL IN GTA 6? ⚡`,"Una observación concreta y breve"],
+    [`HOW ${theme} COULD CHANGE VICE CITY 🌴`,"Explicación condicional con comparativa"]
   ];
-  const [title,tags]=ideas[studio.idea%ideas.length];studio.copyText=title+"\n"+tags;
-  $("#studio-ideas").innerHTML=`<strong>${esc(title)}</strong><p class="studio-note" style="margin-top:8px">${esc(tags)}</p><p class="studio-note">Idea sugerida a partir de temas de tus títulos. Verifica cualquier afirmación antes de publicarla.</p>`;
+  const [title,angle]=ideas[studio.idea%ideas.length];studio.copyText=title+"\n"+tags;
+  $("#studio-ideas").innerHTML=`<span class="studio-pill">Gancho sugerido</span><strong style="display:block;margin-top:10px;font-size:17px;line-height:1.4">${esc(title)}</strong><p class="studio-note" style="margin-top:9px"><b>Formato:</b> ${esc(angle)}</p><p class="studio-note" style="margin-top:8px;color:var(--pro-pink)">${esc(tags)}</p><p class="studio-note" style="margin-top:9px">Ideas orientativas basadas en títulos y temas observados. Comprueba cualquier afirmación antes de publicar.</p>`;
+  $("#studio-idea-copy").textContent="Copiar idea";
 }
 function renderStudioComparison(items){
   const a=items.find(x=>x.id===$("#studio-compare-a").value),b=items.find(x=>x.id===$("#studio-compare-b").value);
   if(!a||!b){$("#studio-compare").innerHTML=`<p class="studio-note">Necesitas al menos dos clips con views.</p>`;return;}
+  if(a.id===b.id){$("#studio-compare").innerHTML=`<p class="studio-note">Selecciona dos clips distintos para ver una comparación útil.</p>`;return;}
   const row=(label,get,fmt)=>`<tr><td>${label}</td><td>${fmt(get(a))}</td><td>${fmt(get(b))}</td></tr>`;
   const n=v=>v==null?"—":nf.format(v), pct=v=>v==null?"—":nf1.format(v)+"%",rate=v=>v==null?"—":nf1.format(v)+"/h";
   $("#studio-compare").innerHTML=`<div style="overflow:auto"><table class="vs" style="width:100%"><thead><tr><th style="text-align:left">Métrica</th><th>Clip A</th><th>Clip B</th></tr></thead><tbody>${row("Views",c=>num(c.views),n)}${row("Likes",c=>num(c.likes),n)}${row("Comentarios",c=>num(c.comentarios),n)}${row("Compartidos",c=>num(c.compartidos),n)}${row("Interacción",studioEng,pct)}${row("Crecimiento reciente",smartRate,rate)}${row("Puntuación",studioScore,n)}</tbody></table></div><p class="studio-note">Comparación de métricas observadas; los clips pueden tener diferentes fechas de publicación.</p>`;
@@ -1620,7 +1800,8 @@ function renderStudioComparison(items){
 function downloadStudioCsv(){
   const c=state.clips.filter(x=>!x.noDisponible&&inRange(x,range("7")));
   const fields=["fecha","plataforma","titulo","views","likes","comentarios","compartidos","guardados"];
-  const csv=[fields.join(","),...c.map(x=>fields.map(k=>'"'+String(x[k]??"").replace(/"/g,'""')+'"').join(","))].join("\r\n");
+  const safe=v=>{let s=String(v??"");if(/^[\s\t\r\n]*[=+@-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+  const csv=[fields.join(","),...c.map(x=>fields.map(k=>safe(x[k])).join(","))].join("\r\n");
   const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
   a.href=url;a.download="informe-clips-semanal.csv";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
 }
@@ -1930,6 +2111,50 @@ $("#metric").addEventListener("click", e=>{ const b=e.target.closest("button"); 
 $("#plat-filter").addEventListener("change", e=>{ state.plat=e.target.value; render(); });
 $("#acct-filter").addEventListener("change", e=>{ state.acct=e.target.value; render(); });
 $("#search").addEventListener("input", e=>{ state.q=e.target.value; render(); });
+$("#filters-reset").addEventListener("click",()=>{
+  state.period="30";state.plat="";state.acct="";state.q="";
+  $("#plat-filter").value="";$("#acct-filter").value="";$("#search").value="";
+  $("#period").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.p==="30")));
+  render();
+});
+function focusClipSearch(){
+  if(state.view!=="clips") location.hash="#clips";
+  requestAnimationFrame(()=>$("#search").focus());
+}
+$("#quick-find").addEventListener("click",focusClipSearch);
+document.addEventListener("keydown",e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){
+    e.preventDefault();focusClipSearch();
+  }
+});
+function downloadCurrentCsv(){
+  const list=state.clips.filter(c=>!c.noDisponible&&platOk(c)&&inRange(c,range(state.period)));
+  const columns=["fecha","plataforma","cuenta","titulo","views","likes","comentarios","compartidos","guardados"];
+  const csvCell=v=>{
+    let s=String(v??"");
+    if(/^[\s\t\r\n]*[=+@-]/.test(s))s="'"+s;
+    return '"'+s.replace(/"/g,'""')+'"';
+  };
+  const csv=[columns.join(","),...list.map(c=>columns.map(k=>csvCell(c[k])).join(","))].join("\r\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=`clips-studio-${iso(new Date())}.csv`;document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+$("#quick-export").addEventListener("click",downloadCurrentCsv);
+$("#clips-export-csv").addEventListener("click",downloadCurrentCsv);
+$("#quick-share").addEventListener("click",async()=>{
+  const b=$("#quick-share"),original=b.innerHTML;
+  const url=location.origin+location.pathname;
+  try{
+    await navigator.clipboard.writeText(url);
+    b.textContent="✓ Enlace copiado";
+  }catch(_){
+    window.prompt("Copia el enlace público del panel:",url);
+    b.textContent="Compartir";
+  }
+  setTimeout(()=>b.innerHTML=original,2400);
+});
 $("#sort-m").addEventListener("change", e=>{ const [k,dir] = e.target.value.split(":"); state.sort = {k, dir}; render(); });
 document.querySelector("table.clips thead").addEventListener("click", e=>{ const th=e.target.closest("th[data-k]"); if(!th) return; const k=th.dataset.k; state.sort = state.sort.k===k ? {k, dir: state.sort.dir==="asc"?"desc":"asc"} : {k, dir: ["titulo","plataforma"].includes(k)?"asc":"desc"}; render(); });
 $("#btn-add").addEventListener("click", ()=>openClip(null));
@@ -2134,7 +2359,7 @@ showView();
   // snaps/<clipId> = {pts:[{t: minutoEpoch, v: views}]} ; serie/seguidores = {pts:[{t, tt, ig, tv}]}
   db.collection("snaps").onSnapshot(snap=>{ const m = {}; for (const d of snap.docs){ const x = d.data(); if (Array.isArray(x.pts)) m[d.id] = x.pts.filter(o=>o&&o.t!=null).sort((a,b)=>a.t-b.t).map(o=>[num(o.t), o.v]); } state.snaps = m; schedule(); }, ()=>{});
   db.doc("serie/seguidores").onSnapshot(s=>{ const pts = s.exists && Array.isArray(s.data().pts) ? s.data().pts : []; state.serie = pts.filter(o=>o&&o.t!=null).sort((a,b)=>a.t-b.t).map(o=>[num(o.t), o.tt??null, o.ig??null, o.tv??null]); schedule(); }, ()=>{});
-  setInterval(()=>{ renderAccounts(); }, 60000);
+  setInterval(()=>{ renderAccounts(); renderLiveStatus(); }, 60000);
 })();
 })();
 </script>

@@ -5,7 +5,7 @@
 <meta name="application-name" content="Panel de Clips Studio Pro">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Clips Studio">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest?build=12">
 <link rel="icon" type="image/svg+xml" href="icon.svg?logo=original-v6">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
 <script>
@@ -16,7 +16,13 @@ window.PANEL_PUBLICO = true;
   function avisar(){ document.dispatchEvent(new Event("panel-sync-state")); }
   function cargar(){
     estado.lastAttemptAt = Date.now();
-    fetch("datos.json?t=" + Date.now(), {cache:"no-store"}).then(function(r){ if(!r.ok)throw new Error("Respuesta " + r.status); return r.text(); }).then(function(txt){
+    var marca = Date.now();
+    var origen = "https://raw.githubusercontent.com/abcden/views/main/datos.json?t=" + marca;
+    function leer(r){ if(!r.ok)throw new Error("Respuesta " + r.status); return r.text(); }
+    fetch(origen, {cache:"no-store"}).then(leer).catch(function(){
+      // Si GitHub Raw está temporalmente inaccesible, usar el último respaldo.
+      return fetch("datos.json?t=" + marca, {cache:"no-store"}).then(leer);
+    }).then(function(txt){
       if(!txt)throw new Error("Archivo vacío");
       if (txt === firma) { estado.lastSuccessAt=Date.now(); estado.failedCount=0; avisar(); return; }
       var nuevo = JSON.parse(txt);
@@ -41,7 +47,20 @@ window.PANEL_PUBLICO = true;
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
 })();
 </script>
-<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?version=11').catch(()=>{}));</script>
+<script>
+// La página es pública y debe mostrar datos y herramientas recientes, incluso en iPhone.
+// El modo offline anterior conservaba versiones obsoletas: se desactiva su caché.
+window.addEventListener('load',()=>{
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(regs=>Promise.all(
+      regs.filter(reg=>reg.scope.startsWith(new URL('./',location.href).href)).map(reg=>reg.unregister())
+    )).catch(()=>{});
+  }
+  if('caches' in window){
+    caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('clips-studio-gta-vi-')).map(k=>caches.delete(k)))).catch(()=>{});
+  }
+});
+</script>
 </head><body>
 <title>Panel de Clips | GTA VI Studio Pro</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -899,7 +918,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 
 <nav class="nav" aria-label="Secciones">
   <div class="nav-in">
-    <div class="brand-stack"><img class="brand-logo" src="icon.svg?logo=original-v5" width="45" height="45" alt="Logo GTA VI"><span class="brand-overline">GTA VI / CREATOR STUDIO</span><h1>Panel de Clips <span class="rec">REC</span></h1></div>
+    <div class="brand-stack"><img class="brand-logo" src="icon.svg?logo=original-v5" width="45" height="45" alt="Logo GTA VI"><span class="brand-overline">GTA VI / CREATOR STUDIO · V12</span><h1>Panel de Clips <span class="rec">REC</span></h1></div>
     <div class="tabs" id="tabs"></div>
     <div class="nav-live">PUBLIC VIEW</div>
     <div class="nav-actions">
@@ -1035,7 +1054,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
   <section class="view" data-view="editor" hidden>
     <div class="view-head"><div><h2>Editor de Video</h2><p>Crea clips de GTA VI directamente aquí, gratis y sin enviar tus videos a ningún servidor.</p></div></div>
     <div class="forge-hero">
-      <div><div class="v6-eyebrow">GTA VI / CLIP FORGE / EDICIÓN EN TU NAVEGADOR</div><h2>Tu video. Tu mejor momento.</h2><p>Reproduce enlaces compatibles aquí mismo. Importa un MP4 directo o un archivo de tu dispositivo y descubre los momentos más intensos sin salir de la página.</p><div class="forge-steps" style="margin-top:15px"><span>01 · PEGA O CARGA</span><span>02 · DETECTA</span><span>03 · EDITA</span><span>04 · DESCARGA</span></div></div>
+      <div><div class="v6-eyebrow">GTA VI / CLIP FORGE V12 / EDICIÓN EN TU NAVEGADOR</div><h2>Tu video. Tu mejor momento.</h2><p>Reproduce enlaces compatibles aquí mismo. Importa un MP4 directo o un archivo de tu dispositivo y descubre los momentos más intensos sin salir de la página.</p><div class="forge-steps" style="margin-top:15px"><span>01 · PEGA O CARGA</span><span>02 · DETECTA</span><span>03 · EDITA</span><span>04 · DESCARGA</span></div></div>
       <img class="forge-logo" src="icon.svg?logo=original-v5" width="88" height="88" alt="Logo GTA VI">
     </div>
     <section class="panel forge-link-panel" aria-label="Crear clips desde un enlace sin salir de la página" style="margin-top:16px">
@@ -2671,6 +2690,6 @@ showView();
 })();
 })();
 </script>
-<script src="editor.js" defer></script>
+<script src="editor.js?build=12" defer></script>
 
 </body></html>

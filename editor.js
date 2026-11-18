@@ -399,33 +399,66 @@
     if(domain("kick.com"))return {error:"Kick no facilita aquí un archivo directo. Guarda tu video autorizado y súbelo desde tu dispositivo para editarlo gratis."};
     return null;
   }
-  function showRemotePreview(embed){
+  function showRemotePreview(embed,scroll=false){
     const panel=$("forge-remote-preview"),frame=$("forge-remote-frame");
-    frame.src=embed.url;
+    // No reiniciar la reproducción si el usuario vuelve a pulsar el botón.
+    if(frame.getAttribute("src")!==embed.url)frame.src=embed.url;
     $("forge-remote-label").textContent=`▶ Ver video de ${embed.name} sin salir`;
     panel.classList.toggle("vertical",!!embed.vertical);
     panel.hidden=false;
-    panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+    if(scroll)panel.scrollIntoView({behavior:"smooth",block:"nearest"});
   }
+  function hideRemotePreview(){
+    const panel=$("forge-remote-preview"),frame=$("forge-remote-frame");
+    if(!panel.hidden){panel.hidden=true;frame.removeAttribute("src");}
+  }
+  function parseVideoLink(raw){
+    let parsed;
+    try{parsed=new URL(raw);}catch(_){return {error:"Pega una URL de video completa que empiece por https://"};}
+    if(parsed.protocol!=="https:"||parsed.username||parsed.password||parsed.port||raw.length>500)return {error:"Por seguridad, usa una URL HTTPS sin contraseñas ni puertos especiales."};
+    const direct=/\.(mp4|webm|mov|m4v|ogv)$/i.test(parsed.pathname);
+    return {parsed,direct,embed:direct?null:embedsFrom(parsed)};
+  }
+  // La vista previa se activa al pegar el enlace, sin pasar por GitHub ni subir archivos.
+  let previewDelay;
+  function previewCurrentUrl(){
+    const raw=$("forge-url").value.trim(),status=$("forge-url-status");
+    if(!raw){hideRemotePreview();status.textContent="Pega un enlace para ver una vista previa integrada.";return;}
+    const link=parseVideoLink(raw);
+    if(link.error){hideRemotePreview();status.textContent=link.error;return;}
+    if(link.direct){hideRemotePreview();status.textContent="Archivo de video directo detectado. Marca la casilla de autorización y pulsa «Importar MP4» para editar aquí sin subirlo.";return;}
+    if(link.embed?.error){hideRemotePreview();status.textContent=link.embed.error;return;}
+    if(!link.embed){hideRemotePreview();status.textContent="Ese sitio no ofrece una vista previa integrada compatible. Prueba con YouTube, TikTok, Reels, Vimeo, Twitch o un MP4 directo.";return;}
+    showRemotePreview(link.embed);
+    status.textContent=`✓ Video de ${link.embed.name} abierto dentro del panel. Pulsa ▶ en el reproductor para verlo.`;
+  }
+  $("forge-url").addEventListener("input",()=>{
+    clearTimeout(previewDelay);
+    previewDelay=setTimeout(previewCurrentUrl,280);
+  });
+  $("forge-url").addEventListener("keydown",e=>{
+    if(e.key!=="Enter")return;
+    e.preventDefault();clearTimeout(previewDelay);
+    $("forge-process").click();
+  });
   const MAX_REMOTE=350*1024*1024;
   $("forge-url-cancel").addEventListener("click",()=>tool.abort?.abort());
   $("forge-process").addEventListener("click",async()=>{
     const status=$("forge-url-status"),raw=$("forge-url").value.trim();
     if(tool.loading){status.textContent="Ya estoy cargando un video. Espera o cancela la descarga.";return;}
     if(tool.recording||tool.scanning){status.textContent="Espera a que finalice el análisis o la exportación.";return;}
-    let parsed;
-    try{parsed=new URL(raw);}catch(_){status.textContent="Pega un enlace HTTPS válido o pulsa «Elegir video de mi dispositivo».";return;}
-    if(parsed.protocol!=="https:"||parsed.username||parsed.password||parsed.port||raw.length>500){status.textContent="Por seguridad, usa una URL HTTPS normal sin contraseñas ni puertos especiales.";return;}
-    if(!$("forge-authorized").checked){status.textContent="Marca la casilla para confirmar que tienes permiso para reutilizar este video.";return;}
-    const direct=/\.(mp4|webm|mov|m4v|ogv)$/i.test(parsed.pathname);
-    const embed=direct?null:embedsFrom(parsed);
+    clearTimeout(previewDelay);
+    const link=parseVideoLink(raw);
+    if(link.error){status.textContent=link.error;return;}
+    const {parsed,direct,embed}=link;
     if(embed){
       if(embed.error){status.textContent=embed.error;return;}
-      showRemotePreview(embed);
-      status.textContent=`${embed.name} se reproduce aquí mismo. Para generar MP4 editables desde este video necesitas cargar su archivo original autorizado. El reproductor no permite extraerlo.`;
+      showRemotePreview(embed,true);
+      status.textContent=`✓ ${embed.name} abierto aquí mismo. Puedes reproducirlo sin subir el video ni salir del panel.`;
       return;
     }
     if(!direct){status.textContent="El enlace no apunta a un MP4/WebM directo compatible. Si es tu video, guarda el archivo original y usa «Elegir video de mi dispositivo».";return;}
+    if(!$("forge-authorized").checked){status.textContent="Para crear clips, confirma que el video es tuyo o tienes autorización para editarlo.";return;}
     const abort=new AbortController();tool.abort=abort;tool.loading=true;
     $("forge-process").disabled=true;$("forge-url-cancel").hidden=false;$("forge-url-progress").hidden=false;$("forge-url-bar").style.width="3%";
     try{

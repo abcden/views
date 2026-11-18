@@ -357,6 +357,40 @@
   guestCheck.hidden=true;
   guestArea.append(guestTitle,guestInfo,guestBtn,guestCheck,guestMsg);
   $('forge-cloud-start').parentElement.append(guestArea);
+  // Puentes a servicios web con planes gratuitos: no requieren el procesamiento propio.
+  const alternatives=document.createElement('div');
+  alternatives.style.cssText='margin:15px 0 0;padding:14px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.04)';
+  const heading=document.createElement('h4');
+  heading.textContent='⚡ Generar desde un enlace sin descargar el video';
+  heading.style.margin='0 0 7px';
+  const explanation=document.createElement('p');
+  explanation.style.cssText='font-size:12px;opacity:.85;line-height:1.5;margin:0 0 12px';
+  explanation.textContent='Alternativa gratuita externa mientras YouTube bloquea nuestro servidor. Copiamos el enlace y abrimos el generador; allí lo pegas y utilizas sus créditos gratuitos. No se envía tu token.';
+  const bridgeActions=document.createElement('div');
+  bridgeActions.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+  function bridgeButton(label,destination){
+    const b=document.createElement('button');
+    b.type='button';b.className='btn';b.textContent=label;
+    b.addEventListener('click',()=>{
+      const url=allowedUrl($('forge-url').value.trim());
+      if(!url){guestStatus('Pega primero el enlace HTTPS del video en la parte superior.');return;}
+      if(!$('forge-authorized').checked){guestStatus('Confirma antes que tienes autorización para utilizar el video.');return;}
+      // Abrir inmediatamente durante el clic para evitar bloqueos de ventanas emergentes.
+      window.open(destination,'_blank','noopener,noreferrer');
+      if(!navigator.clipboard?.writeText){guestStatus('Copia el enlace del campo y pégalo en el generador externo.');return;}
+      navigator.clipboard.writeText(url).then(
+        ()=>guestStatus('✓ Enlace copiado. Pégalo en el generador que se abrió; sus límites gratuitos dependen del servicio.'),
+        ()=>guestStatus('Abre el generador y pega allí el enlace que escribiste en el panel.')
+      );
+    });
+    return b;
+  }
+  bridgeActions.append(
+    bridgeButton('▶ Vizard · YouTube gratis','https://vizard.ai/'),
+    bridgeButton('✂ Klap · prueba gratis','https://klap.app/')
+  );
+  alternatives.append(heading,explanation,bridgeActions);
+  guestArea.append(alternatives);
   let gatewayReady=false,guestJob='',guestBusy=false,guestPoll=null;
   const guestStatus=msg=>guestMsg.textContent=msg;
   async function gatewayRequest(path,options={}){

@@ -331,5 +331,94 @@
       status('Encontré un trabajo anterior. Pulsa «Revisar resultado» para consultar los clips sin volver a procesar.');
     }
   }catch(_){}
+  // Acceso de invitados: usa el Gateway cuando esté configurado, nunca solicita un PAT.
+  // GitHub Pages continúa ofreciendo el editor local aunque el Gateway esté desconectado.
+  const GATEWAY='https://clip-forge-gateway.sarmientopaul714.chatgpt.site';
+  const guestArea=document.createElement('section');
+  guestArea.className='studio-card';
+  guestArea.style.cssText='margin:18px 0;padding:18px;border:1px solid rgba(116,214,255,.25);border-radius:18px;background:rgba(13,21,46,.88);color:#edf4ff';
+  const guestTitle=document.createElement('h3');
+  guestTitle.textContent='✦ Crear clips online · Invitados';
+  guestTitle.style.margin='0 0 8px';
+  const guestInfo=document.createElement('p');
+  guestInfo.textContent='Sin token y sin subir archivos desde el teléfono. Máximo global provisional: 6 solicitudes al día. Solo videos propios o autorizados; YouTube puede rechazar la descarga.';
+  guestInfo.style.cssText='font-size:13px;line-height:1.6;opacity:.86';
+  const guestBtn=document.createElement('button');
+  guestBtn.className='btn primary';
+  guestBtn.type='button';
+  guestBtn.textContent='Comprobar servidor gratuito';
+  const guestMsg=document.createElement('p');
+  guestMsg.setAttribute('role','status');
+  guestMsg.style.cssText='font-size:13px;margin:12px 0 0;line-height:1.5';
+  const guestCheck=document.createElement('button');
+  guestCheck.type='button';
+  guestCheck.className='btn';
+  guestCheck.textContent='Revisar mis clips';
+  guestCheck.hidden=true;
+  guestArea.append(guestTitle,guestInfo,guestBtn,guestCheck,guestMsg);
+  $('forge-cloud-start').parentElement.append(guestArea);
+  let gatewayReady=false,guestJob='',guestBusy=false,guestPoll=null;
+  const guestStatus=msg=>guestMsg.textContent=msg;
+  async function gatewayRequest(path,options={}){
+    const response=await fetch(GATEWAY+path,{mode:'cors',credentials:'omit',cache:'no-store',...options});
+    if(!response.headers.get('content-type')?.includes('application/json'))
+      throw Error('El servicio requiere acceso o no está disponible públicamente.');
+    const data=await response.json();
+    if(!response.ok)throw Error(data.error||'Error del servidor');
+    return data;
+  }
+  async function checkGateway(){
+    try{
+      const state=await gatewayRequest('/health');
+      gatewayReady=!!state.configured;
+      guestBtn.textContent=gatewayReady?'✦ Generar hasta 5 clips gratis':'Comprobar servidor gratuito';
+      guestStatus(gatewayReady?'✓ Motor de clips disponible. Pega un enlace, confirma la autorización y pulsa el botón.':'⏳ El procesador gratuito aún no está activado. Puedes usar el editor local con enlaces MP4 directos compatibles.');
+    }catch(_){
+      gatewayReady=false;
+      guestBtn.textContent='Comprobar servidor gratuito';
+      guestStatus('⏳ El Gateway no responde como servicio público. La edición local sigue disponible.');
+    }
+  }
+  async function checkGuestJob(){
+    if(!guestJob)return;
+    try{
+      const result=await gatewayRequest('/api/jobs/'+guestJob);
+      if(result.status==='complete'&&result.clips?.length){
+        clearInterval(guestPoll);guestPoll=null;guestBusy=false;
+        showResults({body:'',assets:result.clips.map(c=>({name:c.name,browser_download_url:c.url}))});
+        guestStatus('✓ ¡Clips listos! Puedes verlos y descargarlos en el panel.');
+      }else if(result.status==='failed'){
+        clearInterval(guestPoll);guestPoll=null;guestBusy=false;
+        const reason=result.error==='YOUTUBE_VERIFICATION'
+          ?'YouTube exigió una verificación antibots. Usa otra fuente autorizada que admita edición.'
+          :'El servidor no pudo procesar este video: '+(result.error||'error desconocido');
+        guestStatus('✕ '+reason);
+      }else guestStatus('⏳ Estado: '+(result.status||'esperando')+'. La página consultará el resultado automáticamente.');
+    }catch(e){guestStatus('No se pudo revisar el trabajo: '+e.message);}
+  }
+  guestCheck.addEventListener('click',checkGuestJob);
+  guestBtn.addEventListener('click',async()=>{
+    if(!gatewayReady){await checkGateway();return;}
+    if(guestBusy)return;
+    const url=allowedUrl($('forge-url').value.trim());
+    if(!url){guestStatus('Pega un enlace compatible en el campo de video del editor.');return;}
+    if(!$('forge-authorized').checked){guestStatus('Confirma que tienes autorización para utilizar el video.');return;}
+    guestBusy=true;guestBtn.disabled=true;
+    guestStatus('Enviando solicitud al servidor gratuito…');
+    try{
+      const result=await gatewayRequest('/api/jobs',{method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({video_url:url,clip_seconds:Number($('forge-job-length').value),authorized_public:true})});
+      guestJob=result.id;
+      guestCheck.hidden=false;
+      guestStatus('✓ Solicitud recibida. Esperando que GitHub Actions genere los clips…');
+      clearInterval(guestPoll);guestPoll=setInterval(checkGuestJob,20000);
+      setTimeout(checkGuestJob,4000);
+    }catch(e){
+      guestStatus('No se pudo iniciar: '+(e.message==='DAILY_LIMIT'?'se alcanzó el límite gratuito diario.':e.message));
+      guestBusy=false;
+    }finally{guestBtn.disabled=false;}
+  });
+  checkGateway();
+  window.addEventListener('pagehide',()=>{if(guestPoll)clearInterval(guestPoll);});
   window.addEventListener('pagehide',()=>{token='';clearPolling();});
 })();

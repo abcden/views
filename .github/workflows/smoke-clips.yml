@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   mp4-real:
@@ -37,6 +37,13 @@ jobs:
             -f lavfi -i 'sine=frequency=440:sample_rate=16000' \
             -t 88 -c:v libx264 -preset ultrafast -crf 33 -pix_fmt yuv420p \
             -c:a aac -b:a 64k /tmp/clip-forge-source.mp4
+      - name: Publicar video sintético temporal para probar enlaces
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "clip-fixture-${GITHUB_RUN_ID}" /tmp/clip-forge-source.mp4 \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Clip Forge fixture ${GITHUB_RUN_ID}" --notes "Video sintético de prueba; se eliminará al terminar."
       - name: Generar cinco clips MP4 verticales reales
         run: |
           python procesar_clips.py --archivo-local /tmp/clip-forge-source.mp4 --carpeta /tmp/clip-forge-smoke --duracion 15
@@ -56,6 +63,8 @@ jobs:
           compression-level: 0
 
   enlace-mp4-publico:
+    needs: mp4-real
+    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -72,7 +81,7 @@ jobs:
           python -m pip install --disable-pip-version-check 'requests>=2.32,<3'
       - name: Descargar MP4 de muestra mediante enlace HTTPS y generar recortes
         env:
-          VIDEO_URL: https://upload.wikimedia.org/wikipedia/commons/6/66/Public_domain_upload_demonstration.webm
+          VIDEO_URL: https://github.com/abcden/views/releases/download/clip-fixture-${{ github.run_id }}/clip-forge-source.mp4
           CLIP_SECONDS: '15'
         run: |
           set -euo pipefail
@@ -81,3 +90,9 @@ jobs:
           for f in /tmp/clip-forge-link-test/clip_*_vertical.mp4; do
             ffmpeg -v error -i "$f" -f null - </dev/null
           done
+      - name: Eliminar exclusivamente el video sintético de esta ejecución
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete "clip-fixture-${GITHUB_RUN_ID}" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes || true

@@ -53,16 +53,39 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Instalar el procesador gratuito
+      - name: Instalar FFmpeg y el procesador gratuito
         run: |
-          python -m pip install --upgrade 'yt-dlp[default]'
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
           ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+          python -m pip install --upgrade 'yt-dlp[default]'
       - name: Detectar momentos y exportar MP4 verticales
+        id: procesar
+        continue-on-error: true
         env:
           VIDEO_URL: ${{ inputs.video_url }}
           CLIP_SECONDS: ${{ inputs.clip_seconds }}
         run: python procesar_clips.py
+      - name: Publicar diagnóstico temporal de fallo
+        if: steps.procesar.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_KEY: ${{ inputs.job_key }}
+        run: |
+          codigo=$(jq -r '.code // "PROCESSING_FAILED"' clips_generados/error.json 2>/dev/null || echo PROCESSING_FAILED)
+          case "$codigo" in
+            YOUTUBE_VERIFICATION|SOURCE_UNAVAILABLE|DOWNLOAD_FAILED|FFMPEG_MISSING|PROCESSING_FAILED) ;;
+            *) codigo=PROCESSING_FAILED ;;
+          esac
+          gh release create "clip-${JOB_KEY}" \
+            --target "$GITHUB_SHA" \
+            --title "Clip Forge | error" \
+            --notes "CLIP_FORGE_ERROR:$codigo"
+          echo "::error title=Clip Forge::$codigo"
+          exit 1
       - name: Publicar clips temporales para el editor web
+        if: steps.procesar.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           JOB_KEY: ${{ inputs.job_key }}
@@ -73,6 +96,7 @@ jobs:
             --title "Clip Forge | ${JOB_KEY}" \
             --notes "Recortes generados automáticamente para un video público autorizado. Revisar antes de publicar. Archivos públicos y temporales: se eliminan durante la limpieza posterior a 24 horas."
       - name: Respaldo temporal del trabajo (1 día)
+        if: steps.procesar.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: clips-mp4-${{ inputs.job_key }}

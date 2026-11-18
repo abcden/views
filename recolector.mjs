@@ -157,6 +157,7 @@ async function main() {
       const r = await edge.js(jsTikTok(user, ids));
       if (r.profile.followers != null && r.videos.length) {
         okTT = true;
+        D.config.tiktokUltimaSync = AHORA_ISO;
         D.config.tiktokSeguidores = r.profile.followers;
         if (r.profile.hearts != null) D.config.tiktokMeGusta = r.profile.hearts;
         for (const v of r.videos) {
@@ -192,6 +193,7 @@ async function main() {
       const seg = numero(r.followers);
       if (seg != null) {
         okIG = true;
+        D.config.igUltimaSync = AHORA_ISO;
         D.config.igSeguidores = seg;
         const codes = [...new Set([...Object.keys(r.views), ...Object.keys(r.meta)])];
         for (const code of codes) {

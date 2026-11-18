@@ -68,7 +68,7 @@ jobs:
           ffprobe -version >/dev/null
           echo "FFmpeg y FFprobe listos"
           echo "::notice title=Clip Forge::Instalando procesador de videos"
-          timeout -k 10s 90s python -m pip install --disable-pip-version-check --retries 2 --timeout 15 'yt-dlp[default]'
+          timeout -k 10s 90s python -m pip install --disable-pip-version-check --retries 2 --timeout 15 'yt-dlp[default]' 'requests>=2.32,<3'
       - name: Detectar momentos y exportar MP4 verticales
         if: steps.herramientas.outcome == 'success'
         id: procesar

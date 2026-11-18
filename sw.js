@@ -1,5 +1,5 @@
-const CACHE = 'clips-studio-gta-vi-v5';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'clips-studio-gta-vi-v6';
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg?logo=original-v5'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));
   self.skipWaiting();

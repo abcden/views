@@ -870,6 +870,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 .forge-empty{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:14px;padding:32px;background:radial-gradient(circle at 50% 40%,rgba(111,75,190,.22),transparent 55%);font-size:12px;color:#c9c5e6}
 .forge-empty img{width:98px;height:98px;margin:auto;border-radius:50%;box-shadow:0 0 30px rgba(238,73,204,.25)}.forge-empty strong{font:800 21px var(--f-display);color:white}
 .forge-upload{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.forge-file-name{font-size:11px;color:var(--muted);overflow-wrap:anywhere;line-height:1.5}
+.forge-file-input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip-path:inset(50%)}
 .forge-play-row{display:flex;align-items:center;gap:9px;margin:12px 0 7px}.forge-play-row input{flex:1;min-width:0;accent-color:var(--pro-pink)}.forge-time{font:700 11px var(--f-mono);white-space:nowrap;color:var(--muted)}
 .forge-controls .panel-head{margin-bottom:9px}.forge-section{padding:14px 0;border-bottom:1px solid var(--pro-border)}.forge-section:last-child{border:0;padding-bottom:0}.forge-section h3{font-size:15px;margin-bottom:9px;color:var(--fg);letter-spacing:-.02em}.forge-section p{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px}
 .forge-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.forge-form label{display:grid;gap:5px;min-width:0;font-weight:700;font-size:11px;color:var(--muted)}.forge-form label.wide{grid-column:1/-1}.forge-form input,.forge-form select{width:100%;min-width:0}
@@ -1051,7 +1052,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
     <div class="forge-grid">
       <section class="panel forge-preview-panel" aria-label="Vista previa del video">
         <div class="panel-head"><h2>◉ Vista previa del clip</h2><span class="sub" id="forge-size">9:16 · vertical</span></div>
-        <div class="forge-upload"><label class="btn primary" for="forge-file">+ Elegir video</label><input id="forge-file" type="file" accept="video/*,.mp4,.mov,.webm" hidden><span class="forge-file-name" id="forge-file-name">Ningún video seleccionado</span></div>
+        <div class="forge-upload"><label class="btn primary" for="forge-file">+ Elegir video</label><input id="forge-file" class="forge-file-input" type="file" accept="video/*,.mp4,.mov,.webm" aria-label="Seleccionar video de mi dispositivo"><span class="forge-file-name" id="forge-file-name">Ningún video seleccionado</span></div>
         <video id="forge-video" playsinline preload="metadata" hidden></video>
         <div class="forge-preview-shell" id="forge-frame"><canvas id="forge-canvas" width="540" height="960" aria-label="Vista previa de tu clip en formato vertical"></canvas><div class="forge-empty" id="forge-empty"><img src="icon.svg?logo=original-v5" alt=""><strong>CLIP FORGE</strong><span>Selecciona un video de tu teléfono o computadora para empezar.</span></div></div>
         <div class="forge-play-row"><button id="forge-play" class="btn" type="button" disabled>▶ Reproducir</button><input id="forge-seek" type="range" min="0" max="1" step="0.05" value="0" aria-label="Moverse por el video" disabled><span class="forge-time" id="forge-clock">00:00 / 00:00</span></div>
@@ -1059,7 +1060,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
       </section>
       <section class="panel forge-controls" aria-label="Herramientas del editor">
         <div class="panel-head"><h2>✂️ Herramientas de edición</h2><span class="sub">sin suscripción</span></div>
-        <div class="forge-section"><h3>⚡ Radar gratuito de mejores momentos</h3><p>Busca cambios de escena y movimiento en tu video para proponer cortes. También intenta detectar picos de sonido en archivos compatibles y pequeños. No utiliza una IA de pago.</p>
+        <div class="forge-section"><h3>⚡ Radar gratuito de mejores momentos</h3><p>Analiza cambios de escena y movimiento durante los primeros 12 minutos del video para sugerir hasta cinco cortes. No interpreta diálogos ni utiliza una IA de pago.</p>
           <div class="forge-export"><button class="btn primary" id="forge-analyze" type="button" disabled>✦ Detectar momentos</button><span class="v6-head-note" id="forge-scan-label">Esperando video</span></div>
           <div class="forge-progress" id="forge-scan-progress" hidden><i id="forge-scan-bar"></i></div>
           <div class="forge-moments" id="forge-moments" style="margin-top:12px"><p class="studio-note">Aquí aparecerán hasta 5 momentos sugeridos. Puedes usar cualquiera y ajustar sus límites.</p></div>

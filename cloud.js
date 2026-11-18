@@ -70,6 +70,18 @@
   });
 
   function showResults(release){
+    const code = (release.body || '').match(/CLIP_FORGE_ERROR:([A-Z_]+)/)?.[1];
+    if(code){
+      const mensajes = {
+        YOUTUBE_VERIFICATION: 'YouTube pidió una verificación antibots al servidor. No es un problema de tu token. Prueba un video propio desde una fuente compatible que permita la descarga automática.',
+        SOURCE_UNAVAILABLE: 'El video no está disponible para el procesador (privado, restringido o enlace incompatible). Prueba otro enlace público y autorizado.',
+        DOWNLOAD_FAILED: 'La plataforma no permitió descargar este video. Puedes probar otro enlace autorizado compatible.',
+        FFMPEG_MISSING: 'El servidor no encontró FFmpeg; avisa al administrador para revisar la instalación.',
+        PROCESSING_FAILED: 'El servidor no pudo procesar el video. Revisa la ejecución de GitHub Actions para más detalles.'
+      };
+      status('✕ ' + (mensajes[code] || mensajes.PROCESSING_FAILED), 'error');
+      clearPolling();working=false;setConnected(!!token);return;
+    }
     const box=$('forge-cloud-results');box.replaceChildren();
     const files=(release.assets||[]).filter(a=>/^clip_\d{2}_vertical\.mp4$/.test(a.name||'') && /^https:\/\/github\.com\//.test(a.browser_download_url||''));
     if(!files.length){status('El trabajo terminó, pero aún no hay MP4 en la publicación. Vuelve a revisar en un momento.');return;}
@@ -118,7 +130,7 @@
         const data=await request('/actions/workflows/crear-clips.yml/runs?event=workflow_dispatch&per_page=30');
         const run=(data.workflow_runs||[]).find(x=>(x.display_title||'').includes(job));
         if(run?.status==='completed'&&run.conclusion!=='success'){
-          status(`El servidor no pudo generar clips (${run.conclusion||'error'}). Puede deberse a restricciones del video o a GitHub Actions.`,'error');
+          status('✕ El procesamiento falló. Pulsa «Revisar resultado» en unos segundos para ver el diagnóstico específico; si aún no aparece, consulta la ejecución en GitHub Actions.','error');
           clearPolling();working=false;setConnected(!!token);
         }else status(run?.status==='in_progress'?'⏳ Analizando video, seleccionando escenas y exportando MP4 en la nube…': '⏳ Trabajo enviado. Esperando que GitHub inicie el procesamiento…');
       }catch(_){status('⏳ Esperando clips. Se revisará el resultado automáticamente.');}

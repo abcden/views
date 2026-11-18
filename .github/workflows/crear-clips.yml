@@ -42,9 +42,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Preparar JavaScript para videos de YouTube
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Instalar procesador gratuito
         run: |
-          python -m pip install --upgrade 'yt-dlp>=2025.1'
+          python -m pip install --upgrade 'yt-dlp[default]'
           ffmpeg -version | head -n 1
       - name: Detectar momentos y exportar MP4
         env:

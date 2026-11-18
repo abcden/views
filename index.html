@@ -37,10 +37,10 @@ window.PANEL_PUBLICO = true;
 </script>
 <script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>
 </head><body>
-<title>Panel de Clips | Future Studio 3.0</title>
+<title>Panel de Clips | Nexus Studio 4.0</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
 <style>
 /* Layout: app de estudio para creadores. Barra superior fija con pestañas (abajo en el celular),
    cada pestaña es una vista: Resumen, Clips, Análisis, Dinero, Calendario y Media kit. Dark-first con variante clara. */
@@ -530,12 +530,140 @@ body{background:
 :focus-visible{outline:2px solid #aaa2ff!important;outline-offset:3px}
 @media(max-width:760px){.nav h1::before{font-size:20px;margin-right:6px}.hero{border-radius:19px}.panel,.kpi{border-radius:16px}.filters{padding:9px;border-radius:14px}.bottom-nav{background:var(--studio-nav);backdrop-filter:blur(20px);border-top:1px solid var(--studio-border)}}
 @media(prefers-reduced-motion:reduce){.view{animation:none}.panel,.kpi,.tab{transition:none}}
+
+/* NEXUS STUDIO 4.0 — diseño de consola premium, adaptable y sin alterar los datos. */
+:root[data-theme="dark"]{
+  --bg:#050812;--bg-2:#080e1a;--surface:#101a2c;--surface-2:#182640;--surface-3:#243758;
+  --line:rgba(120,155,210,.26);--fg:#f6faff;--muted:#b5c8e3;--faint:#8fa7c8;
+  --accent:#9e8dff;--money:#65f4bd;--p-tiktok:#45eafa;--studio-nav:rgba(5,9,21,.94);
+  --studio-hero:linear-gradient(120deg,#111d39,#092136 56%,#14254b);
+  --studio-panel:linear-gradient(145deg,rgba(19,34,57,.99),rgba(10,19,34,.99));
+  --studio-filter:linear-gradient(105deg,rgba(18,29,50,.98),rgba(10,23,42,.98));
+  --studio-border:rgba(109,150,214,.25);
+}
+:root{--f-display:"Space Grotesk","Bricolage Grotesque",system-ui,sans-serif}
+html{scroll-behavior:smooth}
+body{background:
+  radial-gradient(ellipse 63% 31% at 8% -4%,rgba(65,103,255,.19),transparent 76%),
+  radial-gradient(ellipse 48% 28% at 99% 21%,rgba(31,220,243,.09),transparent 76%),
+  linear-gradient(90deg,rgba(108,151,229,.034) 1px,transparent 1px),
+  linear-gradient(rgba(108,151,229,.034) 1px,transparent 1px),var(--bg);
+  background-size:auto,auto,68px 68px,68px 68px,auto;background-attachment:fixed}
+.nav{border-bottom:1px solid color-mix(in srgb,var(--p-tiktok) 24%,var(--line));box-shadow:0 12px 38px rgba(0,0,0,.24)}
+.nav-in{min-height:73px;gap:22px}
+.brand-stack{display:grid;gap:2px;flex:none}
+.brand-overline{font:700 9px var(--f-mono);letter-spacing:.24em;color:var(--p-tiktok);text-transform:uppercase;margin-left:33px;opacity:.86}
+.brand-stack h1{font-size:18px;line-height:1.05;letter-spacing:-.065em}
+.brand-stack h1::after{display:none}
+.nav .rec{font-size:9px;letter-spacing:.12em;padding:2px 6px}
+.tabs{background:color-mix(in srgb,var(--surface) 75%,transparent);border:1px solid var(--studio-border);padding:5px;border-radius:14px;gap:3px;min-height:43px;align-items:center}
+.tab{font-size:12px;letter-spacing:-.02em;padding:9px 13px;border:1px solid transparent}
+.tab[aria-current="page"]{background:linear-gradient(115deg,color-mix(in srgb,var(--p-tiktok) 15%,var(--surface)),color-mix(in srgb,var(--accent) 20%,var(--surface)));border-color:color-mix(in srgb,var(--accent) 32%,transparent);box-shadow:0 4px 20px rgba(71,105,238,.14)}
+.nav-live{font:700 9px var(--f-mono);letter-spacing:.13em;color:var(--money);white-space:nowrap;display:none;align-items:center;gap:7px;padding:9px 10px;border:1px solid color-mix(in srgb,var(--money) 29%,var(--line));border-radius:9px;background:color-mix(in srgb,var(--money) 6%,var(--surface))}
+.publico .nav-live{display:flex}.command-public-pill{display:none!important}.publico .command-public-pill{display:inline-flex!important}
+.nav-live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--money);box-shadow:0 0 12px var(--money)}
+.wrap{padding-top:24px;gap:20px}.view{gap:19px}
+.command-banner{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,345px);align-items:center;gap:18px;min-height:305px;padding:28px 34px;border-radius:25px;
+  border:1px solid color-mix(in srgb,var(--p-tiktok) 39%,var(--line));
+  background:
+    radial-gradient(ellipse 41% 110% at 100% 5%,rgba(69,234,250,.14),transparent 80%),
+    radial-gradient(ellipse 60% 120% at 30% 130%,rgba(96,81,230,.26),transparent 75%),
+    linear-gradient(117deg,#111d3b,#0b1830 54%,#06192b);
+  box-shadow:0 2px 0 rgba(255,255,255,.06) inset,0 30px 75px rgba(2,7,22,.32)}
+.command-banner::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.3;
+  background:repeating-linear-gradient(120deg,transparent 0 36px,rgba(114,171,255,.13) 37px,transparent 38px 74px)}
+.command-banner::after{z-index:0;right:-190px;top:-140px;opacity:.75}
+.command-content,.command-right{position:relative;z-index:1}
+.command-eyebrow{letter-spacing:.2em;font-size:10px}
+.command-banner h2{font-size:clamp(35px,4.2vw,58px);line-height:1.04;letter-spacing:-.068em;margin:13px 0 16px;max-width:760px}
+.command-banner h2 em{display:inline-block;background:linear-gradient(100deg,#73ecf6,#a8b9ff 65%,#d5aeff);color:transparent;background-clip:text;-webkit-background-clip:text;text-shadow:none}
+.command-banner p{font-size:14px;line-height:1.65;max-width:550px;color:#c0d1eb}
+.command-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.command-pills span{display:inline-flex;align-items:center;gap:7px;font:700 10px var(--f-mono);letter-spacing:.04em;color:#bfd5ee;background:rgba(6,22,44,.55);border:1px solid rgba(131,182,228,.26);border-radius:8px;padding:7px 10px}
+.command-pills svg{height:14px;width:14px;color:#7af1df;stroke-width:2.2}
+.command-right{display:grid;gap:12px;justify-items:center}
+.orbit-console{position:relative;width:245px;height:215px;isolation:isolate;display:grid;place-items:center}
+.orbit-console::before{content:"";position:absolute;width:178px;height:178px;border-radius:50%;border:1px dashed rgba(109,217,255,.5);box-shadow:0 0 70px rgba(31,185,253,.12),inset 0 0 50px rgba(54,122,250,.12);animation:orbitTurn 35s linear infinite}
+.orbit-console::after{content:"";position:absolute;width:215px;height:215px;border-radius:50%;border:1px solid rgba(115,141,255,.22);box-shadow:0 0 0 20px rgba(45,108,206,.035),0 0 0 45px rgba(45,108,206,.025)}
+.orbit-ring{position:absolute;width:128px;height:128px;border-radius:50%;border:6px solid transparent;border-top-color:#50e9f6;border-right-color:rgba(122,113,255,.9);transform:rotate(-29deg);filter:drop-shadow(0 0 14px rgba(81,220,245,.45));animation:orbitTurn 21s linear infinite reverse}
+.orbit-core{display:grid;place-items:center;align-content:center;width:102px;height:102px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#203e71,#0a1730 71%);border:1px solid rgba(108,224,247,.52);box-shadow:inset 0 0 23px rgba(43,173,238,.22),0 0 30px rgba(62,129,249,.2);z-index:1}
+.orbit-core strong{font:700 40px var(--f-display);letter-spacing:-.09em;color:#d6faff;line-height:1}
+.orbit-core small{font:700 9px var(--f-mono);letter-spacing:.17em;color:#5ce7f7}
+.orbit-data{position:absolute;font:700 9px var(--f-mono);letter-spacing:.12em;color:#7ae4f8;padding:5px 8px;border:1px solid rgba(104,215,249,.25);background:rgba(5,21,42,.8);border-radius:6px;white-space:nowrap;z-index:2}
+.orbit-data.top{left:-8px;top:18px}.orbit-data.bottom{right:-11px;bottom:15px;color:#b2adff}
+.command-cta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:center}
+.command-tag{font-size:9px;padding:8px 9px;background:rgba(19,53,61,.76);color:#8ff9d3;border-color:rgba(99,244,188,.37)}
+.command-action{background:linear-gradient(118deg,#405df3,#8462f2);border-radius:9px;padding:10px 13px;font-weight:700;box-shadow:0 7px 25px rgba(82,79,244,.35)}
+@keyframes orbitTurn{to{transform:rotate(360deg)}}
+.filters{padding:13px 16px;border-radius:14px;background:var(--studio-filter);box-shadow:0 6px 25px rgba(3,10,25,.2)}
+.seg{border-radius:10px;background:color-mix(in srgb,var(--surface) 86%,transparent);padding:4px}
+.seg button{font-size:12px;font-weight:600;padding:8px 15px}
+.seg button[aria-pressed="true"]{color:var(--fg);background:linear-gradient(120deg,rgba(61,136,221,.32),rgba(110,102,235,.34));box-shadow:inset 0 0 0 1px rgba(145,174,255,.26)}
+select.compact{background-color:color-mix(in srgb,var(--surface) 85%,transparent);border-color:var(--studio-border);padding:10px 14px}
+.hero{border-radius:20px;padding:26px 27px 20px;gap:19px;background:
+  radial-gradient(ellipse 53% 85% at 0 0,rgba(49,129,249,.15),transparent 83%),
+  radial-gradient(ellipse 40% 100% at 100% 60%,rgba(35,209,227,.09),transparent 80%),var(--studio-hero)}
+.hero-grid{gap:0;position:relative}.hero-grid .big{padding:11px 25px 10px 25px;position:relative}
+.hero-grid .big:first-child{padding-left:0}.hero-grid .big:not(:last-child){border-right:1px solid rgba(140,180,230,.17)}
+.hero .big .v{font-family:var(--f-display);font-size:clamp(43px,5.1vw,66px);letter-spacing:-.075em;line-height:1.03}
+.hero .big .lbl{color:#adc3e3;font-size:10px;letter-spacing:.21em}
+.hero .big svg{height:49px;margin-top:10px;filter:drop-shadow(0 0 9px rgba(70,191,248,.11))}
+.hero .chip{border-radius:8px;background:rgba(17,38,66,.75);border-color:rgba(130,167,218,.23)}
+.news-item{padding:9px 12px;background:rgba(11,31,53,.82);border-color:rgba(102,156,213,.24)}
+.kpis{gap:14px}
+.kpi{min-height:145px;border-radius:17px;padding:21px 22px 15px;background:var(--studio-panel);border:1px solid var(--studio-border)}
+.kpi::after{content:"";position:absolute;left:0;top:20px;bottom:20px;width:2px;background:linear-gradient(180deg,transparent,#51ddeb,transparent);opacity:.76}
+.kpi:nth-child(3n + 2)::after{background:linear-gradient(180deg,transparent,#9e8dff,transparent)}
+.kpi:nth-child(3n)::after{background:linear-gradient(180deg,transparent,#ed78bd,transparent)}
+.kpi .lbl{font-size:10px;letter-spacing:.16em}
+.kpi .val{font-family:var(--f-display);font-size:31px;font-weight:700;letter-spacing:-.05em;margin:3px 0}
+.kpi .hint{font-size:11px}.kpi svg{opacity:.9}
+.panel{padding:22px;border-radius:18px;box-shadow:0 13px 30px rgba(3,8,21,.1)}
+.panel-head{padding-bottom:10px;border-bottom:1px solid color-mix(in srgb,var(--line) 62%,transparent)}
+.panel-head h2{font-size:17px;font-weight:700;letter-spacing:-.04em;display:flex;align-items:center;gap:9px}
+.panel-head h2::before{content:"";width:4px;height:16px;border-radius:4px;background:linear-gradient(180deg,var(--p-tiktok),var(--accent));box-shadow:0 0 13px rgba(68,222,248,.24);flex:none}
+.top-item{padding:11px;border-radius:10px}.top-item:hover{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.top-item .rk{font-family:var(--f-mono);font-size:14px;color:var(--p-tiktok)}
+.week-item{background:color-mix(in srgb,var(--surface-2) 82%,transparent);border:1px solid var(--studio-border);border-radius:11px;padding:14px}
+.week-item .v{font-family:var(--f-display);font-size:17px;font-weight:700}
+.bar{height:9px;background:color-mix(in srgb,var(--surface-3) 87%,transparent)}
+.bar>i{background-image:linear-gradient(90deg,rgba(255,255,255,.08),transparent);box-shadow:0 0 15px rgba(54,206,246,.23)}
+.site-foot{padding-top:14px;font-size:11px;letter-spacing:.03em}
+.bottom-nav a[aria-current="page"]{color:var(--p-tiktok);background:color-mix(in srgb,var(--p-tiktok) 9%,transparent)}
+:root[data-theme="light"] .command-banner{background:linear-gradient(120deg,#e6edff,#edf7ff 58%,#e7edff);box-shadow:0 22px 55px rgba(37,60,96,.1)}
+:root[data-theme="light"] .command-banner p{color:#42546e}
+:root[data-theme="light"] .command-pills span{color:#334867;background:rgba(255,255,255,.8);border-color:#cbd8ec}
+:root[data-theme="light"] .command-banner h2 em{background:linear-gradient(100deg,#067f9e,#394bc2);color:transparent;background-clip:text;-webkit-background-clip:text}
+:root[data-theme="light"] .command-tag{color:#11684e;background:#e0fcf1;border-color:#a5e9d0}
+:root[data-theme="light"] .nav-live{color:#09755a}
+@media(max-width:1120px){.nav-live{display:none}.nav-in{gap:12px}.tab{padding:9px 10px}.brand-overline{font-size:8px}}
+@media(max-width:900px){.command-banner{grid-template-columns:minmax(0,1fr) 250px;padding:24px}.orbit-console{transform:scale(.84);margin:-18px}.command-right{gap:3px}.command-cta{max-width:240px}}
+@media(max-width:760px){
+  .nav-in{min-height:63px}.brand-stack h1{font-size:17px}.brand-overline{font-size:7px;margin-left:25px}
+  .command-banner{display:block;min-height:0;padding:27px 20px 24px;border-radius:20px;overflow:hidden}
+  .command-banner h2{font-size:clamp(32px,9vw,43px);line-height:1.06;max-width:430px;margin:12px 0}
+  .command-banner p{max-width:390px;font-size:12px;line-height:1.6}
+  .command-pills{gap:6px;margin-top:18px;position:relative;z-index:2}.command-pills span{font-size:9px;padding:7px 8px}
+  .command-right{display:block;margin-top:18px}.orbit-console{position:absolute;right:-97px;top:-215px;transform:scale(.92);opacity:.34;pointer-events:none}
+  .command-cta{max-width:none;position:relative;justify-content:flex-start;z-index:2}
+  .wrap{padding-top:14px;gap:13px}.view{gap:13px}
+  .filters{padding:10px;gap:9px}.filters .seg button{padding:7px 3px;font-size:11px}
+  .hero{padding:19px 17px;border-radius:17px}.hero-grid{gap:4px}
+  .hero-grid .big{padding:12px 0}.hero-grid .big:first-child{padding:8px 0 12px}.hero-grid .big:not(:last-child){border-right:0;border-bottom:1px solid rgba(126,175,221,.18)}
+  .hero .big .v{font-size:clamp(43px,12vw,57px)}.hero .big svg{height:34px}
+  .kpi{min-height:126px;padding:17px 14px 13px}.kpi .val{font-size:26px}
+  .panel{padding:16px;border-radius:15px}.panel-head h2{font-size:15px}
+  .bottom-nav{box-shadow:0 -10px 35px rgba(0,0,0,.2)}
+}
+@media(max-width:400px){.kpis{gap:8px}.kpi .val{font-size:23px}.command-banner h2{font-size:32px}.brand-stack h1{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.orbit-console::before,.orbit-ring{animation:none}html{scroll-behavior:auto}}
 </style>
 
 <nav class="nav" aria-label="Secciones">
   <div class="nav-in">
-    <h1>Panel de Clips <span class="rec">REC</span></h1>
+    <div class="brand-stack"><span class="brand-overline">NEXUS / CREATOR OS</span><h1>Panel de Clips <span class="rec">REC</span></h1></div>
     <div class="tabs" id="tabs"></div>
+    <div class="nav-live">PUBLIC VIEW</div>
     <div class="nav-actions">
       <button class="btn hide-m" id="btn-refresh" type="button">↻ Actualizar</button>
       <button class="btn ghost hide-m" id="btn-settings" type="button">Ajustes</button>
@@ -549,12 +677,20 @@ body{background:
 
 <div class="wrap">
   <section class="command-banner" aria-label="Centro de control del creador">
-    <div>
-      <div class="command-eyebrow">CREATOR INTELLIGENCE / V.3</div>
-      <h2>Tu crecimiento.<br><em>Bajo control.</em></h2>
-      <p>Señales de viralidad, estadísticas y análisis de tus clips de TikTok e Instagram en un solo lugar.</p>
+    <div class="command-content">
+      <div class="command-eyebrow">NEXUS STUDIO / INTELLIGENCE 4.0</div>
+      <h2>Tus clips.<br><em>Tu próximo nivel.</em></h2>
+      <p>Tu centro de inteligencia para crecer en TikTok e Instagram. Seguimiento automático, señales de viralidad y todo tu rendimiento en una sola pantalla.</p>
+      <div class="command-pills">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m4 12 5 5L20 6"/></svg> TRACKING AUTOMÁTICO</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M16 7h5v5"/></svg> INSIGHTS EN VIVO</span>
+        <span class="command-public-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> SOLO LECTURA</span>
+      </div>
     </div>
-    <div class="command-right"><span class="command-tag">● AUTO SYNC ACTIVADO</span><a class="command-action" href="#estudio">Explorar Estudio Pro ↗</a></div>
+    <div class="command-right">
+      <div class="orbit-console" aria-hidden="true"><div class="orbit-ring"></div><div class="orbit-core"><strong>NX</strong><small>STUDIO / PRO</small></div><span class="orbit-data top">SYS // ONLINE</span><span class="orbit-data bottom">SIGNAL ACTIVE</span></div>
+      <div class="command-cta"><span class="command-tag">● AUTO SYNC ON</span><a class="command-action" href="#estudio">Abrir Estudio Pro ↗</a></div>
+    </div>
   </section>
   <div class="filters" id="filters">
     <div class="seg" id="period" role="group" aria-label="Periodo">

@@ -89,7 +89,9 @@ def obtener_directo(url, carpeta):
     destino = carpeta / ("source" + Path(urlparse(url).path).suffix.lower())
     actual = url
     sesion = requests.Session()
-    sesion.trust_env = False
+    # Permite el proxy HTTPS administrado por el entorno de GitHub Actions.
+    # Las URLs siguen restringidas por dominio, redirección e IP pública.
+    sesion.trust_env = True
     try:
         for salto in range(6):
             parts = urlparse(actual)
@@ -103,7 +105,8 @@ def obtener_directo(url, carpeta):
                     actual, allow_redirects=False, stream=True,
                     timeout=(20, 45), headers={"Accept": "video/*, application/octet-stream"}
                 )
-            except requests.RequestException:
+            except requests.RequestException as exc:
+                print(f"Direct HTTPS request error: {type(exc).__name__}", file=sys.stderr, flush=True)
                 raise RuntimeError("DIRECT_DOWNLOAD_FAILED") from None
             with respuesta:
                 if respuesta.status_code in (301, 302, 303, 307, 308):
@@ -113,6 +116,7 @@ def obtener_directo(url, carpeta):
                     actual = urljoin(actual, location)
                     continue
                 if respuesta.status_code != 200:
+                    print(f"Direct HTTPS status: {respuesta.status_code}", file=sys.stderr, flush=True)
                     raise RuntimeError("DIRECT_DOWNLOAD_FAILED")
                 tipo = respuesta.headers.get("Content-Type", "").split(";", 1)[0].lower()
                 if tipo and not (tipo.startswith("video/") or tipo in (

@@ -2,6 +2,11 @@
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Views, likes y seguidores de dailygtagaming en TikTok e Instagram, actualizados automáticamente.">
 <meta name="theme-color" content="#0b0d12">
+<meta name="application-name" content="Panel de Clips Studio Pro">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Clips Studio">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
 <script>
 window.PANEL_PUBLICO = true;
@@ -29,6 +34,7 @@ window.PANEL_PUBLICO = true;
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
 })();
 </script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>
 </head><body>
 <title>Panel de Clips</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -444,6 +450,21 @@ body{background:radial-gradient(ellipse 70% 36% at 7% -8%,color-mix(in srgb,var(
 .news-item span,.big .s,.big .lbl,.panel-head .sub,.kpi .hint,.week-item .s{color:var(--muted)}
 .panel h2,.panel .val,.panel .vv,.panel b,.kpi .val,.top-item,.week-item,.foll-row{color:var(--fg)}
 .hero .big .v{color:var(--fg)}
+.studio-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.studio-span{grid-column:1/-1}
+.studio-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.studio-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.studio-item:last-child{border-bottom:0}.studio-item strong{display:block;overflow-wrap:anywhere;font-size:13px}
+.studio-item small{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+.studio-number{font:700 19px var(--f-mono);color:var(--fg);white-space:nowrap;text-align:right}
+.studio-pill{display:inline-block;font-size:10px;border-radius:999px;padding:2px 8px;color:var(--money);background:color-mix(in srgb,var(--money) 13%,var(--surface));font-weight:700}
+.studio-progress{background:var(--surface-3);height:8px;border-radius:99px;overflow:hidden;margin:6px 0}
+.studio-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--p-tiktok),var(--accent));max-width:100%}
+.studio-metric{display:grid;grid-template-columns:1fr 1fr;gap:10px}.studio-metric>div{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface-2)}
+.studio-metric b{display:block;font:700 21px var(--f-mono);color:var(--fg)}
+.studio-note{font-size:12px;color:var(--muted);line-height:1.6}
+@media(max-width:760px){.studio-grid{grid-template-columns:1fr}.studio-span{grid-column:auto}}
+@media print{body{background:white!important;color:black!important}.nav,.bottom-nav,.filters,.studio-grid>.panel:not(:has(#studio-report)),.view-head,.studio-toolbar,.site-foot{display:none!important}.wrap{max-width:none!important}.view:not([data-view="estudio"]){display:none!important}.studio-grid{display:block!important}.studio-grid>.panel:has(#studio-report){display:block!important;background:white!important;color:black!important;border:none!important;box-shadow:none!important}.studio-note,#studio-report{color:black!important}}
 .smart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .smart-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
 .smart-row:last-child{border-bottom:0}.smart-row strong{display:block;font-size:13px;overflow-wrap:anywhere}
@@ -533,6 +554,23 @@ body{background:radial-gradient(ellipse 70% 36% at 7% -8%,color-mix(in srgb,var(
         <div class="panel-head"><h2>Seguidores</h2><span class="sub">cada 15 minutos</span></div>
         <div id="foll"></div>
       </section>
+    </div>
+  </section>
+
+  <!-- ESTUDIO DE CRECIMIENTO -->
+  <section class="view" data-view="estudio" hidden>
+    <div class="view-head"><div><h2>Estudio de crecimiento</h2><p>Tu centro de decisiones para crear mejores clips.</p></div></div>
+    <div class="studio-grid">
+      <section class="panel"><div class="panel-head"><h2>🧠 Puntuación inteligente</h2><span class="sub">0–100 · rendimiento relativo</span></div><div id="studio-scores"></div></section>
+      <section class="panel"><div class="panel-head"><h2>🔥 Radar de viralidad</h2><span class="sub">ritmo medido</span></div><div id="studio-radar"></div></section>
+      <section class="panel"><div class="panel-head"><h2>🏆 Ranking de clips</h2><select class="in compact" id="studio-rank-sort" aria-label="Ordenar ranking"><option value="views">Más views</option><option value="likes">Más likes</option><option value="eng">Interacción</option><option value="rate">Velocidad</option></select></div><div id="studio-ranking"></div></section>
+      <section class="panel"><div class="panel-head"><h2>🎯 Metas de seguidores</h2><span class="sub">objetivos de crecimiento</span></div><div id="studio-goals"></div></section>
+      <section class="panel"><div class="panel-head"><h2>⏰ Horarios destacados</h2><span class="sub">basado en tu historial</span></div><div id="studio-slots"></div></section>
+      <section class="panel"><div class="panel-head"><h2>💡 Ideas y hashtags</h2><button class="btn small" id="studio-idea-next" type="button">Otra idea</button></div><div id="studio-ideas"></div><button class="btn small" id="studio-idea-copy" type="button">Copiar idea</button></section>
+      <section class="panel studio-span"><div class="panel-head"><h2>📊 Comparador de clips</h2><span class="sub">dos publicaciones reales</span></div><div class="studio-toolbar"><select class="in compact" id="studio-compare-a" aria-label="Primer clip"></select><select class="in compact" id="studio-compare-b" aria-label="Segundo clip"></select></div><div id="studio-compare"></div></section>
+      <section class="panel"><div class="panel-head"><h2>🔔 Centro de notificaciones</h2><span class="sub">alertas dentro del panel</span></div><div id="studio-notifications"></div></section>
+      <section class="panel"><div class="panel-head"><h2>📄 Informe semanal</h2><span class="sub">datos exportables</span></div><div id="studio-report"></div><div class="studio-toolbar"><button class="btn primary" type="button" id="studio-export-csv">Descargar CSV</button><button class="btn" type="button" id="studio-export-print">Imprimir informe</button></div></section>
+      <section class="panel studio-span"><div class="panel-head"><h2>📱 Aplicación en tu celular</h2><span class="sub">instalable</span></div><p class="studio-note">Puedes añadir el panel a la pantalla de inicio desde tu navegador. En iPhone: Compartir → Añadir a pantalla de inicio. En Android/Chrome: menú → Instalar aplicación. Los datos se consultan en línea.</p></section>
     </div>
   </section>
 
@@ -791,6 +829,7 @@ const ICONS = {
   resumen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>',
   clips:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg>',
   analisis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  estudio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/></svg>',
   dinero:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"/></svg>',
   calendario:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
   kit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg>'
@@ -798,7 +837,7 @@ const ICONS = {
 // En el sitio público (GitHub Pages) se ocultan el dinero, las metas y el calendario.
 const PUBLIC = !!window.PANEL_PUBLICO;
 document.documentElement.classList.toggle("publico", PUBLIC);
-const VIEWS = [["resumen","Resumen"],["clips","Clips"],["analisis","Análisis"],["dinero","Dinero"],["calendario","Calendario"],["kit","Media kit"]].filter(v => !PUBLIC || !["dinero","calendario"].includes(v[0]));
+const VIEWS = [["resumen","Resumen"],["clips","Clips"],["analisis","Análisis"],["estudio","Estudio"],["dinero","Dinero"],["calendario","Calendario"],["kit","Media kit"]].filter(v => !PUBLIC || !["dinero","calendario"].includes(v[0]));
 const $ = s => document.querySelector(s);
 const state = { clips:[], pagos:[], hist:[], snaps:{}, serie:[], plan:[], period:"30", plat:"", acct:"", metric:"views", sort:{k:"fecha",dir:"desc"}, q:"",
   cfg:{moneda:"$", metaViews:0, metaGan:0, metaClips:0, metaSeg:0, cuentas:[]}, db:null, canWrite:true, loaded:false, editing:null, view:"resumen", base:{} };
@@ -980,6 +1019,7 @@ function render(){
     renderHero(); renderNews(); renderKpis(list, prev, r); renderSmart(list); renderWeek(); renderGoals(); renderChart(list, r); renderPlats(list, r); renderTop(list); renderFoll();
   } else if (v==="clips") renderTable(all);
   else if (v==="analisis"){ renderFollowerInsights(list); renderTopics(list); renderWhen(list); renderHeat(list); renderVs(list, r); renderDist(list); }
+  else if (v==="estudio") renderStudio(list);
   else if (v==="dinero") renderPagos();
   else if (v==="calendario") renderCal();
   else if (v==="kit") renderKit();
@@ -1260,6 +1300,93 @@ function renderFollowerInsights(list){
     return `<div class="week-item"><strong>${label}</strong><div class="smart-row"><span>Días con publicaciones (${posted.length})</span><span class="smart-val">${nf1.format(avg(posted))} <small>seg./día</small></span></div><div class="smart-row"><span>Días sin publicaciones (${rested.length})</span><span class="smart-val">${rested.length ? nf1.format(avg(rested)) : "—"}<small>seg./día</small></span></div><p class="smart-note">Mejor día observado: ${esc(best.date)} · ${best.count} clip(s) · ${best.gain>=0?"+":""}${nf.format(best.gain)} seguidores.</p></div>`;
   }).join("") + `</div><p class="smart-note">Esta comparación muestra coincidencias diarias, no cuántos seguidores aportó un clip concreto. Sin datos de atribución de TikTok e Instagram no es posible saberlo con exactitud.</p>`;
 }
+
+// Herramientas del Estudio. Los cálculos se hacen en el navegador con datos públicos.
+const studio = {sort:"views",idea:0,copyText:""};
+const studioEng = c => hasV(c.views) && num(c.views)>0 ? (num(c.likes)+num(c.comentarios)+num(c.compartidos)+num(c.guardados))/num(c.views)*100 : null;
+function studioScore(c){
+  const ratio=score(c), eng=studioEng(c), rate=smartRate(c);
+  if(ratio==null && eng==null) return null;
+  const performance=ratio==null?30:Math.min(55,Math.round(Math.log2(1+Math.max(0,ratio))*24));
+  const interaction=eng==null?0:Math.min(30,Math.round(Math.max(0,eng)*3));
+  const velocity=rate==null?0:Math.min(15,Math.round(rate/6));
+  return Math.min(100,performance+interaction+velocity);
+}
+function renderStudio(list){
+  const valid=list.filter(c=>hasV(c.views));
+  const ranked=valid.map(c=>({c,points:studioScore(c)})).filter(x=>x.points!=null).sort((a,b)=>b.points-a.points);
+  $("#studio-scores").innerHTML=ranked.length ? ranked.slice(0,5).map(({c,points})=>`<div class="studio-item"><div><strong>${titleHtml(c)}</strong><small>${esc((PMAP[c.plataforma]||PMAP.otro).n)} · ${nf.format(num(c.views))} views</small><div class="studio-progress"><i style="width:${points}%"></i></div></div><span class="studio-number">${points}/100</span></div>`).join("")+`<p class="studio-note">Puntuación orientativa basada en rendimiento frente a la mediana, interacciones y ritmo reciente. No es un puntaje oficial de las plataformas.</p>`:`<p class="studio-note">Se necesitan clips con views o interacciones medidas para calcular una puntuación.</p>`;
+  const rates=valid.map(c=>({c,r:smartRate(c)})).filter(x=>x.r!=null).sort((a,b)=>b.r-a.r);
+  const base=median(rates.filter(x=>x.r>0).map(x=>x.r));
+  $("#studio-radar").innerHTML=rates.length?rates.slice(0,6).map(({c,r})=>{
+    const label=r>=Math.max(5,base*1.5)?"En racha":r>0?"Creciendo":"Sin cambio";
+    return `<div class="studio-item"><div><strong>${titleHtml(c)}</strong><small>${label} · ${nf.format(num(c.views))} views</small></div><span class="studio-number">+${nf1.format(r)}/h</span></div>`;
+  }).join(""):`<p class="studio-note">El radar aparecerá tras dos o más mediciones recientes por publicación.</p>`;
+  const rankedBy=valid.slice().sort((a,b)=>{
+    const val=c=>studio.sort==="views"?num(c.views):studio.sort==="likes"?num(c.likes):studio.sort==="eng"?(studioEng(c)??-1):(smartRate(c)??-1);
+    return val(b)-val(a);
+  }).slice(0,10);
+  $("#studio-rank-sort").value=studio.sort;
+  $("#studio-ranking").innerHTML=rankedBy.length?rankedBy.map((c,i)=>`<div class="studio-item"><div><strong>${i+1}. ${titleHtml(c)}</strong><small>${esc((PMAP[c.plataforma]||PMAP.otro).n)}</small></div><span class="studio-number">${studio.sort==="eng"?(studioEng(c)==null?"—":nf1.format(studioEng(c))+"%"):studio.sort==="rate"?(smartRate(c)==null?"—":nf1.format(smartRate(c))+"/h"):nf.format(num(c[studio.sort]))}</span></div>`).join(""):`<p class="studio-note">Sin clips medidos todavía.</p>`;
+  const total=num(state.cfg.tiktokSeguidores)+num(state.cfg.igSeguidores);
+  const fg=follGrowth(range("30")), gain=Math.max(0,num(fg.tt)+num(fg.ig));
+  $("#studio-goals").innerHTML=[1000,10000,100000].map(target=>{
+    const remain=Math.max(0,target-total), progress=Math.min(100,total/target*100);
+    const months=gain>0?Math.ceil(remain/gain):null;
+    return `<div class="studio-item"><div style="width:100%"><strong>${nf.format(target)} seguidores</strong><div class="studio-progress"><i style="width:${progress}%"></i></div><small>${nf1.format(progress)}% conseguido · faltan ${nf.format(remain)}${remain===0?" · meta alcanzada":months!=null?` · ≈${months} meses al ritmo de los últimos 30 días`:" · sin ritmo suficiente"}</small></div></div>`;
+  }).join("")+`<p class="studio-note">Suma TikTok + Instagram. La estimación supone que se mantiene el crecimiento reciente, lo que puede cambiar.</p>`;
+  const tt=valid.filter(c=>c.plataforma==="tiktok"&&ttTime(c));
+  if(tt.length>=3){
+    const slots=whenStats(tt), best=slots.F4.filter(x=>x.n2>=2).sort((a,b)=>b.avg-a.avg)[0];
+    $("#studio-slots").innerHTML=best?`<div class="studio-metric"><div><small>Mejor franja observada · TikTok</small><b>${best.n}</b><small>${best.rango} · ${best.n2} clips</small></div><div><small>Views promedio</small><b>${nfc.format(best.avg)}</b><small>Muestra limitada</small></div></div><p class="studio-note">Instagram: sin horas de publicación verificadas. El resultado no controla por tema ni antigüedad del video.</p>`:`<p class="studio-note">Se requieren al menos dos videos en una misma franja para sugerir un horario.</p>`;
+  } else $("#studio-slots").innerHTML=`<p class="studio-note">Publica más clips en distintas horas para obtener comparaciones fiables. Actualmente hay ${tt.length} videos de TikTok en el periodo.</p>`;
+  renderStudioIdeas(list);
+  const selects=[$("#studio-compare-a"),$("#studio-compare-b")], items=valid.slice().sort((a,b)=>num(b.views)-num(a.views));
+  for (let i=0;i<2;i++){
+    const sel=selects[i], old=sel.value;
+    sel.innerHTML=items.map(c=>`<option value="${esc(c.id)}">${esc(c.titulo.slice(0,62))}</option>`).join("");
+    if(items.some(c=>c.id===old))sel.value=old; else if(items[i])sel.value=items[i].id;
+  }
+  renderStudioComparison(items);
+  const achieved=valid.flatMap(c=>(c.hitos||[]).filter(v=>v>=1000).map(v=>({c,v}))).sort((a,b)=>b.v-a.v).slice(0,5);
+  $("#studio-notifications").innerHTML=achieved.length?achieved.map(({c,v})=>`<div class="studio-item"><div><span class="studio-pill">Hito alcanzado</span><strong>${titleHtml(c)}</strong><small>Superó ${nf.format(v)} visualizaciones</small></div>🔔</div>`).join(""):`<p class="studio-note">Cuando un clip supere 1.000, 10.000 o 100.000 vistas aparecerá aquí, siempre que el recolector registre el hito.</p>`;
+  $("#studio-notifications").insertAdjacentHTML("beforeend",`<p class="studio-note">Las alertas son internas. No se envían push ni correos sin un servicio adicional.</p>`);
+  const last7=state.clips.filter(c=>!c.noDisponible&&inRange(c,range("7")));
+  const views=sum(last7,"views"), likes=sum(last7,"likes"), fg7=follGrowth(range("7"));
+  const week=(fg7.tt==null&&fg7.ig==null)?"—":(num(fg7.tt)+num(fg7.ig)>=0?"+":"")+nf.format(num(fg7.tt)+num(fg7.ig));
+  $("#studio-report").innerHTML=`<div class="studio-metric"><div><small>Clips de la última semana</small><b>${last7.length}</b></div><div><small>Views acumuladas de esos clips</small><b>${nfc.format(views)}</b></div><div><small>Likes acumulados</small><b>${nf.format(likes)}</b></div><div><small>Seguidores nuevos (aprox.)</small><b>${week}</b></div></div><p class="studio-note">Las vistas son totales de clips publicados en los últimos siete días, no necesariamente vistas ganadas durante esos días. Exporta el CSV para analizarlos.</p>`;
+}
+function renderStudioIdeas(list){
+  const topics=topicStats(list), theme=topics.find(x=>!x.common)?.label || "GTA 6";
+  const ideas=[
+    [`5 ${theme.toUpperCase()} DETAILS YOU PROBABLY MISSED! 👀`,`#GTA6 #GTAVI #RockstarGames #GTA6Español #Gaming`],
+    [`IS THIS THE BIGGEST ${theme.toUpperCase()} SECRET IN GTA 6? 🤯`,`#GTA6 #GTAVI #GTA6Secrets #ViceCity #Videojuegos`],
+    [`GTA 5 VS GTA 6: THE DIFFERENCE IS INSANE! 🔥`,`#GTA6 #GTA5 #GTAVI #RockstarGames #GamingLatino`],
+    [`WOULD YOU WANT THIS IN GTA 6? 👀`,`#GTA6 #GTAVI #GTA6Features #Gaming #ParaTi`]
+  ];
+  const [title,tags]=ideas[studio.idea%ideas.length];studio.copyText=title+"\n"+tags;
+  $("#studio-ideas").innerHTML=`<strong>${esc(title)}</strong><p class="studio-note" style="margin-top:8px">${esc(tags)}</p><p class="studio-note">Idea sugerida a partir de temas de tus títulos. Verifica cualquier afirmación antes de publicarla.</p>`;
+}
+function renderStudioComparison(items){
+  const a=items.find(x=>x.id===$("#studio-compare-a").value),b=items.find(x=>x.id===$("#studio-compare-b").value);
+  if(!a||!b){$("#studio-compare").innerHTML=`<p class="studio-note">Necesitas al menos dos clips con views.</p>`;return;}
+  const row=(label,get,fmt)=>`<tr><td>${label}</td><td>${fmt(get(a))}</td><td>${fmt(get(b))}</td></tr>`;
+  const n=v=>v==null?"—":nf.format(v), pct=v=>v==null?"—":nf1.format(v)+"%",rate=v=>v==null?"—":nf1.format(v)+"/h";
+  $("#studio-compare").innerHTML=`<div style="overflow:auto"><table class="vs" style="width:100%"><thead><tr><th style="text-align:left">Métrica</th><th>Clip A</th><th>Clip B</th></tr></thead><tbody>${row("Views",c=>num(c.views),n)}${row("Likes",c=>num(c.likes),n)}${row("Comentarios",c=>num(c.comentarios),n)}${row("Compartidos",c=>num(c.compartidos),n)}${row("Interacción",studioEng,pct)}${row("Crecimiento reciente",smartRate,rate)}${row("Puntuación",studioScore,n)}</tbody></table></div><p class="studio-note">Comparación de métricas observadas; los clips pueden tener diferentes fechas de publicación.</p>`;
+}
+function downloadStudioCsv(){
+  const c=state.clips.filter(x=>!x.noDisponible&&inRange(x,range("7")));
+  const fields=["fecha","plataforma","titulo","views","likes","comentarios","compartidos","guardados"];
+  const csv=[fields.join(","),...c.map(x=>fields.map(k=>'"'+String(x[k]??"").replace(/"/g,'""')+'"').join(","))].join("\r\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="informe-clips-semanal.csv";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+$("#studio-rank-sort").addEventListener("change",e=>{studio.sort=e.target.value;render();});
+for(const id of ["#studio-compare-a","#studio-compare-b"])$(id).addEventListener("change",()=>renderStudioComparison(state.clips.filter(c=>!c.noDisponible&&hasV(c.views))));
+$("#studio-idea-next").addEventListener("click",()=>{studio.idea++;renderStudioIdeas(state.clips);});
+$("#studio-idea-copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(studio.copyText);$("#studio-idea-copy").textContent="Copiado ✓";}catch(_){$("#studio-idea-copy").textContent="Selecciona el texto y cópialo";}});
+$("#studio-export-csv").addEventListener("click",downloadStudioCsv);
+$("#studio-export-print").addEventListener("click",()=>window.print());
 
 function renderTop(list){
   let rows = list.filter(c=>hasV(c.views)).sort((a,b)=>num(b.views)-num(a.views)).slice(0,5);

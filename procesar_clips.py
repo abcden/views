@@ -235,7 +235,8 @@ def elegir_momentos(duracion, longitud, levels, scenes, numero=5):
         cuts = sum(1 for s in scenes if start <= s < end)
         scene = min(1, cuts / max(1, longitud / 12))
         score = (.68 * loudness + .32 * scene) if levels else scene
-        candidatos.append({"start": round(start, 2), "end": round(end, 2), "score": round(score, 3), "audio": round(loudness, 3), "scene": round(scene, 3)})
+        # Evita que el redondeo exceda la duración real del archivo.
+        candidatos.append({"start": round(start, 2), "end": math.floor(end * 100) / 100, "score": round(score, 3), "audio": round(loudness, 3), "scene": round(scene, 3)})
     seleccion = []
     for c in sorted(candidatos, key=lambda x: (-x["score"], x["start"])):
         # No generar varios clips prácticamente iguales.

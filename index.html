@@ -5,7 +5,7 @@
 <meta name="application-name" content="Panel de Clips Studio Pro">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Clips Studio">
-<link rel="manifest" href="manifest.webmanifest?build=13">
+<link rel="manifest" href="manifest.webmanifest?build=14">
 <link rel="icon" type="image/svg+xml" href="icon.svg?logo=original-v6">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
 <script>
@@ -906,6 +906,11 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 .forge-embed h3{font-size:14px;margin:0 0 9px}.forge-embed p{color:var(--muted);font-size:12px;line-height:1.6;margin:10px 0}
 .forge-embed iframe{display:block;width:100%;max-width:780px;aspect-ratio:16/9;border:0;border-radius:10px;background:#090d19}
 .forge-embed.vertical iframe{max-width:370px;aspect-ratio:9/16}
+.forge-cloud{margin-top:18px;padding:20px;border:1px solid rgba(134,119,244,.42);border-radius:17px;background:radial-gradient(circle at 100% 0,rgba(145,90,245,.18),transparent 53%),var(--surface);box-shadow:inset 0 1px rgba(255,255,255,.035)}
+.forge-cloud h3{font-size:19px;margin:5px 0 7px;color:var(--fg)}.forge-cloud p{font-size:12px;color:var(--muted);line-height:1.7;margin:8px 0}.forge-cloud .cloud-eyebrow{font:800 10px var(--f-mono);letter-spacing:.17em;color:var(--pro-pink)}
+.forge-cloud-auth{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin:13px 0}.forge-cloud-auth label{flex:1;min-width:190px;display:grid;gap:6px;font-size:11px;color:var(--muted)}.forge-cloud-auth input{width:100%;min-width:0}.forge-cloud-result{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.forge-cloud-result article{padding:10px;border:1px solid var(--pro-border);border-radius:13px;background:var(--surface-2)}.forge-cloud-result article video{display:block;width:100%;aspect-ratio:9/16;max-height:290px;object-fit:contain;background:#080a14;border-radius:8px}.forge-cloud-result article h4{margin:9px 0 6px;font-size:12px}.forge-cloud-result article .forge-inline-action{margin:8px 0 0}
+.forge-cloud-info{padding:10px 11px;border-radius:9px;border:1px solid var(--pro-border);background:var(--surface-2);font-size:11px;line-height:1.55;color:var(--muted)}
 .forge-inline-action{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:12px 0}
 .forge-inline-action label{display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
 .forge-download-ready{margin-top:12px;padding:12px;border:1px solid rgba(95,214,164,.4);border-radius:12px;background:rgba(56,163,123,.1);display:grid;gap:8px}
@@ -918,7 +923,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 
 <nav class="nav" aria-label="Secciones">
   <div class="nav-in">
-    <div class="brand-stack"><img class="brand-logo" src="icon.svg?logo=original-v5" width="45" height="45" alt="Logo GTA VI"><span class="brand-overline">GTA VI / CREATOR STUDIO · V13</span><h1>Panel de Clips <span class="rec">REC</span></h1></div>
+    <div class="brand-stack"><img class="brand-logo" src="icon.svg?logo=original-v5" width="45" height="45" alt="Logo GTA VI"><span class="brand-overline">GTA VI / CREATOR STUDIO · V14</span><h1>Panel de Clips <span class="rec">REC</span></h1></div>
     <div class="tabs" id="tabs"></div>
     <div class="nav-live">PUBLIC VIEW</div>
     <div class="nav-actions">
@@ -1054,19 +1059,30 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
   <section class="view" data-view="editor" hidden>
     <div class="view-head"><div><h2>Editor de Video</h2><p>Crea clips de GTA VI directamente aquí, gratis y sin enviar tus videos a ningún servidor.</p></div></div>
     <div class="forge-hero">
-      <div><div class="v6-eyebrow">GTA VI / CLIP FORGE V13 / EDICIÓN EN TU NAVEGADOR</div><h2>Tu video. Tu mejor momento.</h2><p>Pega el enlace: la vista previa se abre automáticamente aquí mismo. Con un MP4 directo autorizado también puedes detectar momentos, recortar y descargar clips sin subir archivos.</p><div class="forge-steps" style="margin-top:15px"><span>01 · PEGA EL ENLACE</span><span>02 · REPRODUCE AQUÍ</span><span>03 · EDITA SI ES COMPATIBLE</span><span>04 · DESCARGA</span></div></div>
+      <div><div class="v6-eyebrow">GTA VI / CLIP FORGE V14 / CLOUD ENGINE</div><h2>Tu video. Tu mejor momento.</h2><p>Pega el enlace: puedes reproducirlo inmediatamente aquí o, como administrador, enviarlo al servidor gratuito para generar hasta cinco clips verticales sin descargar el original en tu móvil.</p><div class="forge-steps" style="margin-top:15px"><span>01 · PEGA EL ENLACE</span><span>02 · GENERA EN NUBE</span><span>03 · REVISA Y EDITA</span><span>04 · DESCARGA</span></div></div>
       <img class="forge-logo" src="icon.svg?logo=original-v5" width="88" height="88" alt="Logo GTA VI">
     </div>
     <section class="panel forge-link-panel" aria-label="Crear clips desde un enlace sin salir de la página" style="margin-top:16px">
       <div class="panel-head"><div><span class="v6-head-note">VIDEO LINK / INSTANT PREVIEW</span><h2>🔗 Pega un enlace y míralo aquí</h2></div><span class="sub">gratis · sin redirecciones</span></div>
       <p class="studio-note">YouTube, Shorts, TikTok, Instagram Reels, Vimeo, Twitch y Dailymotion: pega la URL para abrir su reproductor dentro de esta pestaña, sin descargar ni subir el video. Los enlaces directos a MP4 o WebM también permiten editar si el servidor autoriza el acceso (CORS).</p>
       <div class="forge-link-form"><label for="forge-url">Enlace de video<input class="in" id="forge-url" type="url" inputmode="url" placeholder="Pega aquí tu link de YouTube, TikTok, Reels o MP4" maxlength="500" autocomplete="off"></label><label for="forge-job-length">Duración de cada clip<select class="in" id="forge-job-length"><option value="15">15 segundos</option><option value="20">20 segundos</option><option value="30" selected>30 segundos</option><option value="45">45 segundos</option><option value="60">60 segundos</option></select></label></div>
-      <label class="forge-consent"><input id="forge-authorized" type="checkbox"> Confirmo que el video es mío o tengo permiso para crear clips. No necesitas marcar esto para ver una vista previa.</label>
+      <label class="forge-consent"><input id="forge-authorized" type="checkbox"> Confirmo que el video es mío o tengo permiso para crear clips. Si uso la nube, acepto que los MP4 resultantes serán públicos temporalmente (24–30 h). No necesitas marcar esto para verlo.</label>
       <div class="forge-inline-action"><button class="btn primary" id="forge-process" type="button">▶ Abrir enlace / importar MP4</button><label class="btn" for="forge-file">📁 Elegir video de mi dispositivo</label><button class="btn" id="forge-url-cancel" type="button" hidden>Cancelar carga</button></div>
       <div class="forge-progress" id="forge-url-progress" hidden><i id="forge-url-bar"></i></div>
       <p class="forge-status" id="forge-url-status" aria-live="polite">No necesitas abrir GitHub. Pega un enlace compatible o elige el MP4 de tu teléfono o computadora.</p>
       <div class="forge-embed" id="forge-remote-preview" hidden><h3 id="forge-remote-label">Vista previa integrada</h3><iframe id="forge-remote-frame" title="Reproductor de video público" loading="eager" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe><p>Puedes reproducirlo sin abandonar el panel. Algunas plataformas pueden impedir la reproducción integrada por privacidad o configuración del video. Para generar clips editados hace falta un archivo original compatible: un reproductor externo no permite extraerlo.</p><label class="btn primary" for="forge-file">✂️ Elegir original para editarlo</label></div>
-      <div class="forge-help"><b>Todo aquí:</b> al cargar un archivo o importar un enlace directo compatible, el editor detecta hasta cinco momentos, permite recortar y añadir texto, y deja el archivo preparado para descargar. Para enlaces de YouTube, TikTok y otras plataformas, la vista previa puede funcionar sin salir de esta página; la extracción automática desde esos reproductores requiere un servidor autorizado y no está disponible en GitHub Pages. No se solicita ningún token ni contraseña.</div>
+      <section class="forge-cloud" aria-label="Generador automático de clips en la nube">
+        <span class="cloud-eyebrow">CLOUD CLIP ENGINE / SOLO ADMINISTRADOR</span>
+        <h3>☁️ Genera 5 clips automáticamente desde el enlace</h3>
+        <p>Esta opción ejecuta el análisis en un servidor temporal de GitHub Actions, no en tu iPhone. Detecta cambios de escena y picos de audio, y crea MP4 verticales. No necesitas descargar ni subir el video original. Puede tardar varios minutos y algunas plataformas bloquean la extracción.</p>
+        <div class="forge-cloud-info">🔒 Tus amigos pueden ver el panel, pero solo la cuenta <b>abcden</b> puede iniciar trabajos. Para activarlo, se requiere una configuración única de GitHub y un token de permisos limitados a Actions. Nunca introduzcas ese token en ChatGPT: pégalo únicamente en este campo, donde se mantiene solo en memoria hasta cerrar o recargar la página.</div>
+        <p class="forge-cloud-info"><b>Activación única:</b> en <a href="https://github.com/abcden/views/settings" target="_blank" rel="noopener noreferrer">Settings del repositorio</a>, cambia <b>Default branch</b> a <code>studio-pro</code> (la página y los datos seguirán en sus ramas actuales). Después, <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">crea un token fine-grained</a> con acceso únicamente a <code>abcden/views</code> y permiso <b>Actions: Read and write</b>. El token nunca se guarda en esta página ni debe enviarse por chat.</p>
+        <div class="forge-cloud-auth"><label for="forge-cloud-token">Acceso temporal del administrador<input class="in" id="forge-cloud-token" type="password" autocomplete="off" spellcheck="false" placeholder="Token de GitHub (solo Actions: escritura)"></label><button class="btn" id="forge-cloud-connect" type="button">🔐 Conectar administrador</button><button class="btn" id="forge-cloud-disconnect" type="button" hidden>Desconectar</button></div>
+        <div class="forge-inline-action"><button class="btn primary" id="forge-cloud-start" type="button" disabled>⚡ Crear 5 clips online sin subir video</button><button class="btn" id="forge-cloud-check" type="button" hidden>↻ Revisar resultado</button></div>
+        <p id="forge-cloud-status" class="forge-status" aria-live="polite">Conecta al administrador para iniciar el procesamiento automático en la nube.</p>
+        <div class="forge-cloud-result" id="forge-cloud-results"></div>
+      </section>
+      <div class="forge-help"><b>Dos formas de editar:</b> un MP4 directo compatible se analiza en este navegador. Un enlace público de YouTube u otra plataforma admitida puede procesarse con la opción de nube una vez configurado GitHub Actions. En la nube los recortes son públicos durante 24–30 horas: no envíes videos privados. Se requiere autorización del propietario y revisar los resultados antes de publicarlos.</div>
     </section>
     <div class="forge-grid">
       <section class="panel forge-preview-panel" aria-label="Vista previa del video">
@@ -2690,6 +2706,7 @@ showView();
 })();
 })();
 </script>
-<script src="editor.js?build=13" defer></script>
+<script src="editor.js?build=14" defer></script>
+<script src="cloud.js?build=14" defer></script>
 
 </body></html>

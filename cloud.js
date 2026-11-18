@@ -1,4 +1,4 @@
-/* Cloud Clip Engine V14. Credenciales solo en memoria; nunca en el repositorio. */
+/* Cloud Clip Engine V15. Recuerdo opcional cifrado en el dispositivo; nunca en el repositorio. */
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
@@ -6,9 +6,12 @@
 
   const API = 'https://api.github.com/repos/abcden/views';
   const STATUS_KEY = 'clip-forge-last-job-v14';
+  const REMEMBER_KEY = 'clip-forge-admin-encrypted-v1';
+  const DEVICE_DB = 'clip-forge-device-v1';
+  const REMEMBER_MS = 7 * 24 * 60 * 60 * 1000;
   const ALLOWED = ['youtube.com','youtu.be','twitch.tv','clips.twitch.tv','kick.com','tiktok.com','instagram.com','vimeo.com','dailymotion.com'];
   const MAX_WAIT_MS = 42 * 60 * 1000;
-  let token = '', job = '', polling = null, working = false, jobStartedAt = 0;
+  let token = '', job = '', polling = null, working = false, jobStartedAt = 0, authRevision = 0;
 
   const status = (message, kind='') => {
     $('forge-cloud-status').textContent = message;
@@ -48,26 +51,137 @@
   }
   function clearPolling(){if(polling){clearInterval(polling);polling=null;}}
 
+
+  // La clave AES no es exportable. Cifrado y clave residen únicamente en este origen/dispositivo.
+  // No protege frente a JavaScript malicioso que se ejecute con acceso a este mismo origen.
+  function deviceDB(){
+    return new Promise((resolve,reject)=>{
+      if(!window.indexedDB || !crypto.subtle) return reject(new Error('Almacenamiento cifrado no disponible'));
+      const req=indexedDB.open(DEVICE_DB,1);
+      req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('keys')) req.result.createObjectStore('keys');};
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error);
+    });
+  }
+  async function storedKey(create=false){
+    const db=await deviceDB();
+    try{
+      let key=await new Promise((resolve,reject)=>{
+        const req=db.transaction('keys','readonly').objectStore('keys').get('device');
+        req.onsuccess=()=>resolve(req.result);
+        req.onerror=()=>reject(req.error);
+      });
+      if(!key && create){
+        key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+        await new Promise((resolve,reject)=>{
+          const tx=db.transaction('keys','readwrite');
+          tx.objectStore('keys').put(key,'device');
+          tx.oncomplete=resolve;
+          tx.onerror=()=>reject(tx.error);
+        });
+      }
+      return key;
+    }finally{db.close();}
+  }
+  async function forgetSaved(){
+    localStorage.removeItem(REMEMBER_KEY);
+    try{
+      const db=await deviceDB();
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction('keys','readwrite');
+        tx.objectStore('keys').delete('device');
+        tx.oncomplete=resolve;
+        tx.onerror=()=>reject(tx.error);
+      });
+      db.close();
+    }catch(_){/* El dato cifrado ya fue eliminado. */}
+  }
+  async function saveToken(value){
+    const key=await storedKey(true);
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(value));
+    localStorage.setItem(REMEMBER_KEY,JSON.stringify({
+      v:1,until:Date.now()+REMEMBER_MS,iv:Array.from(iv),cipher:Array.from(new Uint8Array(cipher))
+    }));
+  }
+  async function restoreToken(){
+    const raw=localStorage.getItem(REMEMBER_KEY);
+    if(!raw)return null;
+    const saved=JSON.parse(raw);
+    if(saved.v!==1 || !Number.isFinite(saved.until) || Date.now()>saved.until ||
+       !Array.isArray(saved.iv) || saved.iv.length!==12 || !Array.isArray(saved.cipher))
+      throw new Error('Guardado inválido o caducado');
+    const key=await storedKey(false);
+    if(!key)throw new Error('No existe la clave local');
+    const clear=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(saved.iv)},
+      key,new Uint8Array(saved.cipher));
+    return new TextDecoder().decode(clear);
+  }
+  async function verifyAdmin(value){
+    const r=await fetch('https://api.github.com/user',{
+      cache:'no-store',credentials:'omit',
+      headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+value}
+    });
+    if(!r.ok)throw new Error('GitHub rechazó el token. Comprueba su caducidad y permisos.');
+    const who=await r.json();
+    if(who.login!=='abcden')throw new Error('Esta cuenta no es el administrador autorizado (abcden).');
+  }
+
   $('forge-cloud-connect').addEventListener('click',async()=>{
+    authRevision++;
     const value=$('forge-cloud-token').value.trim();
     if(!value){status('Introduce un token de GitHub limitado al repositorio abcden/views con Actions: escritura.','error');return;}
     $('forge-cloud-connect').disabled=true;
     status('Verificando que seas el administrador de GitHub…');
     try{
-      const r=await fetch('https://api.github.com/user',{cache:'no-store',credentials:'omit',headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+value}});
-      if(!r.ok)throw new Error('GitHub rechazó el token. Comprueba su caducidad y permisos.');
-      const who=await r.json();
-      if(who.login!=='abcden')throw new Error('Esta cuenta no es el administrador autorizado (abcden).');
+      await verifyAdmin(value);
       token=value;
       $('forge-cloud-token').value='';
       setConnected(true);
+      if($('forge-cloud-remember').checked){
+        try{await saveToken(token);}
+        catch(_){$('forge-cloud-remember').checked=false;status('Conectado, pero este navegador no permite recordar la clave.','error');return;}
+      }
       status('✓ Administrador conectado. Marca la autorización y pulsa «Crear 5 clips online».','success');
     }catch(e){token='';status(e.message,'error');}
     finally{$('forge-cloud-token').value='';$('forge-cloud-connect').disabled=false;}
   });
-  $('forge-cloud-disconnect').addEventListener('click',()=>{
-    token='';setConnected(false);status('Sesión desconectada. No se conserva ningún token en el dispositivo.');
+  $('forge-cloud-remember').addEventListener('change',async()=>{
+    if($('forge-cloud-remember').checked){
+      if(!token)return;
+      try{await saveToken(token);status('✓ Guardado cifrado en este dispositivo por 7 días.','success');}
+      catch(_){$('forge-cloud-remember').checked=false;status('El navegador no permite guardar la sesión cifrada.','error');}
+    }else{
+      await forgetSaved();
+      status(token?'✓ Sesión guardada eliminada. Sigues conectado hasta salir.':'Guardado desactivado.');
+    }
   });
+  $('forge-cloud-disconnect').addEventListener('click',async()=>{
+    authRevision++;
+    token='';$('forge-cloud-remember').checked=false;
+    await forgetSaved();setConnected(false);
+    status('Sesión desconectada. El token guardado se eliminó de este dispositivo.');
+  });
+  (async()=>{
+    if(!localStorage.getItem(REMEMBER_KEY))return;
+    const revision=authRevision;
+    status('Restaurando tu acceso cifrado de este dispositivo…');
+    try{
+      const saved=await restoreToken();
+      if(!saved)return;
+      await verifyAdmin(saved);
+      if(revision!==authRevision)return;
+      token=saved;
+      $('forge-cloud-remember').checked=true;
+      setConnected(true);
+      status('✓ Administrador conectado automáticamente en este dispositivo.','success');
+    }catch(_){
+      if(revision!==authRevision)return;
+      await forgetSaved();
+      token='';$('forge-cloud-remember').checked=false;setConnected(false);
+      status('La sesión guardada caducó o ya no es válida. Conecta otra vez con un token actualizado.');
+    }
+  })();
 
   function showResults(release){
     const code = (release.body || '').match(/CLIP_FORGE_ERROR:([A-Z_]+)/)?.[1];

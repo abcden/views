@@ -1,0 +1,13 @@
+{
+  "name": "Panel de Clips Studio Pro — dailygtagaming",
+  "short_name": "Clips Studio",
+  "description": "Estadísticas de clips de TikTok e Instagram",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090e19",
+  "theme_color": "#090e19",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

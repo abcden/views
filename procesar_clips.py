@@ -252,6 +252,82 @@ def elegir_momentos(duracion, longitud, levels, scenes, numero=5):
     return seleccion or [{"start": 0, "end": duracion, "score": 0, "audio": 0, "scene": 0}]
 
 
+
+def tiempo_srt(segundos):
+    milis = max(0, round(segundos * 1000))
+    horas, milis = divmod(milis, 3600000)
+    minutos, milis = divmod(milis, 60000)
+    secs, milis = divmod(milis, 1000)
+    return f"{horas:02}:{minutos:02}:{secs:02},{milis:03}"
+
+
+def crear_subtitulos(archivo, momentos, salida):
+    """Transcripción automática local y orientativa; el SRT permanece editable."""
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError:
+        print("Subtítulos opcionales: faster-whisper no está instalado.", flush=True)
+        return []
+    try:
+        model = WhisperModel("tiny", device="cpu", compute_type="int8", num_workers=2)
+    except Exception as exc:
+        print(f"No se pudo iniciar Whisper: {type(exc).__name__}", flush=True)
+        return []
+    archivos = []
+    for i, momento in enumerate(momentos, 1):
+        audio_temporal = salida / f"audio_temporal_{i:02}.wav"
+        salida_srt = salida / f"clip_{i:02}.srt"
+        try:
+            ejecutar([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
+                "-ss", str(momento["start"]), "-i", str(archivo),
+                "-t", str(momento["end"] - momento["start"]),
+                "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le",
+                str(audio_temporal)
+            ], timeout=120)
+            partes, _info = model.transcribe(
+                str(audio_temporal), beam_size=1, word_timestamps=True,
+                vad_filter=True, condition_on_previous_text=False
+            )
+            palabras = []
+            for parte in partes:
+                for w in parte.words or []:
+                    texto = str(w.word).strip()
+                    if texto and w.start is not None and w.end is not None and w.end > w.start:
+                        palabras.append((float(w.start), float(w.end), texto))
+            frases = []
+            grupo = []
+            for palabra in palabras:
+                if grupo and (len(grupo) >= 7 or palabra[0] - grupo[-1][1] > .7
+                             or palabra[1] - grupo[0][0] > 3.6):
+                    frases.append(grupo)
+                    grupo = []
+                grupo.append(palabra)
+                if palabra[2].endswith((".", "?", "!", "¿", "¡")):
+                    frases.append(grupo)
+                    grupo = []
+            if grupo:
+                frases.append(grupo)
+            if not frases:
+                continue
+            texto_srt = []
+            for n, frase in enumerate(frases, 1):
+                inicio = max(0, frase[0][0])
+                fin = min(momento["end"] - momento["start"], frase[-1][1])
+                if fin <= inicio:
+                    continue
+                texto = " ".join(x[2] for x in frase)
+                texto_srt.append(f"{n}\n{tiempo_srt(inicio)} --> {tiempo_srt(fin)}\n{texto}\n")
+            if texto_srt:
+                salida_srt.write_text("\n".join(texto_srt), encoding="utf-8")
+                archivos.append(salida_srt.name)
+        except (OSError, subprocess.SubprocessError, Exception) as exc:
+            print(f"Subtítulos del clip {i}: fallo opcional {type(exc).__name__}", flush=True)
+        finally:
+            audio_temporal.unlink(missing_ok=True)
+    return archivos
+
+
 def exportar(archivo, momentos, salida):
     salida.mkdir(parents=True, exist_ok=True)
     for i, c in enumerate(momentos, 1):
@@ -291,15 +367,16 @@ def main():
     scenes = analizar_escenas(archivo, duracion)
     momentos = elegir_momentos(duracion, a.duracion, levels, scenes, numero=MAX_CLIPS)
     exportar(archivo, momentos, salida)
+    subtitulos = crear_subtitulos(archivo, momentos, salida)
     (salida / "recortes.json").write_text(json.dumps({
         "fuente": url, "duracion_original": duracion, "metodo": "picos_de_audio_y_cambios_visuales",
         "aviso": "Selección automática orientativa. Revisa cada clip antes de publicarlo.",
-        "clips": momentos,
+        "clips": momentos, "subtitulos_srt": subtitulos,
     }, ensure_ascii=False, indent=2), encoding="utf8")
     (salida / "LEEME.txt").write_text(
         "GTA VI CLIP FORGE — Clips automáticos gratuitos\n\n"
         "1. Extrae los archivos MP4 de este ZIP.\n"
-        "2. Abre https://abcden.github.io/views/#editor\n"
+        "2. Abre https://clip-forge-studio-paul.sarmientopaul714.chatgpt.site\n"
         "3. Selecciona cualquier MP4 para recortarlo, añadir texto y descargarlo.\n"
         "La selección usa audio y cambios de escena, NO inteligencia semántica.\n"
         "El archivo original no se almacena en el repositorio.\n",

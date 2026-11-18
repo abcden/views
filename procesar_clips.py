@@ -48,6 +48,7 @@ def obtener_archivo(url, carpeta):
     plantilla = str(carpeta / "source.%(ext)s")
     ejecutar([
         sys.executable, "-m", "yt_dlp", "--no-playlist",
+        "--js-runtimes", "node",
         "--no-progress", "--restrict-filenames", "--max-filesize", "750M",
         "--match-filter", "duration <= 1800 & !is_live",
         "--format", "bv*[height<=1080]+ba/b[height<=1080]/b",

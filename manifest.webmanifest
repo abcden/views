@@ -2,7 +2,7 @@
   "name": "Panel de Clips Studio Pro — dailygtagaming",
   "short_name": "Clips Studio",
   "description": "Estadísticas de clips de TikTok e Instagram",
-  "start_url": "./?source=pwa&version=11",
+  "start_url": "./?source=pwa&version=12",
   "scope": "./",
   "display": "standalone",
   "background_color": "#090e19",

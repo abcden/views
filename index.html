@@ -766,6 +766,12 @@ body{background:radial-gradient(ellipse 55% 31% at 8% -2%,rgba(149,91,238,.17),t
 .panel-head .sub{font-size:11px;color:var(--muted);letter-spacing:.015em}
 .view-head h2{font-size:clamp(27px,3.2vw,36px);letter-spacing:-.06em}.view-head p{font-size:13px;color:var(--muted)}
 .studio-grid{gap:16px}.studio-item{padding:14px 0}.studio-item strong{font-size:13px;line-height:1.5}.studio-number{font-family:var(--f-display);letter-spacing:-.03em;color:var(--fg)}
+.studio-grid{grid-template-areas:"score radar" "ranking goals" "ranking slots" "ranking ideas" "compare compare" "notify report" "pwa pwa"}
+.studio-grid>.panel:nth-child(1){grid-area:score}.studio-grid>.panel:nth-child(2){grid-area:radar}
+.studio-grid>.panel:nth-child(3){grid-area:ranking}.studio-grid>.panel:nth-child(4){grid-area:goals}
+.studio-grid>.panel:nth-child(5){grid-area:slots}.studio-grid>.panel:nth-child(6){grid-area:ideas}
+.studio-grid>.panel:nth-child(7){grid-area:compare}.studio-grid>.panel:nth-child(8){grid-area:notify}
+.studio-grid>.panel:nth-child(9){grid-area:report}.studio-grid>.panel:nth-child(10){grid-area:pwa}
 .studio-progress{height:8px;background:var(--surface-3)}.studio-progress i{background:linear-gradient(90deg,#bc7df4,#f475b7)}
 .studio-metric>div{background:color-mix(in srgb,var(--surface) 60%,transparent);border-color:var(--pro-border);padding:14px;border-radius:12px}
 .smart-row{padding:14px 0;gap:12px}.smart-row strong{font-size:13px}.smart-val{font-family:var(--f-display);font-size:18px}
@@ -790,6 +796,9 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 :root[data-theme="light"] .intel-item .index{color:#7b409e}
 :root[data-theme="light"] .intel-item a{color:#ad317e}
 :root[data-theme="light"] .shell-button{background:#fff}
+:root[data-theme="light"] .brand-overline{color:#85338b}
+:root[data-theme="light"] .command-eyebrow{color:#9d3b81}
+:root[data-theme="light"] .command-banner h2 em{background:linear-gradient(100deg,#a92f84,#7135bd);color:transparent;background-clip:text;-webkit-background-clip:text}
 @media(max-width:1050px){.nav-in{gap:12px}.tab{padding:9px 10px}.command-banner{grid-template-columns:minmax(0,1fr) 240px}.orbit-console{transform:scale(.8)}.network-card{padding:15px}}
 @media(max-width:760px){
   .wrap{gap:13px;padding-top:13px}.shell-intro{gap:11px}.shell-path{font-size:8px;letter-spacing:.1em}.shell-path .shell-slash,.shell-path>span:nth-child(4){display:none}
@@ -800,7 +809,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
   .filters{padding:10px}.filters>.row{width:100%;display:grid;grid-template-columns:1fr 1fr auto;gap:6px}.filters>.row select{width:100%;min-width:0;font-size:11px;padding:9px 5px}.seg button{padding:8px 9px}
   .hero{padding:17px 16px}.hero-grid .big{padding:13px 0}.hero-grid .big:first-child{padding:8px 0 13px}.hero-grid .big:not(:last-child){border-right:0;border-bottom:1px solid var(--pro-border)}
   .hero .big .v{font-size:clamp(40px,10vw,57px)}.kpi{padding:16px 14px;min-height:112px}.kpi .val{font-size:26px}
-  .intel-grid{grid-template-columns:1fr;gap:8px}.intel-item{padding:15px}.panel{padding:17px}.panel-head h2{font-size:16px}.studio-grid{gap:12px}
+  .intel-grid{grid-template-columns:1fr;gap:8px}.intel-item{padding:15px}.panel{padding:17px}.panel-head h2{font-size:16px}.studio-grid{gap:12px;grid-template-areas:none}.studio-grid>.panel{grid-area:auto!important}
   .publico .bottom-nav{grid-template-columns:repeat(5,1fr)!important}.bottom-nav a{font-size:10px}
 }
 @media(max-width:390px){.shell-button{font-size:10px}.seg button{padding:7px 6px;font-size:10px}.network-bottom strong{font-size:19px}.intel-item strong{font-size:16px}}
@@ -1402,7 +1411,7 @@ function renderLiveStatus(){
     const age=Number.isFinite(ms)?Math.max(0,(Date.now()-ms)/60000):Infinity;
     const health=age<=35?"ok":age<=90?"late":"missing";
     const status=health==="ok"?"Datos recientes":health==="late"?"Con retraso":"Sin medición reciente";
-    const last=Number.isFinite(ms)?`Medido ${ago(p.stamp)}`:"Esperando primera medición";
+    const last=Number.isFinite(ms)?`Medido ${ago(p.stamp)}`:p.value!=null?"Fecha no verificada":"Esperando primera medición";
     return { ...p, health, status, last };
   });
   $("#network-status").innerHTML=results.map(p=>`<div class="network-card ${p.key}"><div class="network-top"><b>${esc(p.label)}</b><span class="network-status-indicator ${p.health!=="ok"?"warning":""}">${esc(p.status)}</span></div><div class="network-bottom"><strong>${p.value==null?"—":nf.format(num(p.value))} <small>seguidores</small></strong><small>${esc(p.last)}</small></div></div>`).join("")+
@@ -1745,11 +1754,13 @@ function renderStudio(list){
   $("#studio-ranking").innerHTML=rankedBy.length?rankedBy.map((c,i)=>`<div class="studio-item"><div><strong>${i+1}. ${titleHtml(c)}</strong><small>${esc((PMAP[c.plataforma]||PMAP.otro).n)}</small></div><span class="studio-number">${studio.sort==="eng"?(studioEng(c)==null?"—":nf1.format(studioEng(c))+"%"):studio.sort==="rate"?(smartRate(c)==null?"—":nf1.format(smartRate(c))+"/h"):nf.format(num(c[studio.sort]))}</span></div>`).join(""):`<p class="studio-note">Sin clips medidos todavía.</p>`;
   const total=num(state.cfg.tiktokSeguidores)+num(state.cfg.igSeguidores);
   const fg=follGrowth(range("30")), gain=Math.max(0,num(fg.tt)+num(fg.ig));
+  const daysObserved=new Set(state.hist.map(h=>h.fecha).filter(Boolean)).size;
+  const monthlyPace=daysObserved>=7?gain/Math.max(1,daysObserved-1)*30:0;
   $("#studio-goals").innerHTML=[1000,10000,100000].map(target=>{
     const remain=Math.max(0,target-total), progress=Math.min(100,total/target*100);
-    const months=gain>0?Math.ceil(remain/gain):null;
-    return `<div class="studio-item"><div style="width:100%"><strong>${nf.format(target)} seguidores</strong><div class="studio-progress"><i style="width:${progress}%"></i></div><small>${nf1.format(progress)}% conseguido · faltan ${nf.format(remain)}${remain===0?" · meta alcanzada":months!=null?` · ≈${months} meses al ritmo de los últimos 30 días`:" · sin ritmo suficiente"}</small></div></div>`;
-  }).join("")+`<p class="studio-note">Suma TikTok + Instagram. La estimación supone que se mantiene el crecimiento reciente, lo que puede cambiar.</p>`;
+    const months=monthlyPace>0?Math.ceil(remain/monthlyPace):null;
+    return `<div class="studio-item"><div style="width:100%"><strong>${nf.format(target)} seguidores</strong><div class="studio-progress"><i style="width:${progress}%"></i></div><small>${nf1.format(progress)}% conseguido · faltan ${nf.format(remain)}${remain===0?" · meta alcanzada":daysObserved<7?" · esperando 7 días de historial":months!=null?` · ≈${months} meses si se mantiene el ritmo reciente`:" · sin ritmo suficiente"}</small></div></div>`;
+  }).join("")+`<p class="studio-note">Suma TikTok + Instagram. Las estimaciones aparecen tras al menos siete días con historial y no garantizan resultados.</p>`;
   const tt=valid.filter(c=>c.plataforma==="tiktok"&&ttTime(c));
   if(tt.length>=3){
     const slots=whenStats(tt), best=slots.F4.filter(x=>x.n2>=2).sort((a,b)=>b.avg-a.avg)[0];
@@ -2118,8 +2129,10 @@ $("#filters-reset").addEventListener("click",()=>{
   render();
 });
 function focusClipSearch(){
-  if(state.view!=="clips") location.hash="#clips";
-  requestAnimationFrame(()=>$("#search").focus());
+  if(state.view!=="clips"){
+    addEventListener("hashchange",()=>$("#search").focus(),{once:true});
+    location.hash="#clips";
+  } else $("#search").focus();
 }
 $("#quick-find").addEventListener("click",focusClipSearch);
 document.addEventListener("keydown",e=>{

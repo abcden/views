@@ -1,4 +1,4 @@
-/* Cloud Clip Engine V17. Recuerdo opcional cifrado en el dispositivo; nunca en el repositorio. */
+/* Cloud Clip Engine V18. Recuerdo opcional cifrado en el dispositivo; nunca en el repositorio. */
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
@@ -12,7 +12,7 @@
   const ALLOWED = ['youtube.com','youtu.be','twitch.tv','clips.twitch.tv','kick.com','tiktok.com','instagram.com','vimeo.com','dailymotion.com'];
   const DIRECT = ['archive.org','upload.wikimedia.org','github.com','storage.googleapis.com','r2.dev'];
   const MAX_WAIT_MS = 42 * 60 * 1000;
-  let token = '', job = '', polling = null, working = false, jobStartedAt = 0, authRevision = 0;
+  let token = '', job = '', polling = null, working = false, jobStartedAt = 0, authRevision = 0, failureSeenAt = 0;
 
   const status = (message, kind='') => {
     $('forge-cloud-status').textContent = message;
@@ -195,6 +195,7 @@
         SOURCE_UNAVAILABLE: 'El video no está disponible para el procesador (privado, restringido o enlace incompatible). Prueba otro enlace público y autorizado.',
         DOWNLOAD_FAILED: 'La plataforma no permitió descargar este video. Puedes probar otro enlace autorizado compatible.',
         FFMPEG_MISSING: 'El servidor no encontró FFmpeg; avisa al administrador para revisar la instalación.',
+        TOOLS_INSTALL_FAILED: 'La instalación de FFmpeg o del procesador tardó demasiado o falló. No se procesó ningún video. Puedes iniciar un trabajo nuevo más tarde.',
         PROCESSING_FAILED: 'El servidor no pudo procesar el video. Revisa la ejecución de GitHub Actions para más detalles.',
         DIRECT_LINK_INVALID: 'El enlace directo no devolvió un MP4/WebM público válido o el servidor lo rechazó por seguridad. Comprueba la URL y el dominio permitido.',
         DIRECT_DOWNLOAD_FAILED: 'El servidor no pudo descargar el archivo directo. Comprueba que sea público y accesible sin iniciar sesión.',
@@ -205,7 +206,7 @@
     }
     const box=$('forge-cloud-results');box.replaceChildren();
     const files=(release.assets||[]).filter(a=>/^clip_\d{2}_vertical\.mp4$/.test(a.name||'') && /^https:\/\/github\.com\//.test(a.browser_download_url||''));
-    if(!files.length){status('El trabajo terminó, pero aún no hay MP4 en la publicación. Vuelve a revisar en un momento.');return;}
+    if(!files.length){status('✕ Este trabajo terminó sin archivos MP4. Revisa el diagnóstico del servidor o prueba otro video público compatible.','error');clearPolling();working=false;setConnected(!!token);return;}
     for(const [i,asset] of files.entries()){
       const card=document.createElement('article');
       const video=document.createElement('video');
@@ -235,26 +236,62 @@
     working=false;setConnected(!!token);
   }
 
+  function nombreEtapa(nombre,segundos=0){
+    const n=(nombre||'').toLowerCase();
+    if(n.includes('instalar ffmpeg')){
+      return segundos>240
+        ? '⏳ Preparando FFmpeg y herramientas. La instalación tarda más de lo habitual; el servidor tiene un límite de 6 minutos para este paso.'
+        : '⏳ Preparando FFmpeg y herramientas del servidor (todavía no se analiza el video)…';
+    }
+    if(n.includes('preparar python') || n.includes('preparar javascript') || n.includes('obtener el generador'))
+      return '⏳ Preparando el servidor para procesar el video…';
+    if(n.includes('detectar momentos'))return '🎬 Analizando audio y escenas, seleccionando momentos y exportando los MP4…';
+    if(n.includes('publicar clips'))return '📦 Subiendo los clips generados para verlos en tu panel…';
+    if(n.includes('publicar diagnóstico'))return '⚠️ El servidor detectó un problema. Preparando una explicación dentro del panel…';
+    if(n.includes('respaldo temporal'))return '✅ Clips exportados. Preparando copia temporal…';
+    return nombre ? ('⏳ Etapa del servidor: '+nombre+'…') : '⏳ Esperando que GitHub asigne el servidor…';
+  }
+
   async function checkResult(){
     if(!job)return;
     $('forge-cloud-check').disabled=true;
     try{
-      const release=await request(`/releases/tags/clip-${job}`);
+      const release=await request('/releases/tags/clip-'+job);
       showResults(release);
     }catch(e){
       if(e.code!==404){status('No se pudo comprobar el resultado: '+e.message,'error');return;}
       if(jobStartedAt && Date.now()-jobStartedAt>MAX_WAIT_MS){
-        status('El trabajo no terminó en 42 minutos. Revisa si GitHub Actions informó de una restricción del enlace.','error');
+        status('✕ El servidor no terminó dentro del tiempo máximo. Puedes iniciar otro trabajo si el enlace sigue siendo compatible.','error');
         clearPolling();working=false;setConnected(!!token);return;
       }
       try{
-        const data=await request('/actions/workflows/crear-clips.yml/runs?event=workflow_dispatch&per_page=30');
+        const data=await request('/actions/workflows/crear-clips.yml/runs?event=workflow_dispatch&per_page=40');
         const run=(data.workflow_runs||[]).find(x=>(x.display_title||'').includes(job));
-        if(run?.status==='completed'&&run.conclusion!=='success'){
-          status('✕ El procesamiento falló. Pulsa «Revisar resultado» en unos segundos para ver el diagnóstico específico; si aún no aparece, consulta la ejecución en GitHub Actions.','error');
-          clearPolling();working=false;setConnected(!!token);
-        }else status(run?.status==='in_progress'?'⏳ Analizando video, seleccionando escenas y exportando MP4 en la nube…': '⏳ Trabajo enviado. Esperando que GitHub inicie el procesamiento…');
-      }catch(_){status('⏳ Esperando clips. Se revisará el resultado automáticamente.');}
+        if(!run){status('⏳ Esperando que aparezca el trabajo en GitHub Actions…');return;}
+        if(run.status==='completed'){
+          if(run.conclusion!=='success'){
+            if(!failureSeenAt)failureSeenAt=Date.now();
+            status('⚠️ El servidor terminó con un error. Buscando el diagnóstico detallado para mostrarlo aquí…','error');
+            if(Date.now()-failureSeenAt>100000){
+              status('✕ El trabajo falló y no se publicó un diagnóstico. Inténtalo con otro enlace público compatible.','error');
+              clearPolling();working=false;setConnected(!!token);
+            }
+          }else status('✅ Procesamiento completo. Esperando que GitHub publique los archivos MP4…');
+          return;
+        }
+        if(run.status!=='in_progress'){
+          status('⏳ Trabajo en cola. Aún no ha empezado la instalación ni el análisis del video…');
+          return;
+        }
+        try{
+          const jobs=await request('/actions/runs/'+run.id+'/jobs?per_page=30');
+          const crear=(jobs.jobs||[]).find(x=>x.name==='crear');
+          const paso=(crear?.steps||[]).find(x=>x.status==='in_progress');
+          const inicio=paso?.started_at?Date.parse(paso.started_at):0;
+          const elapsed=inicio?Math.max(0,Math.floor((Date.now()-inicio)/1000)):0;
+          status(nombreEtapa(paso?.name,elapsed));
+        }catch(_){status('⏳ GitHub está ejecutando el trabajo. Volveré a consultar su etapa…');}
+      }catch(_){status('⏳ Esperando respuesta de GitHub. Se revisará el resultado automáticamente.');}
     }finally{$('forge-cloud-check').disabled=false;}
   }
 
@@ -273,18 +310,19 @@
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ref:'studio-pro',inputs:{job_key:id,video_url:url,clip_seconds:$('forge-job-length').value,authorized_public:'true'}})
       });
-      job=id;jobStartedAt=Date.now();
+      job=id;jobStartedAt=Date.now();failureSeenAt=0;
       try{localStorage.setItem(STATUS_KEY,JSON.stringify({id:job,started:jobStartedAt}));}catch(_){}
       $('forge-cloud-check').hidden=false;
       status('✓ Enlace enviado a la nube. El servidor descargará el original autorizado y creará los clips; no uses el almacenamiento del iPhone.','success');
-      clearPolling();polling=setInterval(checkResult,45000);
-      setTimeout(checkResult,12000);
+      clearPolling();polling=setInterval(checkResult,20000);
+      setTimeout(checkResult,8000);
     }catch(e){
       status('No se pudo iniciar: '+e.message,'error');
       working=false;setConnected(!!token);
     }
   });
   $('forge-cloud-check').addEventListener('click',checkResult);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden && job && working)checkResult();});
   try{
     const last=JSON.parse(localStorage.getItem(STATUS_KEY)||'null');
     if(/^[a-f0-9]{32}$/.test(last?.id||'')&&Date.now()-last.started<32*60*60*1000){

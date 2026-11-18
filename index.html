@@ -41,7 +41,7 @@ window.PANEL_PUBLICO = true;
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
 })();
 </script>
-<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?version=8').catch(()=>{}));</script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?version=9').catch(()=>{}));</script>
 </head><body>
 <title>Panel de Clips | GTA VI Studio Pro</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -859,6 +859,32 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 :root[data-theme="light"] .v6-hero{background:linear-gradient(115deg,#f9e9fb,#eae7ff);border-color:#dfbce5}:root[data-theme="light"] .v6-hero h3{color:#201b36}:root[data-theme="light"] .v6-hero p{color:#4b4b65}:root[data-theme="light"] .v6-hero .v6-eyebrow{color:#a33282}:root[data-theme="light"] .v6-hero .v6-badge{color:#943175;border-color:#dfbce5}
 @media(max-width:760px){.v6-grid{grid-template-columns:1fr;gap:11px}.v6-wide{grid-column:auto}.v6-hero{padding:20px}.v6-hero .v6-badge{display:none}.v6-health{gap:7px 11px}.v6-health a{width:100%;margin-left:0}.v6-activity{grid-template-columns:1fr}.v6-ab{grid-template-columns:1fr}.v6-result b{font-size:22px}}
 @media print{body>*:not(#v6-print-sheet){display:none!important}#v6-print-sheet{display:block!important;background:#fff!important;color:#17152a!important;padding:0 9mm;font-family:Arial,sans-serif;font-size:11pt}#v6-print-sheet *{color:inherit!important;box-shadow:none!important}#v6-print-sheet h1{font-size:26pt;margin:0 0 8px}#v6-print-sheet h2{font-size:15pt;margin:24px 0 10px}#v6-print-sheet .v6-pdf-header{display:flex;align-items:center;gap:15px;border-bottom:3px solid #e85bad;padding:0 0 20px}#v6-print-sheet .v6-pdf-header img{height:70px;width:70px;border-radius:50%}#v6-print-sheet table{width:100%;border-collapse:collapse}#v6-print-sheet td,#v6-print-sheet th{padding:10px 6px;text-align:left;border-bottom:1px solid #ddd}#v6-print-sheet .v6-pdf-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}#v6-print-sheet .v6-pdf-summary b{display:block;font-size:22pt}#v6-print-sheet p{line-height:1.5;color:#4b4562!important}}
+
+/* CLIP FORGE — editor local gratuito, integrado con el estudio de GTA VI. */
+.forge-hero{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:26px 30px;border:1px solid rgba(238,123,208,.36);border-radius:19px;background:radial-gradient(circle at 95% 30%,rgba(225,80,174,.21),transparent 48%),linear-gradient(110deg,#211936,#151a30 72%);box-shadow:var(--pro-shadow);color:#fff}
+.forge-hero h2{font-size:clamp(29px,3vw,43px);letter-spacing:-.06em;margin:8px 0}.forge-hero p{font-size:12px;color:#d1cbdf;max-width:670px;line-height:1.65}
+.forge-logo{height:88px;width:88px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,136,206,.65);box-shadow:0 0 40px rgba(255,84,195,.24)}
+.forge-grid{display:grid;grid-template-columns:minmax(290px,.8fr) minmax(0,1.2fr);gap:16px;margin-top:18px;align-items:start}
+.forge-preview-panel,.forge-controls{min-width:0}.forge-preview-shell{position:relative;margin:15px auto 10px;max-width:310px;width:100%;aspect-ratio:9/16;border:2px solid rgba(238,130,219,.48);border-radius:21px;background:radial-gradient(circle at 45% 15%,#413064,#0a0b19 65%);box-shadow:0 16px 48px rgba(0,0,0,.27),0 0 26px rgba(235,87,195,.12);overflow:hidden;display:grid;place-items:center}
+.forge-preview-shell canvas{width:100%;height:100%;object-fit:contain;display:block}
+.forge-empty{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:14px;padding:32px;background:radial-gradient(circle at 50% 40%,rgba(111,75,190,.22),transparent 55%);font-size:12px;color:#c9c5e6}
+.forge-empty img{width:98px;height:98px;margin:auto;border-radius:50%;box-shadow:0 0 30px rgba(238,73,204,.25)}.forge-empty strong{font:800 21px var(--f-display);color:white}
+.forge-upload{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.forge-file-name{font-size:11px;color:var(--muted);overflow-wrap:anywhere;line-height:1.5}
+.forge-play-row{display:flex;align-items:center;gap:9px;margin:12px 0 7px}.forge-play-row input{flex:1;min-width:0;accent-color:var(--pro-pink)}.forge-time{font:700 11px var(--f-mono);white-space:nowrap;color:var(--muted)}
+.forge-controls .panel-head{margin-bottom:9px}.forge-section{padding:14px 0;border-bottom:1px solid var(--pro-border)}.forge-section:last-child{border:0;padding-bottom:0}.forge-section h3{font-size:15px;margin-bottom:9px;color:var(--fg);letter-spacing:-.02em}.forge-section p{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+.forge-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.forge-form label{display:grid;gap:5px;min-width:0;font-weight:700;font-size:11px;color:var(--muted)}.forge-form label.wide{grid-column:1/-1}.forge-form input,.forge-form select{width:100%;min-width:0}
+.forge-inline{display:flex;gap:6px;align-items:center}.forge-inline input{min-width:0;flex:1}.forge-inline .btn{padding:9px;font-size:10px}
+.forge-pan{accent-color:var(--pro-pink)}.forge-help{border-radius:11px;background:color-mix(in srgb,var(--pro-violet) 9%,var(--surface));border:1px solid var(--pro-border);padding:10px 12px;color:var(--muted);font-size:11px;line-height:1.6}
+.forge-moments{display:grid;gap:8px}.forge-moment{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:12px 13px;background:color-mix(in srgb,var(--surface-2) 51%,transparent);border:1px solid var(--pro-border);border-radius:11px}.forge-moment b{display:block;font-size:12px}.forge-moment small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.forge-moment .btn{font-size:11px;padding:8px 10px}
+.forge-progress{width:100%;height:7px;border-radius:99px;overflow:hidden;background:var(--surface-3);margin-top:10px}.forge-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#a985f6,#ff6fb6);transition:width .18s}
+.forge-export{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.forge-export .btn.primary{padding:12px 20px}.forge-export .btn[disabled]{opacity:.5;cursor:not-allowed}
+.forge-status{margin-top:12px;min-height:22px;font-size:12px;color:var(--muted);line-height:1.5}.forge-status[data-kind="error"]{color:var(--rec)}.forge-status[data-kind="success"]{color:var(--money)}
+.forge-privacy{margin-top:11px;font-size:11px;color:var(--muted);line-height:1.7;border-top:1px solid var(--pro-border);padding-top:10px}
+.forge-link-form{display:grid;grid-template-columns:minmax(0,2fr) minmax(160px,1fr);gap:11px;margin:15px 0 11px}.forge-link-form label{font-size:11px;font-weight:700;color:var(--muted);display:grid;gap:6px}.forge-link-form input,.forge-link-form select{width:100%;min-width:0}.forge-consent{display:flex;align-items:flex-start;gap:10px;font-size:11px;line-height:1.6;color:var(--muted);cursor:pointer}.forge-consent input{accent-color:var(--pro-pink);margin-top:3px}.forge-link-panel .forge-help{margin-top:14px}.forge-link-panel a.btn{text-decoration:none;display:inline-flex;align-items:center}
+.forge-steps{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.forge-steps span{border-radius:8px;padding:6px 9px;background:rgba(192,135,233,.12);border:1px solid rgba(215,148,236,.22);font-size:10px;color:#f1d9ff;font-weight:700}
+:root[data-theme="light"] .forge-hero{background:linear-gradient(115deg,#f8e8f8,#eeeaff);border-color:#d6badf}:root[data-theme="light"] .forge-hero h2{color:#2c2440}:root[data-theme="light"] .forge-hero p{color:#5b536b}:root[data-theme="light"] .forge-steps span{color:#78388d;background:#f5e2f5}
+@media(max-width:930px){.forge-grid{grid-template-columns:1fr}.forge-preview-shell{max-width:270px}.forge-preview-panel{display:block}}
+@media(max-width:760px){.publico .bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}.bottom-nav a{font-size:9px!important;padding-inline:3px}.forge-hero{padding:22px 17px}.forge-hero h2{font-size:29px}.forge-logo{width:64px;height:64px}.forge-form,.forge-link-form{grid-template-columns:1fr}.forge-form label.wide{grid-column:auto}}
 </style>
 
 <nav class="nav" aria-label="Secciones">
@@ -992,6 +1018,59 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
       <section class="panel"><div class="panel-head"><h2>🔔 Centro de notificaciones</h2><span class="sub">alertas dentro del panel</span></div><div id="studio-notifications"></div></section>
       <section class="panel"><div class="panel-head"><h2>📄 Informe de marca</h2><span class="sub">PDF con el logo de GTA VI</span></div><div id="studio-report"></div><div class="studio-toolbar"><button class="btn primary" type="button" id="studio-export-csv">Descargar CSV</button><button class="btn" type="button" id="studio-export-print">Guardar informe en PDF</button></div><p class="studio-note">Se abrirá la impresión del navegador: elige «Guardar como PDF». No se envían datos a ningún servicio.</p></section>
       <section class="panel studio-span"><div class="panel-head"><h2>📱 Aplicación en tu celular</h2><span class="sub">instalable</span></div><p class="studio-note">Puedes añadir el panel a la pantalla de inicio desde tu navegador. En iPhone: Compartir → Añadir a pantalla de inicio. En Android/Chrome: menú → Instalar aplicación. Los datos se consultan en línea.</p></section>
+    </div>
+  </section>
+
+  <!-- EDITOR DE VIDEO — el archivo original nunca se sube ni modifica las estadísticas -->
+  <section class="view" data-view="editor" hidden>
+    <div class="view-head"><div><h2>Editor de Video</h2><p>Crea clips de GTA VI directamente aquí, gratis y sin enviar tus videos a ningún servidor.</p></div></div>
+    <div class="forge-hero">
+      <div><div class="v6-eyebrow">GTA VI / CLIP FORGE / ENLACES + EDICIÓN GRATUITA</div><h2>Tu video. Tu mejor momento.</h2><p>Pega un enlace de un video público autorizado, genera recortes con GitHub Actions y continúa editándolos aquí. También puedes trabajar con un archivo de tu dispositivo.</p><div class="forge-steps" style="margin-top:15px"><span>01 · PEGA ENLACE</span><span>02 · GENERA EN GITHUB</span><span>03 · EDITA</span><span>04 · DESCARGA</span></div></div>
+      <img class="forge-logo" src="icon.svg?logo=original-v5" width="88" height="88" alt="Logo GTA VI">
+    </div>
+    <section class="panel forge-link-panel" aria-label="Crear clips automáticos desde un enlace" style="margin-top:16px">
+      <div class="panel-head"><div><span class="v6-head-note">AUTOMATIC HIGHLIGHTS / GITHUB ACTIONS</span><h2>🔗 Crear clips desde YouTube y otros enlaces</h2></div><span class="sub">gratis · solo administrador GitHub</span></div>
+      <p class="studio-note">Compatible según disponibilidad de cada plataforma: YouTube, Twitch, Kick, TikTok, Instagram, Vimeo y Dailymotion. Solo videos públicos propios o con permiso; no se sortean accesos privados ni protecciones.</p>
+      <div class="forge-link-form"><label for="forge-url">Enlace del video<input class="in" id="forge-url" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." maxlength="500" autocomplete="off"></label><label for="forge-job-length">Duración de cada clip<select class="in" id="forge-job-length"><option value="15">15 segundos</option><option value="20">20 segundos</option><option value="30" selected>30 segundos</option><option value="45">45 segundos</option><option value="60">60 segundos</option></select></label></div>
+      <label class="forge-consent"><input id="forge-authorized" type="checkbox"> Confirmo que el video es público, tengo derecho a reutilizarlo y entiendo que los clips de este repositorio público pueden verse por terceros durante un día.</label>
+      <div class="forge-export" style="margin-top:12px"><button class="btn primary" id="forge-github" type="button">⚡ Preparar generación en GitHub</button><a class="btn" href="https://github.com/abcden/views/actions/workflows/crear-clips.yml" target="_blank" rel="noopener noreferrer">Ver trabajos y descargar ZIP ↗</a></div>
+      <p class="forge-status" id="forge-url-status" aria-live="polite">El botón copiará el enlace y abrirá el formulario seguro de GitHub. Solo tú, con permiso de escritura, podrás iniciar el trabajo.</p>
+      <div class="forge-help"><b>Cómo funciona:</b> 1. Pega la URL y confirma el permiso. 2. Pulsa «Preparar generación». 3. En GitHub selecciona <b>Run workflow</b>, pega la URL en <b>video_url</b>, elige duración y marca la confirmación. 4. Al finalizar, descarga el ZIP de la ejecución (Artifacts). 5. Abre un MP4 aquí abajo para seguir editándolo. La ejecución tarda varios minutos y algunos enlaces pueden fallar por restricciones de la plataforma.</div>
+    </section>
+    <div class="forge-grid">
+      <section class="panel forge-preview-panel" aria-label="Vista previa del video">
+        <div class="panel-head"><h2>◉ Vista previa del clip</h2><span class="sub" id="forge-size">9:16 · vertical</span></div>
+        <div class="forge-upload"><label class="btn primary" for="forge-file">+ Elegir video</label><input id="forge-file" type="file" accept="video/*,.mp4,.mov,.webm" hidden><span class="forge-file-name" id="forge-file-name">Ningún video seleccionado</span></div>
+        <video id="forge-video" playsinline preload="metadata" hidden></video>
+        <div class="forge-preview-shell" id="forge-frame"><canvas id="forge-canvas" width="540" height="960" aria-label="Vista previa de tu clip en formato vertical"></canvas><div class="forge-empty" id="forge-empty"><img src="icon.svg?logo=original-v5" alt=""><strong>CLIP FORGE</strong><span>Selecciona un video de tu teléfono o computadora para empezar.</span></div></div>
+        <div class="forge-play-row"><button id="forge-play" class="btn" type="button" disabled>▶ Reproducir</button><input id="forge-seek" type="range" min="0" max="1" step="0.05" value="0" aria-label="Moverse por el video" disabled><span class="forge-time" id="forge-clock">00:00 / 00:00</span></div>
+        <div class="forge-help">🎬 El editor de abajo funciona localmente: el MP4 que selecciones no se envía a GitHub. Los videos procesados por GitHub Actions sí quedan temporalmente como artefactos del repositorio público.</div>
+      </section>
+      <section class="panel forge-controls" aria-label="Herramientas del editor">
+        <div class="panel-head"><h2>✂️ Herramientas de edición</h2><span class="sub">sin suscripción</span></div>
+        <div class="forge-section"><h3>⚡ Radar gratuito de mejores momentos</h3><p>Busca cambios de escena y movimiento en tu video para proponer cortes. También intenta detectar picos de sonido en archivos compatibles y pequeños. No utiliza una IA de pago.</p>
+          <div class="forge-export"><button class="btn primary" id="forge-analyze" type="button" disabled>✦ Detectar momentos</button><span class="v6-head-note" id="forge-scan-label">Esperando video</span></div>
+          <div class="forge-progress" id="forge-scan-progress" hidden><i id="forge-scan-bar"></i></div>
+          <div class="forge-moments" id="forge-moments" style="margin-top:12px"><p class="studio-note">Aquí aparecerán hasta 5 momentos sugeridos. Puedes usar cualquiera y ajustar sus límites.</p></div>
+        </div>
+        <div class="forge-section"><h3>✂️ Recorta el fragmento</h3>
+          <div class="forge-form"><label>Inicio (segundos)<span class="forge-inline"><input class="in" id="forge-start" type="number" min="0" max="0" step="0.1" value="0" disabled><button class="btn" id="forge-set-start" type="button" disabled title="Usar la posición actual del video">Marcar</button></span></label><label>Final (segundos)<span class="forge-inline"><input class="in" id="forge-end" type="number" min="0" max="0" step="0.1" value="0" disabled><button class="btn" id="forge-set-end" type="button" disabled title="Usar la posición actual del video">Marcar</button></span></label></div>
+          <p id="forge-length" style="margin-top:9px">Duración del clip: —</p>
+        </div>
+        <div class="forge-section"><h3>📱 Formato y encuadre</h3>
+          <div class="forge-form"><label>Formato del video<select id="forge-ratio" class="in"><option value="9:16">Vertical 9:16 · TikTok / Reels / Shorts</option><option value="1:1">Cuadrado 1:1</option><option value="16:9">Horizontal 16:9 · YouTube</option></select></label><label>Encuadre<select id="forge-fit" class="in"><option value="cover">Rellenar · recortar bordes</option><option value="contain">Completo · fondo desenfocado</option></select></label><label class="wide">Mover el encuadre<input id="forge-pan" class="forge-pan" type="range" min="0" max="100" step="1" value="50" aria-label="Centrar horizontalmente la imagen"></label></div>
+        </div>
+        <div class="forge-section"><h3>💬 Texto y marca del clip</h3>
+          <div class="forge-form"><label class="wide">Título sobre el video<input id="forge-caption" class="in" maxlength="110" placeholder="Ej: ¡ESTO CAMBIARÁ GTA 6!" autocomplete="off"></label><label>Posición del título<select id="forge-caption-position" class="in"><option value="top">Arriba</option><option value="center">Centro</option><option value="bottom">Abajo</option></select></label><label>Tamaño de letra<select id="forge-caption-size" class="in"><option value="36">Normal</option><option value="48">Grande</option><option value="58">Muy grande</option></select></label></div>
+          <label style="display:flex;align-items:center;gap:9px;font-size:12px;margin-top:12px"><input id="forge-watermark" type="checkbox"> Mostrar la marca GTA VI en el clip</label>
+        </div>
+        <div class="forge-section"><h3>⬇️ Exportar clip</h3><p>Se grabará el fragmento seleccionado en tiempo real con los cambios que ves. Mantén esta pestaña abierta mientras se exporta.</p>
+          <div class="forge-export"><button class="btn primary" id="forge-export" type="button" disabled>⬇ Descargar clip editado</button><button class="btn" id="forge-cancel" type="button" hidden>Cancelar</button><span class="v6-head-note" id="forge-format">MP4 si tu navegador lo permite</span></div>
+          <div class="forge-progress" id="forge-export-progress" hidden><i id="forge-export-bar"></i></div>
+          <p class="forge-status" id="forge-status" aria-live="polite">Selecciona un video para empezar.</p>
+          <p class="forge-privacy">🔒 Tu archivo permanece local. Los recortes no se publican automáticamente en TikTok o Instagram y no cambian los datos del panel. La descarga será MP4 cuando el navegador admita grabación MP4; si no, WebM.</p>
+        </div>
+      </section>
     </div>
   </section>
 
@@ -1253,6 +1332,7 @@ const ICONS = {
   clips:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg>',
   analisis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   estudio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/></svg>',
+  editor:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m10 9 5 3-5 3zM4 2v4M20 18v4"/></svg>',
   dinero:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"/></svg>',
   calendario:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
   kit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg>'
@@ -1260,7 +1340,7 @@ const ICONS = {
 // En el sitio público (GitHub Pages) se ocultan el dinero, las metas y el calendario.
 const PUBLIC = !!window.PANEL_PUBLICO;
 document.documentElement.classList.toggle("publico", PUBLIC);
-const VIEWS = [["resumen","Resumen"],["clips","Clips"],["analisis","Análisis"],["estudio","Estudio"],["dinero","Dinero"],["calendario","Calendario"],["kit","Media kit"]].filter(v => !PUBLIC || !["dinero","calendario"].includes(v[0]));
+const VIEWS = [["resumen","Resumen"],["clips","Clips"],["analisis","Análisis"],["estudio","Estudio"],["editor","Editor de Video"],["dinero","Dinero"],["calendario","Calendario"],["kit","Media kit"]].filter(v => !PUBLIC || !["dinero","calendario"].includes(v[0]));
 const $ = s => document.querySelector(s);
 const state = { clips:[], pagos:[], hist:[], snaps:{}, serie:[], plan:[], period:"30", plat:"", acct:"", metric:"views", sort:{k:"fecha",dir:"desc"}, q:"",
   cfg:{moneda:"$", metaViews:0, metaGan:0, metaClips:0, metaSeg:0, cuentas:[]}, db:null, canWrite:true, loaded:false, editing:null, view:"resumen", base:{} };
@@ -1291,7 +1371,7 @@ for (const p of PLATS){
   for (const sel of ["#plat-filter","#f-plataforma","#s-new-plat","#p-plataforma","#pl-plataforma"]) $(sel).insertAdjacentHTML("beforeend",`<option value="${p.k}">${p.n}</option>`);
 }
 $("#tabs").innerHTML = VIEWS.map(([k,n])=>`<a class="tab" href="#${k}" data-tab="${k}">${ICONS[k]}${n}</a>`).join("");
-$("#bottom-nav").innerHTML = VIEWS.map(([k,n])=>`<a href="#${k}" data-tab="${k}">${ICONS[k]}<span>${n==="Media kit"?"Kit":n}</span></a>`).join("");
+$("#bottom-nav").innerHTML = VIEWS.map(([k,n])=>`<a href="#${k}" data-tab="${k}">${ICONS[k]}<span>${n==="Media kit"?"Kit":n==="Editor de Video"?"Editor":n}</span></a>`).join("");
 
 // ---------- Utilidades de datos ----------
 function parseLink(url){
@@ -2572,5 +2652,6 @@ showView();
 })();
 })();
 </script>
+<script src="editor.js" defer></script>
 
 </body></html>

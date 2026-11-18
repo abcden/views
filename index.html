@@ -6,19 +6,25 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Clips Studio">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/svg+xml" href="icon.svg?logo=original-v5">
+<link rel="icon" type="image/svg+xml" href="icon.svg?logo=original-v6">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
 <script>
 window.PANEL_PUBLICO = true;
 (function(){
   var D = null, subs = [], firma = "";
+  var estado = window.PANEL_FETCH_STATUS = {lastSuccessAt:null,lastAttemptAt:null,lastChangedAt:null,failedCount:0};
+  function avisar(){ document.dispatchEvent(new Event("panel-sync-state")); }
   function cargar(){
-    fetch("datos.json?t=" + Date.now(), {cache:"no-store"}).then(function(r){ return r.ok ? r.text() : null; }).then(function(txt){
-      if (!txt || txt === firma) return;
+    estado.lastAttemptAt = Date.now();
+    fetch("datos.json?t=" + Date.now(), {cache:"no-store"}).then(function(r){ if(!r.ok)throw new Error("Respuesta " + r.status); return r.text(); }).then(function(txt){
+      if(!txt)throw new Error("Archivo vacío");
+      if (txt === firma) { estado.lastSuccessAt=Date.now(); estado.failedCount=0; avisar(); return; }
       var nuevo = JSON.parse(txt);
       firma = txt; D = nuevo;
+      estado.lastSuccessAt=Date.now(); estado.lastChangedAt=Date.now(); estado.failedCount=0;
       subs.slice().forEach(function(f){ f(); });
-    }).catch(function(){});
+      avisar();
+    }).catch(function(e){ estado.failedCount++; estado.lastError=String(e.message||"Error de consulta").slice(0,80); avisar(); });
   }
   function col(p){ if (!D) return []; return p === "clips" ? (D.clips||[]) : p === "historial" ? (D.historial||[]) : p === "snaps" ? (D.snaps||[]) : []; }
   function doc(p){ if (!D) return undefined; return p === "config/ajustes" ? D.config : p === "serie/seguidores" ? D.serie : undefined; }
@@ -35,7 +41,7 @@ window.PANEL_PUBLICO = true;
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) cargar(); });
 })();
 </script>
-<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?version=7').catch(()=>{}));</script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?version=8').catch(()=>{}));</script>
 </head><body>
 <title>Panel de Clips | GTA VI Studio Pro</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -814,6 +820,45 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 }
 @media(max-width:390px){.shell-button{font-size:10px}.seg button{padding:7px 6px;font-size:10px}.network-bottom strong{font-size:19px}.intel-item strong{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.shell-button{transition:none}}
+/* V6 Pro — panel de decisiones, contraste accesible y señales verificables. */
+.v6-health{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 17px;border:1px solid var(--pro-border);border-radius:13px;background:var(--pro-panel);color:var(--fg);font-size:11px}
+.v6-health strong{color:var(--fg);font-size:12px}.v6-health .v6-divider{height:17px;width:1px;background:var(--pro-border)}
+.v6-health .v6-status{display:inline-flex;align-items:center;gap:6px;font-weight:700}.v6-health .v6-status::before{content:"";width:7px;height:7px;background:var(--money);border-radius:100%;box-shadow:0 0 10px var(--money)}
+.v6-health .v6-status.warn::before{background:var(--warn);box-shadow:0 0 10px var(--warn)}
+.v6-health .v6-meta{color:var(--muted)}.v6-health a{margin-left:auto;font-weight:700;color:var(--pro-pink);text-decoration:none}
+.v6-hero{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid rgba(235,114,193,.37);border-radius:19px;padding:24px 28px;overflow:hidden;background:radial-gradient(ellipse at 100% 0%,rgba(208,90,205,.22),transparent 52%),linear-gradient(110deg,#251d3a,#15172b 64%,#1c1930);box-shadow:var(--pro-shadow);position:relative}
+.v6-hero::after{content:"";position:absolute;right:26px;top:-36px;width:150px;height:150px;border-radius:50%;background:url('icon.svg?logo=original-v5') center/cover;opacity:.16;pointer-events:none}
+.v6-eyebrow{color:#ffb3dc;font:700 10px var(--f-mono);letter-spacing:.18em;text-transform:uppercase}
+.v6-hero h3{margin:7px 0;color:white;font:800 clamp(24px,2.7vw,34px)/1.15 var(--f-display);letter-spacing:-.06em}
+.v6-hero p{margin:0;color:#d8d1e9;font-size:12px;line-height:1.6;max-width:650px}.v6-hero .v6-badge{background:rgba(255,122,209,.12);border:1px solid rgba(255,162,217,.35);color:#ffacd9;border-radius:999px;padding:7px 12px;font:700 11px var(--f-mono);white-space:nowrap;z-index:1}
+.v6-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:16px 0 20px}
+.v6-grid .panel{min-width:0}.v6-wide{grid-column:1/-1}.v6-head-note{font:700 9px var(--f-mono);letter-spacing:.14em;color:var(--pro-violet);text-transform:uppercase}
+.v6-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:11px 0}.v6-controls select{flex:1;min-width:135px;max-width:100%}
+.v6-toggle{display:flex;align-items:center;gap:4px;border:1px solid var(--pro-border);background:var(--surface);border-radius:10px;padding:3px}
+.v6-toggle button{border:0;background:transparent;color:var(--muted);cursor:pointer;font:700 11px var(--f-body);padding:7px 11px;border-radius:7px}
+.v6-toggle button[aria-pressed="true"]{background:var(--pro-raised);color:var(--fg);box-shadow:0 0 0 1px var(--pro-border)}
+.v6-chart{min-height:240px;display:grid;align-content:center;background:linear-gradient(180deg,rgba(155,110,236,.055),transparent);border:1px solid var(--pro-border);border-radius:12px;padding:12px 8px 4px}
+.v6-chart svg{display:block;width:100%;height:auto;min-height:200px;max-height:280px;overflow:visible}.v6-chart svg text{fill:var(--muted);font:10px var(--f-mono)}.v6-chart svg circle{cursor:crosshair;outline-offset:4px}.v6-chart svg circle:focus{outline:2px solid var(--pro-pink)}
+.v6-chart-detail{font-size:11px;color:var(--muted);min-height:22px;margin-top:8px}
+.v6-detect{display:grid;gap:9px;margin-top:12px}.v6-detect-item{display:grid;grid-template-columns:54px minmax(0,1fr);gap:12px;align-items:center;padding:12px;border:1px solid var(--pro-border);border-radius:12px;background:color-mix(in srgb,var(--surface-2) 40%,transparent)}
+.v6-ring{width:50px;height:50px;display:grid;place-items:center;border-radius:50%;background:conic-gradient(var(--pro-pink) var(--p),var(--surface-3) var(--p));position:relative;color:var(--fg);font:800 15px var(--f-display)}
+.v6-ring::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--surface)}.v6-ring span{z-index:1}
+.v6-detect-item strong{font-size:12px;display:block;line-height:1.45}.v6-detect-item small{color:var(--muted);display:block;margin-top:4px;font-size:11px;line-height:1.5}
+.v6-flag{display:inline-flex;align-items:center;border-radius:999px;padding:3px 7px;font:700 10px var(--f-body);background:color-mix(in srgb,var(--money) 12%,transparent);color:var(--money)}
+.v6-flag.neutral{color:var(--pro-violet);background:color-mix(in srgb,var(--accent) 13%,transparent)}
+.v6-ab{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:13px 0}.v6-ab>div{min-width:0}.v6-ab label{display:block;margin-bottom:6px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.v6-ab select{width:100%;min-width:0}
+.v6-result{display:grid;grid-template-columns:1fr 1fr;gap:12px}.v6-result>div{border:1px solid var(--pro-border);border-radius:12px;padding:16px;background:color-mix(in srgb,var(--surface) 72%,transparent)}.v6-result small{display:block;color:var(--muted);font-size:11px;line-height:1.5}.v6-result b{display:block;font:800 27px var(--f-display);letter-spacing:-.06em;margin:4px 0}
+.v6-result .winner{border-color:color-mix(in srgb,var(--money) 42%,var(--pro-border));background:color-mix(in srgb,var(--money) 5%,var(--surface))}
+.v6-explain{padding:11px 13px;margin:12px 0 0;border-radius:10px;background:color-mix(in srgb,var(--accent) 8%,var(--surface));font-size:11px;color:var(--muted);line-height:1.6}
+.v6-pairs{display:grid;gap:9px;margin-top:11px}.v6-pair{border:1px solid var(--pro-border);border-radius:12px;padding:13px;background:color-mix(in srgb,var(--surface-2) 34%,transparent)}.v6-pair>strong{display:block;line-height:1.5;font-size:12px;margin-bottom:10px}
+.v6-pair-nums{display:grid;grid-template-columns:1fr 1fr;gap:9px}.v6-pair-nums>div{padding:9px 11px;border-radius:8px;background:var(--surface)}.v6-pair-nums b{display:block;font:800 19px var(--f-display);color:var(--fg)}.v6-pair-nums small{font-size:10px;color:var(--muted)}
+.v6-pair .v6-source{display:block;color:var(--muted);font-size:10px;margin-top:9px}
+.v6-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.v6-activity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}.v6-activity>div{background:color-mix(in srgb,var(--surface) 60%,transparent);border:1px solid var(--pro-border);border-radius:11px;padding:13px}.v6-activity strong{display:block;color:var(--fg);font-size:14px;line-height:1.5}.v6-activity small{display:block;color:var(--muted);font-size:11px;margin-top:4px;line-height:1.4}
+.v6-print{display:none}
+:root[data-theme="light"] .v6-hero{background:linear-gradient(115deg,#f9e9fb,#eae7ff);border-color:#dfbce5}:root[data-theme="light"] .v6-hero h3{color:#201b36}:root[data-theme="light"] .v6-hero p{color:#4b4b65}:root[data-theme="light"] .v6-hero .v6-eyebrow{color:#a33282}:root[data-theme="light"] .v6-hero .v6-badge{color:#943175;border-color:#dfbce5}
+@media(max-width:760px){.v6-grid{grid-template-columns:1fr;gap:11px}.v6-wide{grid-column:auto}.v6-hero{padding:20px}.v6-hero .v6-badge{display:none}.v6-health{gap:7px 11px}.v6-health a{width:100%;margin-left:0}.v6-activity{grid-template-columns:1fr}.v6-ab{grid-template-columns:1fr}.v6-result b{font-size:22px}}
+@media print{body>*:not(#v6-print-sheet){display:none!important}#v6-print-sheet{display:block!important;background:#fff!important;color:#17152a!important;padding:0 9mm;font-family:Arial,sans-serif;font-size:11pt}#v6-print-sheet *{color:inherit!important;box-shadow:none!important}#v6-print-sheet h1{font-size:26pt;margin:0 0 8px}#v6-print-sheet h2{font-size:15pt;margin:24px 0 10px}#v6-print-sheet .v6-pdf-header{display:flex;align-items:center;gap:15px;border-bottom:3px solid #e85bad;padding:0 0 20px}#v6-print-sheet .v6-pdf-header img{height:70px;width:70px;border-radius:50%}#v6-print-sheet table{width:100%;border-collapse:collapse}#v6-print-sheet td,#v6-print-sheet th{padding:10px 6px;text-align:left;border-bottom:1px solid #ddd}#v6-print-sheet .v6-pdf-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}#v6-print-sheet .v6-pdf-summary b{display:block;font-size:22pt}#v6-print-sheet p{line-height:1.5;color:#4b4562!important}}
 </style>
 
 <nav class="nav" aria-label="Secciones">
@@ -834,7 +879,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
 
 <div class="wrap">
   <div class="shell-intro" aria-label="Acciones del panel">
-    <div class="shell-path"><span class="shell-dot"></span><span>GTA VI STUDIO</span><span class="shell-slash">/</span><span>INTELIGENCIA PARA CREADORES</span><span class="shell-version">V5.0</span></div>
+    <div class="shell-path"><span class="shell-dot"></span><span>GTA VI STUDIO</span><span class="shell-slash">/</span><span>INTELIGENCIA PARA CREADORES</span><span class="shell-version">V6.0 PRO</span></div>
     <div class="shell-actions">
       <button class="shell-button" type="button" id="quick-find" title="Buscar en mis clips (Ctrl/⌘ + K)"><span aria-hidden="true">⌕</span> Buscar clips <kbd>⌘ K</kbd></button>
       <button class="shell-button" type="button" id="quick-export"><span aria-hidden="true">↓</span> Exportar CSV</button>
@@ -858,6 +903,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
     </div>
   </section>
   <section class="network-status" id="network-status" aria-label="Estado de los datos por red" aria-live="polite"></section>
+  <aside class="v6-health" id="v6-health" aria-live="polite" aria-label="Monitor de datos"><strong>◈ SYSTEM MONITOR</strong><span class="v6-status">Consultando el origen de datos…</span></aside>
   <div class="filters" id="filters">
     <div class="seg" id="period" role="group" aria-label="Periodo">
       <button type="button" data-p="7" aria-pressed="false">7 días</button>
@@ -927,6 +973,14 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
   <!-- ESTUDIO DE CRECIMIENTO -->
   <section class="view" data-view="estudio" hidden>
     <div class="view-head"><div><h2>Estudio de crecimiento</h2><p>Tu centro de decisiones para crear mejores clips.</p></div></div>
+    <div class="v6-hero"><div><span class="v6-eyebrow">◈ GTA VI / CREATOR INTELLIGENCE / V6</span><h3>Entiende qué funciona.<br>Repite lo que destaca.</h3><p>Seis herramientas nuevas para analizar señales, comparar publicaciones y exportar resultados con datos medidos de tus cuentas.</p></div><span class="v6-badge">● STUDIO V6 PRO</span></div>
+    <div class="v6-grid">
+      <section class="panel"><div class="panel-head"><div><span class="v6-head-note">01 / SIGNAL ENGINE</span><h2>◉ Detector de oportunidades</h2></div><span class="sub">señales, no promesas</span></div><div id="v6-detector"></div></section>
+      <section class="panel"><div class="panel-head"><div><span class="v6-head-note">02 / LIVE GROWTH</span><h2>⌁ Curva de crecimiento</h2></div><span class="sub">mediciones históricas</span></div><div class="v6-controls"><select class="in compact" id="v6-trend-clip" aria-label="Clip para ver su crecimiento"></select><div class="v6-toggle" role="group" aria-label="Ventana de tiempo"><button data-trend="24" aria-pressed="true" type="button">24 h</button><button data-trend="168" aria-pressed="false" type="button">7 días</button><button data-trend="720" aria-pressed="false" type="button">30 días</button></div></div><div class="v6-chart" id="v6-growth-chart"></div><p class="v6-chart-detail" id="v6-chart-detail" aria-live="polite">Pasa el cursor o selecciona un punto para inspeccionar la medición.</p></section>
+      <section class="panel"><div class="panel-head"><div><span class="v6-head-note">03 / CONTENT LAB</span><h2>◇ Laboratorio A/B</h2></div><span class="sub">compara resultados reales</span></div><div class="v6-ab"><div><label for="v6-ab-a">Versión A</label><select class="in compact" id="v6-ab-a"></select></div><div><label for="v6-ab-b">Versión B</label><select class="in compact" id="v6-ab-b"></select></div></div><div class="v6-controls"><span class="v6-head-note">MÉTRICA</span><div class="v6-toggle" role="group" aria-label="Métrica para comparar"><button data-ab="views" aria-pressed="true" type="button">Views</button><button data-ab="likes" aria-pressed="false" type="button">Likes</button><button data-ab="eng" aria-pressed="false" type="button">Interacción</button></div></div><div id="v6-ab-result"></div></section>
+      <section class="panel"><div class="panel-head"><div><span class="v6-head-note">04 / CROSS CHANNEL</span><h2>⇆ El mismo clip en dos redes</h2></div><span class="sub">TikTok ↔ Instagram</span></div><div id="v6-cross-platform"></div></section>
+      <section class="panel v6-wide"><div class="panel-head"><div><span class="v6-head-note">05 / SYSTEM HEALTH</span><h2>◷ Monitor de actualización automática</h2></div><span class="sub">lecturas cada 15 s · recolección cada 10 min</span></div><div class="v6-activity" id="v6-system-detail"></div><p class="v6-explain" id="v6-system-note"></p></section>
+    </div>
     <div class="studio-grid">
       <section class="panel"><div class="panel-head"><h2>🧠 Puntuación inteligente</h2><span class="sub">0–100 · rendimiento relativo</span></div><div id="studio-scores"></div></section>
       <section class="panel"><div class="panel-head"><h2>🔥 Radar de viralidad</h2><span class="sub">ritmo medido</span></div><div id="studio-radar"></div></section>
@@ -936,7 +990,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
       <section class="panel"><div class="panel-head"><h2>💡 Ideas y hashtags</h2><button class="btn small" id="studio-idea-next" type="button">Otra idea</button></div><div id="studio-ideas"></div><button class="btn small" id="studio-idea-copy" type="button">Copiar idea</button></section>
       <section class="panel studio-span"><div class="panel-head"><h2>📊 Comparador de clips</h2><span class="sub">dos publicaciones reales</span></div><div class="studio-toolbar"><select class="in compact" id="studio-compare-a" aria-label="Primer clip"></select><select class="in compact" id="studio-compare-b" aria-label="Segundo clip"></select></div><div id="studio-compare"></div></section>
       <section class="panel"><div class="panel-head"><h2>🔔 Centro de notificaciones</h2><span class="sub">alertas dentro del panel</span></div><div id="studio-notifications"></div></section>
-      <section class="panel"><div class="panel-head"><h2>📄 Informe semanal</h2><span class="sub">datos exportables</span></div><div id="studio-report"></div><div class="studio-toolbar"><button class="btn primary" type="button" id="studio-export-csv">Descargar CSV</button><button class="btn" type="button" id="studio-export-print">Imprimir informe</button></div></section>
+      <section class="panel"><div class="panel-head"><h2>📄 Informe de marca</h2><span class="sub">PDF con el logo de GTA VI</span></div><div id="studio-report"></div><div class="studio-toolbar"><button class="btn primary" type="button" id="studio-export-csv">Descargar CSV</button><button class="btn" type="button" id="studio-export-print">Guardar informe en PDF</button></div><p class="studio-note">Se abrirá la impresión del navegador: elige «Guardar como PDF». No se envían datos a ningún servicio.</p></section>
       <section class="panel studio-span"><div class="panel-head"><h2>📱 Aplicación en tu celular</h2><span class="sub">instalable</span></div><p class="studio-note">Puedes añadir el panel a la pantalla de inicio desde tu navegador. En iPhone: Compartir → Añadir a pantalla de inicio. En Android/Chrome: menú → Instalar aplicación. Los datos se consultan en línea.</p></section>
     </div>
   </section>
@@ -1067,6 +1121,7 @@ table.clips thead{background:rgba(162,117,222,.1)}table.clips tbody tr:hover{bac
   </section>
   <p class="site-foot footer-brand" id="site-foot" hidden><img src="icon.svg?logo=original-v5" width="26" height="26" alt=""> Datos públicos de TikTok e Instagram, actualizados automáticamente.</p>
 </div>
+<article class="v6-print" id="v6-print-sheet" aria-hidden="true"></article>
 
 <button class="fab" type="button" id="fab-add" aria-label="Nuevo clip">+</button>
 
@@ -1379,6 +1434,7 @@ function render(){
   computeBase();
   renderAccounts();
   renderLiveStatus();
+  renderSystemHealth();
   const r = range(state.period);
   const all = state.clips.filter(c => platOk(c) && inRange(c,r));
   const list = all.filter(c => !c.noDisponible);
@@ -1388,7 +1444,7 @@ function render(){
     renderHero(); renderNews(); renderKpis(list, prev, r); renderSmart(list); renderIntel(list); renderWeek(); renderGoals(); renderChart(list, r); renderPlats(list, r); renderTop(list); renderFoll();
   } else if (v==="clips") renderTable(all);
   else if (v==="analisis"){ renderFollowerInsights(list); renderTopics(list); renderWhen(list); renderHeat(list); renderVs(list, r); renderDist(list); }
-  else if (v==="estudio") renderStudio(list);
+  else if (v==="estudio"){ renderStudio(list); renderV6(); }
   else if (v==="dinero") renderPagos();
   else if (v==="calendario") renderCal();
   else if (v==="kit") renderKit();
@@ -1808,6 +1864,146 @@ function renderStudioComparison(items){
   const n=v=>v==null?"—":nf.format(v), pct=v=>v==null?"—":nf1.format(v)+"%",rate=v=>v==null?"—":nf1.format(v)+"/h";
   $("#studio-compare").innerHTML=`<div style="overflow:auto"><table class="vs" style="width:100%"><thead><tr><th style="text-align:left">Métrica</th><th>Clip A</th><th>Clip B</th></tr></thead><tbody>${row("Views",c=>num(c.views),n)}${row("Likes",c=>num(c.likes),n)}${row("Comentarios",c=>num(c.comentarios),n)}${row("Compartidos",c=>num(c.compartidos),n)}${row("Interacción",studioEng,pct)}${row("Crecimiento reciente",smartRate,rate)}${row("Puntuación",studioScore,n)}</tbody></table></div><p class="studio-note">Comparación de métricas observadas; los clips pueden tener diferentes fechas de publicación.</p>`;
 }
+
+// V6 Pro: análisis local sobre las mismas mediciones públicas. Nunca escribe datos.
+const v6 = {trendHours:24, trendClip:"", abA:"", abB:"", abMetric:"views"};
+function renderSystemHealth(){
+  const feed=window.PANEL_FETCH_STATUS||{};
+  const now=Date.now(), last=Date.parse(state.cfg.ultimaSync||"");
+  const age=Number.isFinite(last)?Math.max(0,(now-last)/60000):Infinity;
+  const ok=age<=35, pending=state.loaded && !Number.isFinite(last);
+  const hasFetch=Number.isFinite(feed.lastSuccessAt), fetchError=num(feed.failedCount)>0;
+  const statuses=[
+    {name:"TikTok",stamp:state.cfg.tiktokUltimaSync},
+    {name:"Instagram",stamp:state.cfg.igUltimaSync}
+  ];
+  const cells=statuses.map(p=>{
+    const t=Date.parse(p.stamp||""), fresh=Number.isFinite(t)&&now-t<=35*60000;
+    return `<div><strong>${esc(p.name)} · ${fresh?"Actualizado":"Pendiente"}</strong><small>${Number.isFinite(t)?"Última medición "+esc(ago(p.stamp)):"Sin fecha de medición verificable"}</small></div>`;
+  });
+  cells.unshift(`<div><strong>${pending?"Esperando datos":ok?"Recolector activo":"Recolección retrasada"}</strong><small>${Number.isFinite(last)?"Archivo actualizado "+esc(ago(state.cfg.ultimaSync)):"Sin hora de actualización confirmada"}</small></div>`);
+  $("#v6-system-detail").innerHTML=cells.join("");
+  const label=fetchError?"Error de conexión":!hasFetch?"Comprobando conexión":ok?"Lecturas automáticas activas":"Revisar actualización";
+  const info=fetchError?"La última consulta del navegador falló; conservamos los datos anteriores.":hasFetch?`Última consulta correcta ${ago(new Date(feed.lastSuccessAt).toISOString())}.`:"Esperando la primera consulta del archivo.";
+  $("#v6-health").innerHTML=`<strong>◈ SYSTEM MONITOR</strong><span class="v6-status ${fetchError||!ok?"warn":""}">${esc(label)}</span><i class="v6-divider"></i><span class="v6-meta">${esc(info)}</span><span class="v6-meta">Próxima ejecución prevista: ≈${nextRunMin()} min</span><a href="#estudio" title="Ver diagnóstico detallado">Diagnóstico ↗</a>`;
+  $("#v6-system-note").textContent=`${info} GitHub Actions está programado cada 10 minutos, aunque la ejecución y publicación pueden tardar más. ${!ok?"Si el archivo lleva más de 35 minutos sin cambiar, revisa el historial de GitHub Actions.":"El horario programado no garantiza recibir datos nuevos de cada red."} TikTok e Instagram se verifican por separado; una lectura de Instagram sin fecha no se considera reciente.`;
+}
+function renderV6(){
+  const live=state.clips.filter(c=>!c.noDisponible);
+  renderV6Detector(live);
+  renderV6Trend(live);
+  renderV6AB(live);
+  renderV6Cross(live);
+}
+function renderV6Detector(clips){
+  const rateBase=median(clips.map(c=>smartRate(c)).filter(v=>v!=null&&v>0));
+  const values=clips.map(c=>{
+    const rel=score(c), rate=smartRate(c), eng=studioEng(c);
+    if(rel==null) return null;
+    const strongRel=rel>=1.6, moving=rate!=null&&rate>=Math.max(4,rateBase*1.5), active=rate!=null&&rate>0;
+    const highEng=eng!=null&&num(c.views)>=30&&eng>=6;
+    const points=Math.min(100,Math.round(Math.min(58,25*Math.log2(1+Math.max(0,rel)))+(active?Math.min(27,12+15*rate/Math.max(1,rateBase*2)):0)+(highEng?15:0)));
+    return {c,rel,rate,eng,points,strongRel,moving,active,highEng,signalCount:Number(strongRel)+Number(moving)+Number(highEng)};
+  }).filter(Boolean).sort((a,b)=>b.signalCount-a.signalCount||b.points-a.points);
+  if(!values.length){$("#v6-detector").innerHTML=`<p class="studio-note">Se necesitan varias publicaciones con vistas comparables para detectar oportunidades.</p>`;return;}
+  $("#v6-detector").innerHTML=`<div class="v6-detect">`+values.slice(0,4).map(x=>{
+    const label=x.moving&&x.strongRel?"Creciendo rápido":x.strongRel?"Supera la mediana":x.highEng?"Buena interacción":"En observación";
+    const tags=[`${nf1.format(x.rel)}× mediana de su red`,x.rate!=null?`+${nf1.format(x.rate)} views/h medidos`:"Sin ritmo reciente",x.eng!=null?`${nf1.format(x.eng)}% de interacción`:"Interacción sin base"];
+    return `<div class="v6-detect-item"><span class="v6-ring" style="--p:${x.points}%"><span>${x.points}</span></span><div><span class="v6-flag ${x.signalCount<2?"neutral":""}">${label}</span><strong>${titleHtml(x.c)}</strong><small>${tags.map(esc).join(" · ")}</small></div></div>`;
+  }).join("")+`</div><p class="v6-explain">Índice de 0–100 propio del panel. Usa rendimiento frente a la mediana de cada red, interacción y, cuando existe, velocidad de views. Los números bajos o la falta de mediciones no predicen el futuro.</p>`;
+}
+function v6Select(sel,clips,active){
+  const node=$(sel), old=active||node.value;
+  node.innerHTML=clips.map(c=>`<option value="${esc(c.id)}">${esc((PMAP[c.plataforma]||PMAP.otro).n)} · ${esc(String(c.titulo||"").slice(0,75))}</option>`).join("");
+  node.value=clips.some(c=>String(c.id)===String(old))?old:String(clips[0]?.id||"");
+  return node.value;
+}
+function renderV6Trend(clips){
+  const eligible=clips.filter(c=>snapOf(c).filter(p=>Number.isFinite(p[0])&&Number.isFinite(num(p[1]))).length>=2)
+    .sort((a,b)=>(snapOf(b).at(-1)?.[0]||0)-(snapOf(a).at(-1)?.[0]||0));
+  v6.trendClip=v6Select("#v6-trend-clip",eligible,v6.trendClip);
+  document.querySelectorAll("[data-trend]").forEach(b=>b.setAttribute("aria-pressed",String(num(b.dataset.trend)===v6.trendHours)));
+  const c=eligible.find(c=>String(c.id)===String(v6.trendClip));
+  if(!c){$("#v6-growth-chart").innerHTML=`<p class="studio-note">La curva se mostrará cuando un clip tenga al menos dos mediciones reales.</p>`;return;}
+  const threshold=Date.now()/60000-v6.trendHours*60;
+  const pts=snapOf(c).filter(p=>p[0]>=threshold&&p[1]!=null&&Number.isFinite(Number(p[1]))).sort((a,b)=>a[0]-b[0]);
+  if(pts.length<2){$("#v6-growth-chart").innerHTML=`<p class="studio-note">No hay dos mediciones de «${esc(c.titulo)}» dentro de estas ${v6.trendHours===24?"24 horas":v6.trendHours===168?"7 días":"30 días"}. Cambia la ventana o selecciona otro clip.</p>`;return;}
+  const W=560,H=238,L=49,R=14,T=14,B=36,iw=W-L-R,ih=H-T-B;
+  const mn=Math.min(...pts.map(p=>num(p[1]))),mx=Math.max(...pts.map(p=>num(p[1])));
+  const y0=Math.max(0,mn-Math.max(1,(mx-mn)*.2)),y1=mx+Math.max(1,(mx-mn)*.2);
+  const x0=pts[0][0],x1=pts.at(-1)[0];
+  const x=t=>L+(t-x0)/Math.max(1,x1-x0)*iw,y=v=>T+ih-(v-y0)/Math.max(1,y1-y0)*ih;
+  const path=pts.map((p,i)=>`${i?"L":"M"}${x(p[0]).toFixed(1)},${y(num(p[1])).toFixed(1)}`).join(" ");
+  const when=t=>new Date(t*60000).toLocaleString("es",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+  let grid="";
+  for(let i=0;i<=4;i++){const value=y0+(y1-y0)*i/4,yy=y(value);grid+=`<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="var(--pro-border)"/><text x="${L-8}" y="${yy+4}" text-anchor="end">${esc(nfc.format(Math.round(value)))}</text>`;}
+  for(let i=0;i<=3;i++){const q=i/3,t=x0+(x1-x0)*q;grid+=`<text x="${x(t)}" y="${H-13}" text-anchor="middle">${esc(when(t))}</text>`;}
+  const circles=pts.map(p=>{const label=`${when(p[0])} · ${nf.format(num(p[1]))} views`;return `<circle cx="${x(p[0])}" cy="${y(num(p[1]))}" r="${pts.length>80?2.3:3.6}" fill="var(--pro-pink)" stroke="var(--surface)" stroke-width="1.2" tabindex="0" data-point="${esc(label)}" aria-label="${esc(label)}"><title>${esc(label)}</title></circle>`;}).join("");
+  $("#v6-growth-chart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Crecimiento de ${esc(c.titulo)} con ${pts.length} mediciones">${grid}<path d="${path}" fill="none" stroke="var(--pro-violet)" stroke-width="2.9" stroke-linejoin="round" stroke-linecap="round"/>${circles}</svg>`;
+  const delta=num(pts.at(-1)[1])-num(pts[0][1]);
+  $("#v6-chart-detail").textContent=`${nf.format(pts.length)} mediciones · ${delta>=0?"+":""}${nf.format(delta)} views en el intervalo registrado. Pulsa un punto para ver su fecha y cifra.`;
+}
+function renderV6AB(clips){
+  const eligible=clips.filter(c=>hasV(c.views)&&num(c.views)>=0).sort((a,b)=>num(b.views)-num(a.views));
+  const tik=eligible.filter(c=>c.plataforma==="tiktok");
+  const defaults=tik.length>1?tik:eligible;
+  v6.abA=v6Select("#v6-ab-a",eligible,v6.abA||defaults[0]?.id);
+  v6.abB=v6Select("#v6-ab-b",eligible,v6.abB||defaults[1]?.id);
+  document.querySelectorAll("[data-ab]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.ab===v6.abMetric)));
+  const a=eligible.find(c=>String(c.id)===String(v6.abA)),b=eligible.find(c=>String(c.id)===String(v6.abB));
+  if(!a||!b||a.id===b.id){$("#v6-ab-result").innerHTML=`<p class="studio-note">Selecciona dos clips distintos con datos disponibles.</p>`;return;}
+  const metric=c=>v6.abMetric==="eng"?studioEng(c):num(c[v6.abMetric]);
+  const va=metric(a),vb=metric(b),has=va!=null&&vb!=null;
+  const fmt=v=>v==null?"—":v6.abMetric==="eng"?nf1.format(v)+"%":nf.format(v);
+  const winner=has&&va!==vb?(va>vb?"A":"B"):"";
+  const max=Math.max(va||0,vb||0,1);
+  const tile=(c,v,label)=>`<div class="${winner===label?"winner":""}"><small>VERSIÓN ${label} · ${esc((PMAP[c.plataforma]||PMAP.otro).n)}</small><b>${fmt(v)}</b><div class="studio-progress"><i style="width:${Math.max(0,(v||0)/max*100)}%"></i></div><small>${esc(String(c.titulo||"").slice(0,68))}</small></div>`;
+  const diff=has&&Math.min(va,vb)>0?nf1.format(Math.abs(va-vb)/Math.min(va,vb)*100)+"% superior":"";
+  const warnings=[a.plataforma!==b.plataforma?"Son plataformas diferentes.":"Misma plataforma.",a.fecha!==b.fecha?"Publicados en fechas distintas.":"Misma fecha registrada."];
+  $("#v6-ab-result").innerHTML=`<div class="v6-result">${tile(a,va,"A")}${tile(b,vb,"B")}</div><p class="v6-explain">${has?(winner?`La versión ${winner} obtuvo ${diff||"más"} en ${v6.abMetric==="eng"?"tasa de interacción":v6.abMetric}.`:"Ambas versiones tienen el mismo resultado registrado."):"Faltan vistas para calcular la interacción."} ${warnings.join(" ")} Comparación exploratoria: no es una prueba A/B aleatorizada ni demuestra causalidad. Las publicaciones pueden tener diferente antigüedad.</p>`;
+}
+function v6NormTitle(s){return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/gta\s*(?:vi|6)/g,"gta6").replace(/[^a-z0-9]+/g," ").trim();}
+function v6Similarity(a,b){
+  const x=v6NormTitle(a).slice(0,130),y=v6NormTitle(b).slice(0,130);
+  if(x.length>=18&&y.length>=18&&(x.startsWith(y)||y.startsWith(x)))return 1;
+  const token=s=>new Set(s.split(" ").filter(w=>w.length>2&&!STOP.has(w)).slice(0,10));
+  const aa=token(x),bb=token(y),inter=[...aa].filter(w=>bb.has(w)).length;
+  return inter/Math.max(1,Math.min(aa.size,bb.size));
+}
+function renderV6Cross(clips){
+  const tt=clips.filter(c=>c.plataforma==="tiktok"),ig=clips.filter(c=>c.plataforma==="instagram");
+  const options=[];
+  for(const a of tt)for(const b of ig){
+    const dateGap=Math.abs((parse(a.fecha)-parse(b.fecha))/86400000);
+    const similarity=v6Similarity(a.titulo,b.titulo);
+    if(dateGap<=14&&similarity>=.8)options.push({a,b,similarity,dateGap});
+  }
+  options.sort((a,b)=>b.similarity-a.similarity||a.dateGap-b.dateGap);
+  const usedTT=new Set(),usedIG=new Set(),matched=[];
+  for(const pair of options){if(usedTT.has(pair.a.id)||usedIG.has(pair.b.id))continue;matched.push(pair);usedTT.add(pair.a.id);usedIG.add(pair.b.id);}
+  if(!matched.length){$("#v6-cross-platform").innerHTML=`<p class="studio-note">No se encontraron títulos suficientemente parecidos publicados en las dos redes. Aparecerán comparaciones cuando publiques el mismo tema en TikTok e Instagram.</p>`;return;}
+  $("#v6-cross-platform").innerHTML=`<p class="studio-note">${matched.length} coincidencia${matched.length===1?"":"s"} por semejanza de títulos (no vinculación oficial). Se muestran las ${Math.min(4,matched.length)} primeras.</p><div class="v6-pairs">`+matched.slice(0,4).map(({a,b,dateGap})=>{
+    const val=c=>hasV(c.views)?nf.format(num(c.views)):"—";
+    return `<div class="v6-pair"><strong>${esc(String(b.titulo).slice(0,94))}</strong><div class="v6-pair-nums"><div><small>● TIKTOK</small><b>${val(a)}</b><small>views · ${nf.format(num(a.likes))} likes</small></div><div><small>● INSTAGRAM</small><b>${val(b)}</b><small>views · ${nf.format(num(b.likes))} likes</small></div></div><span class="v6-source">Fechas: ${esc(a.fecha)} / ${esc(b.fecha)}${dateGap?` · ${dateGap} día(s) de diferencia`:""}. ${!hasV(a.views)||!hasV(b.views)?"No todas las views están disponibles.":"Cifras acumuladas en cada red."}</span></div>`;
+  }).join("")+`</div><p class="v6-explain">Las vistas acumuladas no controlan la edad del video ni el alcance distinto de cada plataforma. Confirma las coincidencias de títulos antes de sacar conclusiones.</p>`;
+}
+function makeV6PrintableReport(){
+  const clips=state.clips.filter(c=>!c.noDisponible),recent=clips.filter(c=>inRange(c,range("7")));
+  const total=sum(recent.filter(c=>hasV(c.views)),"views"),likes=sum(recent,"likes");
+  const top=recent.filter(c=>hasV(c.views)).sort((a,b)=>num(b.views)-num(a.views)).slice(0,10);
+  const t=new Date().toLocaleString("es",{day:"2-digit",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"});
+  const stamp=state.cfg.ultimaSync?new Date(state.cfg.ultimaSync).toLocaleString("es"):"sin fecha verificada";
+  const brand=esc(state.cfg.nombre||cuentas()[0]?.usuario||"dailygtagaming");
+  $("#v6-print-sheet").innerHTML=`<div class="v6-pdf-header"><img src="icon.svg?logo=original-v5" alt="Logo GTA VI"><div><p>GTA VI · CLIPS STUDIO PRO · V6</p><h1>Informe semanal</h1><p>${brand} · Preparado el ${esc(t)}</p></div></div><div class="v6-pdf-summary"><div><small>CLIPS PUBLICADOS</small><b>${recent.length}</b></div><div><small>VIEWS ACUMULADAS</small><b>${nf.format(total)}</b></div><div><small>LIKES ACUMULADOS</small><b>${nf.format(likes)}</b></div></div><h2>Rendimiento de los clips de los últimos 7 días</h2><table><thead><tr><th>Clip</th><th>Red</th><th>Views</th><th>Likes</th></tr></thead><tbody>${top.map(c=>`<tr><td>${esc(String(c.titulo).slice(0,95))}</td><td>${esc((PMAP[c.plataforma]||PMAP.otro).n)}</td><td>${nf.format(num(c.views))}</td><td>${nf.format(num(c.likes))}</td></tr>`).join("")||'<tr><td colspan="4">Sin mediciones de views en esta semana.</td></tr>'}</tbody></table><h2>Estado de las fuentes</h2><p>Archivo público: ${esc(stamp)}. TikTok: ${esc(state.cfg.tiktokUltimaSync?ago(state.cfg.tiktokUltimaSync):"sin medición reciente verificada")}. Instagram: ${esc(state.cfg.igUltimaSync?ago(state.cfg.igUltimaSync):"sin medición reciente verificada")}.</p><p><strong>Nota metodológica:</strong> views y likes son cifras acumuladas de los clips publicados en los últimos siete días, no el crecimiento durante esos días. Las plataformas pueden tener datos faltantes o retrasados. Documento preparado localmente sin enviar información a terceros.</p>`;
+}
+$("#v6-trend-clip").addEventListener("change",e=>{v6.trendClip=e.target.value;renderV6Trend(state.clips.filter(c=>!c.noDisponible));});
+document.querySelectorAll("[data-trend]").forEach(b=>b.addEventListener("click",()=>{v6.trendHours=num(b.dataset.trend);renderV6Trend(state.clips.filter(c=>!c.noDisponible));}));
+$("#v6-growth-chart").addEventListener("pointerover",e=>{const p=e.target.closest("[data-point]");if(p)$("#v6-chart-detail").textContent=p.dataset.point;});
+$("#v6-growth-chart").addEventListener("focusin",e=>{const p=e.target.closest("[data-point]");if(p)$("#v6-chart-detail").textContent=p.dataset.point;});
+$("#v6-growth-chart").addEventListener("click",e=>{const p=e.target.closest("[data-point]");if(p)$("#v6-chart-detail").textContent=p.dataset.point;});
+for(const id of ["#v6-ab-a","#v6-ab-b"])$(id).addEventListener("change",e=>{v6[e.target.id==="v6-ab-a"?"abA":"abB"]=e.target.value;renderV6AB(state.clips.filter(c=>!c.noDisponible));});
+document.querySelectorAll("[data-ab]").forEach(b=>b.addEventListener("click",()=>{v6.abMetric=b.dataset.ab;renderV6AB(state.clips.filter(c=>!c.noDisponible));}));
+document.addEventListener("panel-sync-state",()=>{if(state.loaded)renderSystemHealth();});
 function downloadStudioCsv(){
   const c=state.clips.filter(x=>!x.noDisponible&&inRange(x,range("7")));
   const fields=["fecha","plataforma","titulo","views","likes","comentarios","compartidos","guardados"];
@@ -1821,7 +2017,7 @@ for(const id of ["#studio-compare-a","#studio-compare-b"])$(id).addEventListener
 $("#studio-idea-next").addEventListener("click",()=>{studio.idea++;renderStudioIdeas(state.clips);});
 $("#studio-idea-copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(studio.copyText);$("#studio-idea-copy").textContent="Copiado ✓";}catch(_){$("#studio-idea-copy").textContent="Selecciona el texto y cópialo";}});
 $("#studio-export-csv").addEventListener("click",downloadStudioCsv);
-$("#studio-export-print").addEventListener("click",()=>window.print());
+$("#studio-export-print").addEventListener("click",()=>{makeV6PrintableReport();window.print();});
 
 function renderTop(list){
   let rows = list.filter(c=>hasV(c.views)).sort((a,b)=>num(b.views)-num(a.views)).slice(0,5);
